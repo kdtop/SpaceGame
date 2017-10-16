@@ -13,8 +13,8 @@ class TVehicle extends T3DObject {
 
 
 class TVehicle extends T3DObject {
-  constructor (mass) {
-    super(mass);
+  constructor (mass, aName) {
+    super(mass, aName);
     this.originIndicator = {};                   //An Object3D to visualize where location of ship.position is.
     this.plane = PLANE_UNK;                      //either "xy", or "xz", or "yz" depending on which plane the ship is orbiting in.
     this.cameraAttachmentOffset = new TOffset(-30,20,0); //location of camera attachemnt relative to object

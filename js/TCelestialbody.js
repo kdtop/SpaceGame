@@ -1,7 +1,7 @@
 
 class TCelestialBody extends T3DObject {
-  constructor (mass, realSize, gameSize, fileName) {
-    super(mass);
+  constructor (mass, realSize, gameSize, fileName, aName) {
+    super(mass, aName);
     this.realWorldSize = realSize;  // KM radius
     this.radius = gameSize;         //desired size in graphic world
 

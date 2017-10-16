@@ -19,6 +19,7 @@ const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
 const SHOW_CAMERA_ATTACHEMENT_MARKER = false;
 const SHOW_SHIP_POS_MARKER = false;
 
+const CAMERA_MODE_UNK = 0;
 const CAMERA_MODE_ORBIT = 1;
 const CAMERA_MODE_FOLLOW = 2;
 const CAMERA_MODE_HIGH_ABOVE = 3;

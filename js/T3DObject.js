@@ -12,7 +12,7 @@ class TOffset extends THREE.Vector3 {
 }
 
 class T3DObject {
-  constructor(mass) {
+  constructor(mass, aName) {
   get inV() {
   get upV() {
   get leftV() {
@@ -78,8 +78,8 @@ class TOffset extends THREE.Vector3 {
 }
 
 class T3DObject extends T3DPoint {
-  constructor(mass) {
-    super(mass);
+  constructor(mass, aName) {
+    super(mass, aName);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
     this.object = {};                            //this will be the THREE.Object3D for the vehicle
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model from game position.

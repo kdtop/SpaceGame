@@ -2,7 +2,7 @@
 /*
 Contents:
   function onWindowResize()
-  function wrapPosition( p )    //p is Vector3
+  function wrapPosition(aObject,  p)    //p is Vector3
   function wrapRadians (Rad)
   function generateTexture( r, g, b )
   function generateSprite() {
@@ -40,16 +40,19 @@ function onDocumentTouchMove( event ) {
 }
 
 
-function wrapPosition( p ) {   //p is Vector3
-//Input: p -- Vector3
+function wrapPosition(aObject, p) {   //p is Vector3
+//Input:  aObject -- a T3DObject
+//        p -- Vector3
   let wrapped = false;
   let max = GRID_SIZE/2;
+  let originalP = p.clone();
   if (p.x < -max) { p.x = max;   wrapped = true;  }
   if (p.y < -max) { p.y = max;   wrapped = true;  }
   if (p.z < -max) { p.z = max;   wrapped = true;  }
   if (p.x > max)  { p.x = -max;  wrapped = true;  }
   if (p.y > max)  { p.y = -max;  wrapped = true;  }
   if (p.z > max)  { p.z = -max;  wrapped = true;  }
+  if (wrapped) gameCamera.objectWrapped(aObject, p, originalP);
   return wrapped;
 }
 

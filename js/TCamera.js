@@ -10,10 +10,11 @@ class TCamera extends T3DObject {
     this.orbit.xzAngle = 0;
     this.orbit.zyAngle = 0;
     this.orbit.xzAngleVelocity = 0.0; //0.1; //radians/sec
-    this.animate = this.animateOrbit;
+    this.setMode(CAMERA_MODE_ORBIT);
     this.springK = CAMERA_SPRING_CONST;
   }
   setMode(mode) {
+    this.mode = mode;
     if (mode == CAMERA_MODE_ORBIT) {
       this.animate = this.animateOrbit;
     } else if (mode == CAMERA_MODE_FOLLOW) {
@@ -92,7 +93,7 @@ class TCamera extends T3DObject {
     let deltaPos = this.velocity.clone();
     deltaPos.multiplyScalar(deltaSec);
     this.position.add(deltaPos);
-    wrapPosition(this.position);
+    //wrapPosition(this.position);  <-- will wrap based on when trackedObject is wrapped
 
     //dampen camera velocity
     var vel = this.velocity.clone();
@@ -147,5 +148,16 @@ class TCamera extends T3DObject {
     this.camera.position.copy(this.trackedObject.cockpitPos);
     this.camera.lookAt(this.trackedObject.cockpitLookAt);
   }
+  objectWrapped(aObject, p, originalP) {
+    if (aObject != this.trackedObject) return;  //ignore other objects camera is not tracking
+    if ([CAMERA_MODE_FOLLOW, CAMERA_MODE_COCKPIT].indexOf(this.mode) == -1) return;  //wrapping only applies for certain modes
+    let delta = this.position.clone();
+    delta.sub(originalP);  //delta is vector from object position before it was wrapped to camera position
+    let newPosition = p.clone();
+    newPosition.add(delta);
+    this.position.copy(newPosition);
+  }
+
+
 
 }
