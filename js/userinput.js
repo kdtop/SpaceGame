@@ -43,6 +43,8 @@ function onKeyPress(event) {
     gamePaused = !gamePaused;
     if (!gamePaused) requestAnimationFrame(animate);
     gamePaused ? clock.stop() : clock.start();
+  } else if (k == 'g') {
+    disableGravity = !disableGravity;
   }
 }
 
@@ -54,13 +56,13 @@ function handleKeyAction(vehicle, deltaSec)  {
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_XZ) {
       //yawObject (vehicle.object, -Pi/2, deltaSec);
-      vehicle.yaw(-Pi/2, deltaSec);
+      vehicle.yaw(-SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['ArrowLeft']) || (keyDown['Numpad4'])) {  //yaw left
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_XZ) {
-      vehicle.yaw(Pi/2, deltaSec);
+      vehicle.yaw(SHIP_ROTATION_RATE, deltaSec);
       //yawObject (vehicle.object, Pi/2, deltaSec);
     }
   }
@@ -68,28 +70,28 @@ function handleKeyAction(vehicle, deltaSec)  {
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
       //pitchObject (vehicle.object, Pi/2, deltaSec);
-      vehicle.pitch(Pi/2, deltaSec);
+      vehicle.pitch(SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['ArrowDown']) || (keyDown['Numpad2'])) {  //pitch up
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
       //pitchObject (vehicle.object, -Pi/2, deltaSec);
-      vehicle.pitch(-Pi/2, deltaSec);
+      vehicle.pitch(-SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['PageUp']) || (keyDown['Numpad9'])) {  //roll right
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
       //rollObject (vehicle.object, Pi/2, deltaSec);
-      vehicle.roll(Pi/2, deltaSec);
+      vehicle.roll(SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['1']) || (keyDown['Numpad1'])) {  //roll left.
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
       //rollObject (vehicle.object, -Pi/2, deltaSec);
-      vehicle.roll(-Pi/2, deltaSec);
+      vehicle.roll(-SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['Enter']) || (keyDown['Numpad5'])) {  //Orient towards current velocity

@@ -17,21 +17,21 @@ class TVehicle extends T3DObject {
     super(mass);
     this.originIndicator = {};                   //An Object3D to visualize where location of ship.position is.
     this.plane = PLANE_UNK;                      //either "xy", or "xz", or "yz" depending on which plane the ship is orbiting in.
-    this.cameraTrailing = 30;                    //how far behind object cameraAttachement should be set
-    this.cameraAbove = 20;                       //how far above object cameraAttachement should be set
+    this.cameraAttachmentOffset = new TOffset(-30,20,0); //location of camera attachemnt relative to object
+    //this.cameraTrailing = 30;                    //how far behind object cameraAttachement should be set
+    //this.cameraAbove = 20;                       //how far above object cameraAttachement should be set
     this.cameraAttachement = new THREE.Vector3();//When camera is following vehicle, this will be it's target location
-    this.cockpitForward = 20;                    //When in cockpit mode, this will be how far ahead of object cockpit position is
-    this.cockpitAbove = 10;                      //When in cockpit mode, this will be how far above object cockpit position is
+    this.cockpitOffset = new TOffset(20,10,0);   //location of cockpit relative to object
+    //this.cockpitForward = 20;                    //When in cockpit mode, this will be how far ahead of object cockpit position is
+    //this.cockpitAbove = 10;                      //When in cockpit mode, this will be how far above object cockpit position is
     this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
-    this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of shipt to look towards
-    this.PS1 = new TParticleSys(scene, this, 500, new TOffset(0,0,0), new TOffset(0,0,0), 1, 1, 10,10,10, 10);
-  }
-  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
-  //Input: accel  -- deltaV/sec
-  //       deltaSec -- elapsed time for this frame
-    this.calculateInUpLeft ();
-    this.inV.setLength(accel * deltaSec)
-    this.velocity.add(this.inV);
+    this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of ship to look towards
+    //this.PS1 = new TParticleSys(scene, this, 500, new TOffset(0,0,0), new TOffset(0,0,0), 1, 1, 10,10,10, 10);
+    this.PS1 = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
+                                positionOffset : new TOffset(-7,7,0),
+                              velocityOffset: new TOffset(-40,0,0),
+                            decaySec: 2, initScale: 8, posVariance: 2,
+                          decayVariance: 10, scaleVariance: 10,  velocityVariance: 10 });
   }
   orbit(aBody) {
   //Input: aBody - TCelestialBody
@@ -50,46 +50,51 @@ class TVehicle extends T3DObject {
     orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found experimentally
     this.velocity.copy(orbitV);
   }
-  animate(deltaSec) {
-    //Later I can make a loop that cycles through all other objects
-    //  and gets force from each -- i.e. could have 2 suns...
-    this.PS1.animate(deltaSec);
-
-    //First, change postion based on current velocity
-    //Below we will later alter current velocity based on acceleration forces
-    super.animate(deltaSec);
+  getGravityAccelV(aBody, deltaSec) {
+    //Input -- aBody -- TCelestialBody
+    //         deltaSec -- elapsed time for this frame
+    //result: an acceleration vector (a deltaVelocity vector) -- NOT deltaV/sec
 
     // F = M*A
     // M1 * A1 = F = GRAV_CONST * M1 * M2 / (dist^2)
     // simplifies to:
     //      A1 = GRAV_CONST * M2 / (dist^2)   <-- A1 is acceleration of Mass1
-
-    let distSquaredVoxel = this.position.distanceToSquared ( sun.object.position );
+    let distSquaredVoxel = this.position.distanceToSquared ( aBody.position );
     let distSquared = distSquaredVoxel * worldConvSquared * 1000 * 1000;  //meters^2
     let accel = (GRAV_CONST * sun.mass) / distSquared; //units is delta meters/sec^2
-
     let deltaV = new THREE.Vector3(0,0,0);
     let deltaVScale = accel *  deltaSec / 1000; //units are delta km/sec
     deltaVScale = deltaVScale / worldConv; //units voxel/sec
-    deltaV.subVectors(sun.object.position, this.position);  //get vector pointing at sun
+    deltaV.subVectors(aBody.position, this.position);  //get vector pointing at sun
     deltaV.setLength(deltaVScale);  //units are delta voxels/sec
-    this.velocity.add (deltaV);     //units are delta voxels/sec
+    return deltaV;
+  }
+  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
+  //Input: accel  -- SCALAR deltaV/sec
+  //       deltaSec -- elapsed time for this frame
+    this.calculateInUpLeft ();
+    let deltaV = this.inV.clone();
+    deltaV.setLength(accel * deltaSec)
+    this.accelerate(deltaV);
+  }
+  accelerate(deltaV) {
+    this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-500, 500);  //keep velocity length within -500 to 500 voxels/sec
+  }
+  animate(deltaSec) {
 
-    //let deltaPos = this.velocity.clone();
-    //deltaPos.multiplyScalar(deltaSec);  //units are now delta voxels.
-    //let newPosition = new THREE.Vector3(0,0,0);
-    //newPosition.copy(this.position);
-    //newPosition.add(deltaPos);
-    //let wrapped = wrapPosition(newPosition);
-    //this.position.copy(newPosition);
+    this.PS1.animate(deltaSec);  //animate particle system
+    super.animate(deltaSec);  //First, change postion based on current velocity
 
-    let newPosition = this.position.clone();
-    newPosition.add (this.objectOffset);
-    this.object.position.copy (newPosition);
-    if (SHOW_SHIP_POS_MARKER == true) {
-      this.originIndicator.position.copy (this.position);
+    if (!disableGravity) {
+      //Later I can make a loop that cycles through all other objects
+      //  and gets force from each -- i.e. could have 2 suns...
+      let deltaV = this.getGravityAccelV(sun, deltaSec);
+      this.accelerate(deltaV)
     }
+
+    //set position of model relative to current position
+    this.object.position.copy(this.objectOffset.combineWithObjectAddVector(this,this.position));
 
     autoPointTowardsMotionDelay -= deltaSec;
     if (autoPointTowardsMotionDelay <= 0) {
@@ -97,43 +102,19 @@ class TVehicle extends T3DObject {
       //this.rotateTowardsVelocity (2*Pi, deltaSec);   //gradually orient towards direction of object's velocity
     }
 
-    this.calculateInUpLeft ();
-    let inV = this.inVector;
-    let upV = this.upVector;
-    let leftV = this.leftVector;
-
     //Calculate position for following camera attachement
-    let cameraV = inV.clone();
-    cameraV.multiplyScalar(-1);
-    cameraV.setLength(this.cameraTrailing);  //put camera _x_ voxels behind vehicle
-    let cameraVUp = upV.clone();
-    cameraVUp.setLength(this.cameraAbove);  //and then _x voxels above vehicle
-    cameraV.add(cameraVUp);
-    cameraV.add(this.position);
-    this.cameraAttachement.copy(cameraV);
-    //if (SHOW_CAMERA_ATTACHEMENT_MARKER == true) {
-    //  this.cameraAttachementMarker.position.copy(cameraV);
-    //}
+    this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectAddVector(this,this.position);
 
     //Calculate position for cockpit camera
-    cameraV = inV.clone();
-    cameraV.setLength(this.cockpitForward);  //put cockpit _x_ voxels ahead vehicle
-    cameraVUp = upV.clone();
-    cameraVUp.setLength(this.cockpitAbove);  //and then _x voxels above vehicle
-    cameraV.add(cameraVUp);
-    cameraV.add(this.position);
-    this.cockpitPos.copy(cameraV);
+    this.cockpitPos = this.cockpitOffset.combineWithObjectAddVector(this,this.position);
+
     //Now calculate a postion for cockpit camera to look at
-    cameraV = inV.clone();
-    cameraV.setLength(100);
-    cameraV.add(this.cockpitPos);
-    this.cockpitLookAt.copy(cameraV);
-    if (SHOW_CAMERA_ATTACHEMENT_MARKER == true) {
-      this.cameraAttachementMarker.position.copy(this.cockpitLookAt);
-    }
+    this.cockpitLookAt = this.lookingAtPos(100).add(this.cockpitPos);
 
     //debugShowXfrm(this);  //draw three lines showing matrix orientation
-
+    //if (SHOW_SHIP_POS_MARKER == true) this.originIndicator.position.copy (this.position);
+    if (SHOW_CAMERA_ATTACHEMENT_MARKER == true)
+      this.cameraAttachementMarker.position.copy(this.cockpitLookAt);
   }
   resetPositionToInit(sun) {
     this.position.set(0, 0, 250);

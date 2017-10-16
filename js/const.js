@@ -1,9 +1,9 @@
 
 
 const Pi = 3.14159 ;
-const CAMERA_SPRING_CONST = 30;  //units are N / voxel    <-- tweak number later
+const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
-const CAMERA_MAX_VELOCITY = 1300; //voxels/sec
+const CAMERA_MAX_VELOCITY = 2000; //voxels/sec
 const GRAV_CONST = 0.02;  // N * meters^2 /mass^2  //<-- Not consistent with real world.
 //const GRAV_CONST = 0.0000000000667;  // N * meters^2 /mass^2  //<-- real world
 const GRID_SIZE = 1600;  //- 2000 to + 2000 = 4000 true width
@@ -11,6 +11,7 @@ const SUN_MASS = 2e30;  //2e30 = 2x10^30 kg
 const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
 const SUN_GAME_SIZE = 40;  //voxels of radius
 const SHIP_MASS = 9e7;  //90000000; //kg
+const SHIP_ROTATION_RATE = Pi/2;  //radians/second
 
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2

@@ -32,3 +32,4 @@ var windowHalfY = window.innerHeight / 2;
 var globalDebugMessage = '';
 
 var gamePaused = false;
+var disableGravity  = false;

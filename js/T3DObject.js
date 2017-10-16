@@ -17,7 +17,7 @@ class T3DObject {
   get upV() {
   get leftV() {
   get futurePos() {
-  get lookingAtPos() {
+  function lookingAtPos(distance)  {
   getInUpLeft(inV, upV, leftV) {
   calculateInUpLeft () {
   yaw(deltaAngle, deltaSec) {
@@ -48,19 +48,18 @@ class TOffset extends THREE.Vector3 {
   get left() { return this.z; }
   set left(value) { this.z = value;}
 
-  combineWithObjectVector(object, aVector) {
-    //input: object -- A THREE.Object3D
-    //       aVector  -- a THREE.Vector3
-    //Example use:  A value of (2, 1, -3) for offset means T3DObject's
-    //      aVector + this.in * 2
+  combineWithObject(a3DObject) {
+    //input: object -- A T3DObject
+    //Example use:  A value of (2, 1, -3) for offset means object's...
+    //              + this.in * 2
     //              + this.up * 1
     //              + this.leftV * 1
-    //Result: returns this.positon + offset
+    //Result: returns THREE.VECTOR3.
     let inV = new THREE.Vector3();
     let upV = new THREE.Vector3();
     let leftV = new THREE.Vector3();
-    object.matrix.extractBasis (leftV, upV, inV)
-    let result = aVector.clone();
+    a3DObject.object.matrix.extractBasis (leftV, upV, inV)
+    let result = new THREE.Vector3();
     inV.multiplyScalar(this.in);
     upV.multiplyScalar(this.up);
     leftV.multiplyScalar(this.left);
@@ -69,8 +68,13 @@ class TOffset extends THREE.Vector3 {
     result.add(leftV);
     return result;
   }
-
-
+  combineWithObjectAddVector(a3DObject, aVector) {
+    //input: object -- A T3DObject
+    //Result: a THREE.Vector3
+    let result = this.combineWithObject(a3DObject);
+    result.add(aVector);
+    return result;
+  }
 }
 
 class T3DObject extends T3DPoint {
@@ -78,7 +82,7 @@ class T3DObject extends T3DPoint {
     super(mass);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
     this.object = {};                            //this will be the THREE.Object3D for the vehicle
-    this.objectOffset = new THREE.Vector3();     //this is a vector displacing 3D model from objects game position.
+    this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model from game position.
   }
   //=== Class Properties =====
   get inV() {
@@ -99,11 +103,11 @@ class T3DObject extends T3DPoint {
     p2.add(this.velocity);  //will use velocity * 1 second
     return p2;
   }
-  get lookingAtPos() {
+  lookingAtPos(distance) {
   //Results: return point in front of object, based on current orientation
     this.calculateInUpLeft ();
     let forwardV = this.inV;
-    forwardV.multiplyScalar(10);
+    forwardV.multiplyScalar(distance);
     return forwardV;
   }
   //=== Class Methods =====
@@ -149,7 +153,7 @@ class T3DObject extends T3DPoint {
     //       rotationRate -- radians/sec
     //       deltaSec: milliseconds for this frame
     //results: none
-    let laV = this.lookingAtPos;
+    let laV = this.lookingAtPos(10);
     let crossV = laV.cross(targetV);  //cross product is perpendicular to both other vectors
     crossV.normalize();
     let dotProd = laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
@@ -168,6 +172,7 @@ class T3DObject extends T3DPoint {
   }
   animate(deltaSec)  {
     super.animate(deltaSec);
+    this.object.position.clone(this.position);
   }
   offsetPos(offset) {
     //input: offset -- a TOffset
@@ -176,7 +181,7 @@ class T3DObject extends T3DPoint {
     //                               + T3DObject.upV * 1
     //                               + T3DObject.leftV * 1
     //Result: returns this.positon + offset
-    let result = offset.combineWithObjectVector(this.object, this.position);
+    let result = offset.combineWithObjectAddVector(this, this.position);
     return result;
   }
   offsetVelocity(offset) {
@@ -186,7 +191,7 @@ class T3DObject extends T3DPoint {
     //                               + T3DObject.upV * 1
     //                               + T3DObject.leftV * 1
     //Result: returns this.positon + offset
-    let result = offset.combineWithObjectVector(this.object, this.velocity);
+    let result = offset.combineWithObjectAddVector(this, this.velocity);
     return result;
   }
 

@@ -33,7 +33,7 @@ class TCamera extends T3DObject {
         case PLANE_YZ:  dirV = plusXV.clone();  break;
         default:        dirV = plusYV.clone();  break;
       }
-      dirV.multiplyScalar(GRID_SIZE*2/3);
+      dirV.multiplyScalar(GRID_SIZE*1/4);
       this.camera.position.copy(dirV);
     }
   }
@@ -42,61 +42,46 @@ class TCamera extends T3DObject {
     let attachDirV = ship.cameraAttachement.clone();
     attachDirV.sub(this.position);
     let distToAttach = attachDirV.length();
+    let dampenFactor = 0.1;
 
-    //below was attempt to redirect all velocity to direction of attachement.
-    //Not working, I'm not sure why.
-    //let newVelocityV = attachDirV.normalize();
-    //newVelocityV.multiplyScalar(this.velocity.length());
-    //this.velocity.copy(newVelocityV);
-    //----------------------------------------
+    if (distToAttach > 10) {
+      //Redirect all velocity to direction of attachement.
+      let newVelocityV = attachDirV.clone()
+      newVelocityV.setLength(this.velocity.length());
+      this.velocity.copy(newVelocityV);
+      //----------------------------------------
 
-    //First, project this.velocity onto vector towards target
-    //   This will dump all velocity in other directions.
-    //Math proof
-    //
-    //          /|
-    //       A / |  a2
-    //        /  |
-    //    ___/___|________>  B
-    //        a1
-    // 1.  |a1| = |A| * cos(angle)     (note: |a1| means length of vector a1)
-    //     Note: ● means dot product, defined below
-    // 2.  def: a ● b = |a|*|b|*cos(angle)       (note: * means normal multiplication, aka scalar multiplication)
-    // 3.  |a1| = |A| * (A●B)/(|A|*|B|) (by substitution of 2. into 1.)
-    // 4.  |a1| = (A●B)/|B|  (by cancelling |A|)
-    // 5.  |a1| =  (A●(B/|B|) (by distributive property of dot product)
-    // 6.   def: B / |B| is same thing as B.normalize()
-    // 7.  so |a1| = A ● B.normalize()  (by substitution of 6. into 5.)
-    //     To turn |a1| back into a vector A1, scale B.normalize to length |a1|
-    // 8.  A1 = B.normalize() * |a1|
-    // 9.  A1 = B.normalize() * (A ● B.normalize())  (by substitution of 7. into 8.)
-    // 10. A1 = B/|B|  * (A ● B/|B|)                 (by substitution of 6. into 9.)
-    // 11. A1 = B * (A ● B) / |B|^2                  (by rearrangement)
-    //My situation:  A = vector representing current camera velocity  (i.e. this.velocity)
-    //               B = vector pointing at cameraAttachement  (i.e. attachDirV)
-    //               A1 = desired new camera velocity
-    let adjustmentScale = this.velocity.dot(attachDirV) / (distToAttach * distToAttach);
-    this.velocity.multiplyScalar(adjustmentScale);  //All velocity should now be pointing to attachement point
+      /*
+      //First, project this.velocity onto vector towards target
+      //   This will dump all velocity in other directions.
+      let adjustmentScale = this.velocity.dot(attachDirV) / (distToAttach * distToAttach);
+      this.velocity.multiplyScalar(adjustmentScale);  //All velocity should now be pointing to attachement point
+      */
 
-    //Next accelerate camera towards attachement
-    attachDirV.normalize();
+      //Next accelerate camera towards attachement
+      attachDirV.normalize();
 
-    //F = k * x;
-    //F on camera = K * distToAttach
-    //F = m * accleration
-    //K * distToAttach = m * acceleration
-    //acceleration = K * distToAttach / m
-    //DeltaV = acceleration * deltaSec
-    //DeltaV = K * distToAttach * deltaSec / m
-    let scalar = this.springK * distToAttach * deltaSec / this.mass;
-    attachDirV.multiplyScalar(scalar);
-    this.velocity.add(attachDirV);
+      //F = k * x;
+      //F on camera = K * distToAttach
+      //F = m * accleration
+      //K * distToAttach = m * acceleration
+      //acceleration = K * distToAttach / m
+      //DeltaV = acceleration * deltaSec
+      //DeltaV = K * distToAttach * deltaSec / m
+      let scalar = this.springK * distToAttach * deltaSec / this.mass;
+      attachDirV.multiplyScalar(scalar);
+      this.velocity.add(attachDirV);
+
+    } else {
+      //this.velocity.set(0,0,0);
+      dampenFactor = 0.5;
+    }
 
     //I want to ensure the camera doesn't overshoot the target in the next animation frame.
     //  I will assume the next animation frame will be similar to this one.
     //  D=R*T,  R=D/T
     //  Rate that would overshoot target would be R > distToAttach/deltaSec
-    let maxRate = (distToAttach / deltaSec);
+    let maxRate = (distToAttach / deltaSec) ;
     //maxRate = maxRate * 0.5;  //manual adjustment factor
     if (maxRate > CAMERA_MAX_VELOCITY) maxRate=CAMERA_MAX_VELOCITY;
     if (this.velocity.length() > maxRate) {
@@ -111,10 +96,12 @@ class TCamera extends T3DObject {
 
     //dampen camera velocity
     var vel = this.velocity.clone();
-    vel.multiplyScalar(1- (0.1 * deltaSec));   //dampen by 10%/sec
+    vel.multiplyScalar(1- (dampenFactor * deltaSec));   //dampen by 10%/sec
     this.velocity.copy(vel);
     this.camera.position.copy(this.position);
-    this.camera.lookAt(this.trackedObject.position);
+
+    //this.camera.lookAt(this.trackedObject.position);
+    this.camera.lookAt(this.trackedObject.cockpitLookAt);
   }
   animateOrbit(deltaSec) {
     this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;

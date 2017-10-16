@@ -14,6 +14,7 @@ class TCelestialBody extends T3DObject {
 
   }
   animate(deltaSec) {
+    super.animate(deltaSec);
     this.object.rotation.y -= 0.01;
   }
 }
