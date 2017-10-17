@@ -113,6 +113,7 @@ function init() {
   window.addEventListener( 'keydown',  onKeyDown);
   window.addEventListener( 'keyup',    onKeyUp);
   window.addEventListener( 'keypress', onKeyPress);
+  window.addEventListener( 'mousewheel', onMouseWheel);
 
   document.addEventListener( 'mousemove', onDocumentMouseMove, false );
   document.addEventListener( 'touchstart', onDocumentTouchStart, false );

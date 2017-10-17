@@ -1,5 +1,11 @@
 
 
+function onMouseWheel(event) {
+  //console.log(event);
+  gameCamera.radius += event.deltaY;
+  if (gameCamera.radius < 0) gameCamera.radius *= -1;
+}
+
 function onKeyDown(event) {
   keyDown[event.key] = true;
   keyDown[event.code] = true;

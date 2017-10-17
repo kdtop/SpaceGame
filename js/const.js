@@ -4,6 +4,7 @@ const Pi = 3.14159 ;
 const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_VELOCITY = 2000; //voxels/sec
+
 const GRAV_CONST = 0.02;  // N * meters^2 /mass^2  //<-- Not consistent with real world.
 //const GRAV_CONST = 0.0000000000667;  // N * meters^2 /mass^2  //<-- real world
 const GRID_SIZE = 1600;  //- 2000 to + 2000 = 4000 true width
