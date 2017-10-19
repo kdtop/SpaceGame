@@ -15,24 +15,45 @@ class TVehicle extends T3DObject {
 class TVehicle extends T3DObject {
   constructor (mass, aName) {
     super(mass, aName);
+    //--- private stuff -----
+    this.private_throttle = 0;
+    //--- public stuff -----
     this.originIndicator = {};                   //An Object3D to visualize where location of ship.position is.
     this.plane = PLANE_UNK;                      //either "xy", or "xz", or "yz" depending on which plane the ship is orbiting in.
     this.cameraAttachmentOffset = new TOffset(-30,20,0); //location of camera attachemnt relative to object
-    //this.cameraTrailing = 30;                    //how far behind object cameraAttachement should be set
-    //this.cameraAbove = 20;                       //how far above object cameraAttachement should be set
     this.cameraAttachement = new THREE.Vector3();//When camera is following vehicle, this will be it's target location
     this.cockpitOffset = new TOffset(20,10,0);   //location of cockpit relative to object
-    //this.cockpitForward = 20;                    //When in cockpit mode, this will be how far ahead of object cockpit position is
-    //this.cockpitAbove = 10;                      //When in cockpit mode, this will be how far above object cockpit position is
     this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
     this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of ship to look towards
+    this.engineSound = null;
     //this.PS1 = new TParticleSys(scene, this, 500, new TOffset(0,0,0), new TOffset(0,0,0), 1, 1, 10,10,10, 10);
     this.PS1 = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
                                 positionOffset : new TOffset(-7,7,0),
                               velocityOffset: new TOffset(-40,0,0),
                             decaySec: 2, initScale: 8, posVariance: 2,
                           decayVariance: 10, scaleVariance: 10,  velocityVariance: 10 });
+    this.throttle = 0;
   }
+  //=== properties ======
+  set throttle(value) {
+    if (value < 0) value = 0;
+    if (value > 100) value = 100;
+    this.private_throttle = value;
+    if (this.engineSound) this.engineSound.setVolume(2*value/100);
+    this.PS1.throttle = value;
+  }
+  get throttle() {
+    return this.private_throttle;
+  }
+  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
+  //Input: accel  -- SCALAR deltaV/sec
+  //       deltaSec -- elapsed time for this frame
+    this.calculateInUpLeft ();
+    let deltaV = this.inV.clone();
+    deltaV.setLength(accel * deltaSec)
+    this.accelerate(deltaV);
+  }
+  //=== methods ========
   orbit(aBody) {
   //Input: aBody - TCelestialBody
   //NOTE: formula found here: http://www.physicsclassroom.com/class/circles/Lesson-4/Mathematics-of-Satellite-Motion
@@ -69,14 +90,6 @@ class TVehicle extends T3DObject {
     deltaV.setLength(deltaVScale);  //units are delta voxels/sec
     return deltaV;
   }
-  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
-  //Input: accel  -- SCALAR deltaV/sec
-  //       deltaSec -- elapsed time for this frame
-    this.calculateInUpLeft ();
-    let deltaV = this.inV.clone();
-    deltaV.setLength(accel * deltaSec)
-    this.accelerate(deltaV);
-  }
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-500, 500);  //keep velocity length within -500 to 500 voxels/sec
@@ -85,6 +98,9 @@ class TVehicle extends T3DObject {
 
     this.PS1.animate(deltaSec);  //animate particle system
     super.animate(deltaSec);  //First, change postion based on current velocity
+
+    this.thrust(SHIP_THRUST_MAX  * this.private_throttle/100, deltaSec);
+
 
     if (!disableGravity) {
       //Later I can make a loop that cycles through all other objects

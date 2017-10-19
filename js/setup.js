@@ -103,6 +103,35 @@ function init() {
   scene.add( pointLight );
   pointLight.add( new THREE.Mesh( new THREE.SphereGeometry( 4, 8, 8 ), new THREE.MeshBasicMaterial( { color: 0xffffff } ) ) );
 
+
+  //Sound setup
+
+  var audioListener = new THREE.AudioListener();  // instantiate a listener
+  gameCamera.camera.add( audioListener );  // add the listener to the camera
+  ship.engineSound = new THREE.Audio( audioListener );  // instantiate audio object
+  scene.add( ship.engineSound );  // add the audio object to the scene
+  var audioLoader = new THREE.AudioLoader();  // instantiate a loader
+
+  // load a resource
+  audioLoader.load(
+  	'audio/effects/347576__djt4nn3r__thrusters-loop.mp3',    // resource URL
+  	function ( audioBuffer ) {   // Function when resource is loaded
+  		ship.engineSound.setBuffer( audioBuffer );  // set the audio object buffer to the loaded object
+  		ship.engineSound.play();  // play the audio
+			ship.engineSound.setLoop(true);
+			//ship.engineSound.setVolume(0.5);
+  	},
+  	// Function called when download progresses
+  	function ( xhr ) {
+  		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+  	},
+  	// Function called when download errors
+  	function ( xhr ) {
+  		console.log( 'An error happened during audio loading' );
+  	}
+  );
+
+
   // Other setup
   renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );

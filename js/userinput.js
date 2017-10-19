@@ -19,11 +19,9 @@ function onKeyUp(event) {
     ship.resetPositionToInit(sun);
   } else if (keyDown['s']) {
     gameCamera.orbit.xzAngleVelocity = 0;
-    delete keyDown['s'];
-  } else {
-    delete keyDown[event.key];
-    delete keyDown[event.code];
   }
+  delete keyDown[event.key];
+  delete keyDown[event.code];
   event.preventDefault();
 }
 
@@ -105,9 +103,12 @@ function handleKeyAction(vehicle, deltaSec)  {
     vehicle.lookAtVelocity();  //orient in direction of object's velocity
   }
   if (keyDown['Space']) {  //thrust
-    //thrustObject(vehicle, 100, deltaSec);
-    vehicle.thrust(100, deltaSec);
+    vehicle.throttle += SHIP_THROTTLE_DELTA_RATE * deltaSec
+    //vehicle.thrust(100, deltaSec);
+  } else {
+    vehicle.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec
   }
+
   if (keyDown['a']) {
     gameCamera.orbit.xzAngleVelocity -= 0.1 * deltaSec;
   }

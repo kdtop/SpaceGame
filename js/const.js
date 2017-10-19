@@ -13,6 +13,8 @@ const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
 const SUN_GAME_SIZE = 40;  //voxels of radius
 const SHIP_MASS = 9e7;  //90000000; //kg
 const SHIP_ROTATION_RATE = Pi/2;  //radians/second
+const SHIP_THROTTLE_DELTA_RATE = 100;  //100%/sec
+const SHIP_THRUST_MAX = 100;  //deltaV/sec
 
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
