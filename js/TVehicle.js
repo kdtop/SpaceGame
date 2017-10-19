@@ -26,12 +26,13 @@ class TVehicle extends T3DObject {
     this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
     this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of ship to look towards
     this.engineSound = null;
-    //this.PS1 = new TParticleSys(scene, this, 500, new TOffset(0,0,0), new TOffset(0,0,0), 1, 1, 10,10,10, 10);
-    this.PS1 = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
-                                positionOffset : new TOffset(-7,7,0),
-                              velocityOffset: new TOffset(-40,0,0),
-                            decaySec: 2, initScale: 8, posVariance: 2,
-                          decayVariance: 10, scaleVariance: 10,  velocityVariance: 10 });
+    this.rocketPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
+                                     positionOffset : new TOffset(-7,7,0),
+                                   velocityOffset: new TOffset(-80,0,0),
+                                 decaySec: 1, initScale: 8, posVariance: 2,
+                               decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
+                             colors : RED_BLUE_SPRITE_COLORS,
+                           });
     this.throttle = 0;
   }
   //=== properties ======
@@ -40,7 +41,7 @@ class TVehicle extends T3DObject {
     if (value > 100) value = 100;
     this.private_throttle = value;
     if (this.engineSound) this.engineSound.setVolume(2*value/100);
-    this.PS1.throttle = value;
+    this.rocketPS.throttle = value;
   }
   get throttle() {
     return this.private_throttle;
@@ -94,13 +95,15 @@ class TVehicle extends T3DObject {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-500, 500);  //keep velocity length within -500 to 500 voxels/sec
   }
+  animateParticles(deltaSec) {  //animate particle system
+    this.rocketPS.animate(deltaSec);  
+  	  
+  }	  
   animate(deltaSec) {
-
-    this.PS1.animate(deltaSec);  //animate particle system
     super.animate(deltaSec);  //First, change postion based on current velocity
-
+    this.animateParticles(deltaSec);  //animate particle system
+  
     this.thrust(SHIP_THRUST_MAX  * this.private_throttle/100, deltaSec);
-
 
     if (!disableGravity) {
       //Later I can make a loop that cycles through all other objects
@@ -109,7 +112,7 @@ class TVehicle extends T3DObject {
       this.accelerate(deltaV)
     }
 
-    //set position of model relative to current position
+    //set position of model relative to current object position
     this.object.position.copy(this.objectOffset.combineWithObjectAddVector(this,this.position));
 
     autoPointTowardsMotionDelay -= deltaSec;

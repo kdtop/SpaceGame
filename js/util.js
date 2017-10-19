@@ -83,7 +83,9 @@ function generateTexture( r, g, b ) {
   return canvas;
 }
 
-function generateSprite() {
+function generateSprite(colors) {
+  //Input: Colors: -- array of JSON objects with colors -- e.g. 
+  //             [{pct:0.4, color:'rgba(128,2,15,1)'},...] 
   var canvas = document.createElement('canvas');
   canvas.width = 16;
   canvas.height = 16;
@@ -91,10 +93,10 @@ function generateSprite() {
   var halfWidth = canvas.width / 2;
   var halfHeight = canvas.height / 2;
   var gradient = context.createRadialGradient(halfWidth, halfHeight, 0, halfWidth, halfHeight, halfWidth*2 );
-  gradient.addColorStop(   0, 'rgba(255, 255, 255, 1)' );  //white at center
-  gradient.addColorStop( 0.2, 'rgba(255,   0,   0, 1)' );  //red 20% of way out
-  gradient.addColorStop( 0.4, 'rgba(0  ,   0,  64, 1)' );  //dark blue 40% way out
-  gradient.addColorStop(   1, 'rgba(0  ,   0,   0, 1)' );  //black at rim (100% way out)
+  for (var i = 0; i < colors.length; i++) {
+    let aColor = colors[i];  	 
+    gradient.addColorStop(aColor.pct, aColor.color);	
+  }	  
   context.fillStyle = gradient;
   context.fillRect( 0, 0, canvas.width, canvas.height );
   return canvas;

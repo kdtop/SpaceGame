@@ -15,8 +15,12 @@ class TParticleSys {
   constructor(aParent,
               offsetIn, offsetUp, offsetLeft,
               posVariance, decayVariance, scaleVariance) {
-  emit(initPosV, directionV, decaySec, initScale ) {
-  animate(deltaSec) {
+  emit(initPosV, directionV, decaySec, initScale ) {  
+  get throttle() {
+  set throttle(value) {
+  init()  {
+  getUnusedParticle()  {
+  animate(deltaSec) {  
 }
 
 */
@@ -94,6 +98,7 @@ class TParticleSys {
     //        params.velocityVariance -- % +/- random to add to x, y, z of direction.  E.g. 5 --> +/- 5%
     //        params.decayVariance -- % +/- random amount of time to add to decaySec.  E.g. 5 --> +/- 5%
     //        params.scaleVariance -- % +/- of size of initial scale.  E.g. 5 --> +/- 5%
+    //        params.colors -- JSON object with colors {{pct:0.4, color:'rgba(128,2,15,1)'},...}
     this.scene = params.aScene;
     this.parent = params.aParent;
     this.fullEmitRate = params.emitRate;  //this is emit rate when at full throttle (default)
@@ -107,6 +112,7 @@ class TParticleSys {
     this.decayVariance = params.decayVariance;
     this.scaleVariance = params.scaleVariance;
     this.velocityVariance = params.velocityVariance;
+    this.colors = params.colors;
     this.particlesArray = [];  //will hold TParticles
     this.numToEmit = 0;
     this.init();
@@ -123,7 +129,7 @@ class TParticleSys {
   }
   // --- Methods -------
   init()  {
-    var spriteCanvas = generateSprite();
+    var spriteCanvas = generateSprite(this.colors);
     var textureMap = new THREE.CanvasTexture(spriteCanvas);
     var spriteParams = {
   	  map: textureMap,

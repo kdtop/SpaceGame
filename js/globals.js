@@ -14,7 +14,7 @@ sun.object.name = 'sun';
 
 var debugInfoCounter = 0;
 
-var ship = new TVehicle(SHIP_MASS, 'ship');
+var ship = new TShip(SHIP_MASS, 'ship');
 ship.position.set(150,0,0);
 ship.plane = 'xz';
 
