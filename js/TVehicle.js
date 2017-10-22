@@ -25,7 +25,9 @@ class TVehicle extends T3DObject {
     this.cockpitOffset = new TOffset(20,10,0);   //location of cockpit relative to object
     this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
     this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of ship to look towards
-    this.engineSound = null;
+    this.engineSound = null;                     //will be THREE.Audio object
+    this.engineSoundStartOffset = 0;
+    this.maxThrust = 100;  //deltaV/sec  default value
     this.rocketPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
                                      positionOffset : new TOffset(-7,7,0),
                                    velocityOffset: new TOffset(-80,0,0),
@@ -40,7 +42,20 @@ class TVehicle extends T3DObject {
     if (value < 0) value = 0;
     if (value > 100) value = 100;
     this.private_throttle = value;
-    if (this.engineSound) this.engineSound.setVolume(2*value/100);
+    if (this.engineSound) {
+      if (value > 1) {
+        if (!this.engineSound.isPlaying) {  
+          this.engineSound.startTime = this.engineSoundStartOffset;  
+          this.engineSound.play();  // play the audio
+          this.engineSound.setLoop(true); 
+        }  
+        this.engineSound.setVolume(2*value/100);
+      } else {
+        if ((this.engineSound)&&(this.engineSound.isPlaying)) {
+          this.engineSound.stop();
+        }  
+      }  
+    }  
     this.rocketPS.throttle = value;
   }
   get throttle() {
@@ -97,13 +112,13 @@ class TVehicle extends T3DObject {
   }
   animateParticles(deltaSec) {  //animate particle system
     this.rocketPS.animate(deltaSec);  
-  	  
-  }	  
+      
+  }    
   animate(deltaSec) {
     super.animate(deltaSec);  //First, change postion based on current velocity
     this.animateParticles(deltaSec);  //animate particle system
   
-    this.thrust(SHIP_THRUST_MAX  * this.private_throttle/100, deltaSec);
+    this.thrust(this.maxThrust  * this.private_throttle/100, deltaSec);
 
     if (!disableGravity) {
       //Later I can make a loop that cycles through all other objects

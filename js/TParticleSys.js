@@ -132,9 +132,9 @@ class TParticleSys {
     var spriteCanvas = generateSprite(this.colors);
     var textureMap = new THREE.CanvasTexture(spriteCanvas);
     var spriteParams = {
-  	  map: textureMap,
-  	  blending: THREE.AdditiveBlending
-  	};
+      map: textureMap,
+      blending: THREE.AdditiveBlending
+    };
     this.aMaterial = new THREE.SpriteMaterial(spriteParams);
 
   }

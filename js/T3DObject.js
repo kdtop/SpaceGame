@@ -1,17 +1,19 @@
 //T3DPoint is defined in T3DPoint.js
 
-/*
-class TOffset extends THREE.Vector3 {
-  constructor (aIn, aUp, aLeft) {
-  get in() {
-  set in(value) {
-  get up() {
-  set up(value) {
-  get left() {
-  set left(value) {
-}
 
+/*
 class T3DObject {
+  //---- member properties/attributes -------
+  this.rotationVelocity  //units are delta radians/sec
+  this.loaded  
+  this.showPosMarker  
+  this.showCameraAttachmentMarker   
+  this.modelScaleV  
+  this.object   //this will be the THREE.Object3D for the vehicle
+  this.objectOffset  //this is an Offset displacing 3D model from game position.
+  this.modelBaseRotationY
+  this.plane 
+  //--------- member functions --------------
   constructor(mass, aName) {
   get inV() {
   get upV() {
@@ -26,63 +28,29 @@ class T3DObject {
   lookAtVelocity () {
   rotateTowardsV (targetV, rotationRate, deltaSec)  {
   rotateTowardsVelocity (rotationRate, deltaSec)  {
+  onOBJTransvserseCallback(child) {
+  //function onModelLoadedCallback ( object) {
+  onModelLoadErrorCallback(xhr) {
+  onModelLoadProgressCallback(xhr) {
+  loadModel(modelFileName) {  
 }
 
 */
-
-// ======= Types ================
-class TOffset extends THREE.Vector3 {
-  //NOTE: this maps (in, up, left)  to the (x, y, z)  values a Vector3
-  //Example use:  A value of (2, 1, -3) for offset means T3DObject's
-  //            T3DObject.position + T3DObject.inV * 2
-  //                               + T3DObject.upV * 1
-  //                               + T3DObject.leftV * -3
-  //
-  constructor (aIn, aUp, aLeft) {
-    super(aIn, aUp, aLeft);
-  }
-  get in() { return this.x; }
-  set in(value) { this.x = value;}
-  get up() { return this.y; }
-  set up(value) { this.y = value;}
-  get left() { return this.z; }
-  set left(value) { this.z = value;}
-
-  combineWithObject(a3DObject) {
-    //input: object -- A T3DObject
-    //Example use:  A value of (2, 1, -3) for offset means object's...
-    //              + this.in * 2
-    //              + this.up * 1
-    //              + this.leftV * 1
-    //Result: returns THREE.VECTOR3.
-    let inV = new THREE.Vector3();
-    let upV = new THREE.Vector3();
-    let leftV = new THREE.Vector3();
-    a3DObject.object.matrix.extractBasis (leftV, upV, inV)
-    let result = new THREE.Vector3();
-    inV.multiplyScalar(this.in);
-    upV.multiplyScalar(this.up);
-    leftV.multiplyScalar(this.left);
-    result.add(inV);
-    result.add(upV);
-    result.add(leftV);
-    return result;
-  }
-  combineWithObjectAddVector(a3DObject, aVector) {
-    //input: object -- A T3DObject
-    //Result: a THREE.Vector3
-    let result = this.combineWithObject(a3DObject);
-    result.add(aVector);
-    return result;
-  }
-}
 
 class T3DObject extends T3DPoint {
   constructor(mass, aName) {
     super(mass, aName);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
-    this.object = {};                            //this will be the THREE.Object3D for the vehicle
+    this.loaded = false;
+    this.showPosMarker = false; 
+    this.showCameraAttachmentMarker = false; 
+    this.modelScaleV = new THREE.Vector3(1,1,1);
+    this.object = null;                          //this will be the THREE.Object3D for the vehicle
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model from game position.
+    this.modelBaseRotationY = 0;
+    this.plane = PLANE_UNK;
+    this.visible = true;
+    gameObjects.push(this);
   }
   //=== Class Properties =====
   get inV() {
@@ -131,7 +99,7 @@ class T3DObject extends T3DPoint {
     this.calculateInUpLeft ();
     this.object.rotateOnAxis(this.upV, deltaAngle * deltaSec);
   }
-  pitch(deltaAngle, deltaSec)  {  //pitch is like a plane nosing up or nosing down.
+  pitch(deltaAngle, deltaSec)  {  //pitch is like a ship nosing up or nosing down.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
   //results: none
@@ -193,6 +161,155 @@ class T3DObject extends T3DPoint {
     //Result: returns this.positon + offset
     let result = offset.combineWithObjectAddVector(this, this.velocity);
     return result;
+  }  
+  handleRocketStrike(rocket) {
+    //this can be overridden in descendents to handle missle strikes. 
+    this.explode();
+  }    
+  otherObjetsInDistSq(objArray, distSq) {
+    //Cycle through other objects and check distance to them, addding to 
+    //  array all objects (T3DObjects) close enough
+    //Input: objArray -- an OUT parameter
+    //       distSq -- the square of the proximity distance
+    let p = new THREE.Vector3();
+    for (var i=0; i < gameObjects.length; i++) {
+      p.copy(gameObjects[i].position);
+      p.sub(this.position);
+      if (p.lengthSq() < distSq) objArray.push(gameObjects[i]);
+    }  
+  }  
+  hide() {
+    //this.setScale(VERY_TINY_SCALE_V);  //perhaps not needed
+    this.position.copy(nullV);
+    this.velocity.copy(nullV);
+    this.visible = false;
+    if (this.object) scene.remove(this.object);
+  }  
+  unhide() {
+    if (this.object) scene.add(this.object);
+  }  
+  explode() {  //override in descendants for points etc...
+    //FINISH -- launch explosion
+    this.hide();    
+  }     
+  setScale(scaleV) {
+    this.object.scale.copy(scaleV);
+    this.modelScaleV.copy(scaleV);
+  }    
+  /*
+  onOBJTransvserseCallback(child) {
+    if (child instanceof THREE.Mesh) {
+      child.material.map = this.texture;
+    }
   }
-
+  */
+  onModelLoadErrorCallback(xhr) {
+    //any load error handler can go here
+  }
+  onModelLoadProgressCallback(xhr) {
+    if (xhr.lengthComputable) {
+      let percentComplete = xhr.loaded / xhr.total * 100;
+      console.log(Math.round(percentComplete, 2) + '% downloaded');
+    }
+  }
+  shipModelLoadedCallBack(loadedObject) {
+    //having to use ship in global scope because 'this' is lost by callback! 
+    onModelLoadedCallback(loadedObject, ship);      
+  }    
+  rocketModelLoadedCallBack(loadedObject) {
+    //having to use rocket in global scope because 'this' is lost by callback!  
+    onModelLoadedCallback(loadedObject, rocket);     
+  }    
+  loadModel(modelFileName) {
+    this.texture = new THREE.CanvasTexture( generateTexture( 0, 0.5, 1 ), THREE.UVMapping );
+    let loadManager = new THREE.LoadingManager();
+    loadManager.onProgress = function ( item, loaded, total ) {
+      console.log(item, loaded, total);
+    };
+    let localOnLoadedCallbackFn = null;
+    //This below is a horrendous hack that I hate to have to use.  Loosing 'this' during callback
+    if (this.name == 'ship') localOnLoadedCallbackFn = this.shipModelLoadedCallBack;
+    if (this.name == 'rocket') localOnLoadedCallbackFn = this.rocketModelLoadedCallBack;
+    if (!localOnLoadedCallbackFn) return;
+    let OBJloader = new THREE.OBJLoader(loadManager);
+    OBJloader.load(
+      modelFileName, 
+      localOnLoadedCallbackFn,
+      this.onModelLoadProgressCallback,
+      this.onModelLoadErrorCallback
+    ); //OBJloader.load()
+    /*
+    OBJloader.load(
+      modelFileName, 
+      function (loadedObject) { //<-- this is callback function after model loaded
+        loadedObject.traverse(this.onOBJTransvserseCallback);
+        this.object = loadedObject;
+        this.object.name = this.name
+        this.object.scale.copy(this.modelScaleV);
+        this.object.rotation.y = modelBaseRotationY;
+        this.resetPositionToInit(sun);  //TO DO <-- make more generic
+        scene.add(this.object);
+        
+        if (this.showPosMarker == true) {
+          let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
+          let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
+          this.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
+          scene.add(this.originIndicator);
+        }
+        
+        if (this.showCameraAttachmentMarker == true) {
+          let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+          let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
+          this.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
+          scene.add(this.cameraAttachementMarker);
+        }
+        
+        this.loaded = true;
+      },          
+      //this.onModelLoadedCallback, //<-- handles putting into scene after load
+      this.onModelLoadProgressCallback,
+      this.onModelLoadErrorCallback
+    ); //OBJloader.load()    
+    */
+  }      
+                                      
 }
+
+function onOBJTransvserseCallback(child) {
+  if (child instanceof THREE.Mesh) {
+    child.material.map = this.texture;
+  }
+}  
+     
+                                            
+function onModelLoadedCallback(loadedObject, contextThis) {
+  loadedObject.traverse( 
+    function (child) {
+      if (child instanceof THREE.Mesh) {
+        child.material.map = contextThis.texture;
+      }
+    }                  
+  );
+  contextThis.object = loadedObject;
+  contextThis.object.name = contextThis.name
+  contextThis.object.scale.copy(contextThis.modelScaleV);
+  contextThis.object.rotation.y = contextThis.modelBaseRotationY;
+  contextThis.resetPositionToInit(sun);  //TO DO <-- make more generic
+  scene.add(contextThis.object);
+  
+  if (contextThis.showPosMarker == true) {
+    let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
+    let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
+    contextThis.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
+    scene.add(contextThis.originIndicator);
+  }
+  
+  if (contextThis.showCameraAttachmentMarker == true) {
+    let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+    let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
+    contextThis.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
+    scene.add(contextThis.cameraAttachementMarker);
+  }
+  contextThis.loaded = true;
+}
+

@@ -3,32 +3,13 @@ function init() {
   container = document.createElement( 'div' );
   document.body.appendChild( container );
 
-  //skybox ---------
-  let cubeTextureLoader = new THREE.CubeTextureLoader();
-  cubeTextureLoader.setPath( 'textures/skybox/256/' );
-  let cubeURLs = [
-    'right.png', 'left.png',
-    'top.png', 'bot.png',   //note: top image might need to be rotated
-    'front.png', 'back.png'
-  ];
-  /*
-  let cubeURLs = [
-    'back.png', 'front.png',
-    'top.png', 'bot.png',
-    'right.png', 'left.png'
-  ];
-  */
-  let textureSkyCube = cubeTextureLoader.load(cubeURLs);
-  scene.background = textureSkyCube;
-
   // Grid -------------
   let helper = new THREE.GridHelper(GRID_SIZE, 40, 0xffff11, 0xffff99 );
   helper.position.y = 0;
   scene.add( helper );
 
-  //Sun object
-  scene.add( sun.object );
-
+  /*
+  if (1==0) {
     //sub functions here...   (for OBJ ship)
     //------------------------------
       function onOBJTransvserseCallback(child) {
@@ -46,6 +27,7 @@ function init() {
         ship.object.rotation.y = Pi/2;
         ship.objectOffset.set(5, 0, 0);
         ship.resetPositionToInit(sun);
+        ship.loaded = true;
         //resetShipPositionToInit();
         scene.add( ship.object );
 
@@ -83,14 +65,16 @@ function init() {
   let loadManager = new THREE.LoadingManager();
   loadManager.onProgress = function ( item, loaded, total ) {
       console.log( item, loaded, total );
-  };
-
+  }; 
+  
   let OBJloader = new THREE.OBJLoader( loadManager );
   OBJloader.load('models/galosha/galosha2.obj',
               onOBJLoadedCallback, //<-- handles putting into scene after load
               onOBJLoadProgressCallback,
               onOBJLoadErrorCallback);
-
+  }  //if 1==1          
+  */
+  
   // Lights
   scene.add( new THREE.AmbientLight( 0xffff99 ) );
   let directionalLight = new THREE.DirectionalLight( 0xffffff, 0.125 );
@@ -103,32 +87,28 @@ function init() {
   scene.add( pointLight );
   pointLight.add( new THREE.Mesh( new THREE.SphereGeometry( 4, 8, 8 ), new THREE.MeshBasicMaterial( { color: 0xffffff } ) ) );
 
-
   //Sound setup
-
   var audioListener = new THREE.AudioListener();  // instantiate a listener
   gameCamera.camera.add( audioListener );  // add the listener to the camera
   ship.engineSound = new THREE.Audio( audioListener );  // instantiate audio object
   scene.add( ship.engineSound );  // add the audio object to the scene
   var audioLoader = new THREE.AudioLoader();  // instantiate a loader
-
-  // load a resource
-  audioLoader.load(
-  	'audio/effects/347576__djt4nn3r__thrusters-loop.mp3',    // resource URL
-  	function ( audioBuffer ) {   // Function when resource is loaded
-  		ship.engineSound.setBuffer( audioBuffer );  // set the audio object buffer to the loaded object
-  		ship.engineSound.play();  // play the audio
-			ship.engineSound.setLoop(true);
-			//ship.engineSound.setVolume(0.5);
-  	},
-  	// Function called when download progresses
-  	function ( xhr ) {
-  		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-  	},
-  	// Function called when download errors
-  	function ( xhr ) {
-  		console.log( 'An error happened during audio loading' );
-  	}
+  audioLoader.load(     // load a resource
+    'audio/effects/Rocket-SoundBible.com-941967813.mp3',  // resource URL
+    function ( audioBuffer ) {   // Function when resource is loaded
+      ship.engineSound.setBuffer( audioBuffer );  // set the audio object buffer to the loaded object
+      //ship.engineSound.play();  // play the audio
+    //ship.engineSound.setLoop(true);
+    //ship.engineSound.setVolume(0.5);
+    },
+    // Function called when download progresses
+    function ( xhr ) {
+      console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+    },
+    // Function called when download errors
+    function ( xhr ) {
+      console.log( 'An error happened during audio loading' );
+    }
   );
 
 

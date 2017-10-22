@@ -49,6 +49,8 @@ function onKeyPress(event) {
     gamePaused ? clock.stop() : clock.start();
   } else if (k == 'g') {
     disableGravity = !disableGravity;
+  } else if (k == 'f') {
+    ship.launchRocket();
   }
 }
 
@@ -59,7 +61,6 @@ function handleKeyAction(vehicle, deltaSec)  {
   if ((keyDown['ArrowRight']) || (keyDown['Numpad6'])) {  //yaw right
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_XZ) {
-      //yawObject (vehicle.object, -Pi/2, deltaSec);
       vehicle.yaw(-SHIP_ROTATION_RATE, deltaSec);
     }
   }
@@ -67,34 +68,29 @@ function handleKeyAction(vehicle, deltaSec)  {
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_XZ) {
       vehicle.yaw(SHIP_ROTATION_RATE, deltaSec);
-      //yawObject (vehicle.object, Pi/2, deltaSec);
     }
   }
   if ((keyDown['ArrowUp']) || (keyDown['Numpad8'])) {   //pitch down
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
-      //pitchObject (vehicle.object, Pi/2, deltaSec);
       vehicle.pitch(SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['ArrowDown']) || (keyDown['Numpad2'])) {  //pitch up
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
-      //pitchObject (vehicle.object, -Pi/2, deltaSec);
       vehicle.pitch(-SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['PageUp']) || (keyDown['Numpad9'])) {  //roll right
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
-      //rollObject (vehicle.object, Pi/2, deltaSec);
       vehicle.roll(SHIP_ROTATION_RATE, deltaSec);
     }
   }
   if ((keyDown['1']) || (keyDown['Numpad1'])) {  //roll left.
     autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
     if (vehicle.plane == PLANE_UNK) {
-      //rollObject (vehicle.object, -Pi/2, deltaSec);
       vehicle.roll(-SHIP_ROTATION_RATE, deltaSec);
     }
   }

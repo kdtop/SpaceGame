@@ -20,23 +20,23 @@ function onWindowResize() {
 
 
 function onDocumentMouseMove( event ) {
-		mouseX = event.clientX - windowHalfX;
-		mouseY = event.clientY - windowHalfY;
+    mouseX = event.clientX - windowHalfX;
+    mouseY = event.clientY - windowHalfY;
 }
 
 function onDocumentTouchStart( event ) {
-	if ( event.touches.length == 1 ) {
-		event.preventDefault();
-		mouseX = event.touches[ 0 ].pageX - windowHalfX;
-		mouseY = event.touches[ 0 ].pageY - windowHalfY;
-	}
+  if ( event.touches.length == 1 ) {
+    event.preventDefault();
+    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+  }
 }
 function onDocumentTouchMove( event ) {
-	if ( event.touches.length == 1 ) {
-		event.preventDefault();
-		mouseX = event.touches[ 0 ].pageX - windowHalfX;
-		mouseY = event.touches[ 0 ].pageY - windowHalfY;
-	}
+  if ( event.touches.length == 1 ) {
+    event.preventDefault();
+    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+  }
 }
 
 
@@ -94,9 +94,9 @@ function generateSprite(colors) {
   var halfHeight = canvas.height / 2;
   var gradient = context.createRadialGradient(halfWidth, halfHeight, 0, halfWidth, halfHeight, halfWidth*2 );
   for (var i = 0; i < colors.length; i++) {
-    let aColor = colors[i];  	 
-    gradient.addColorStop(aColor.pct, aColor.color);	
-  }	  
+    let aColor = colors[i];     
+    gradient.addColorStop(aColor.pct, aColor.color);  
+  }    
   context.fillStyle = gradient;
   context.fillRect( 0, 0, canvas.width, canvas.height );
   return canvas;
