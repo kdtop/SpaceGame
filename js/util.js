@@ -16,6 +16,8 @@ function onWindowResize() {
   gameCamera.camera.aspect = window.innerWidth / window.innerHeight;
   gameCamera.camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );
+  windowHalfX = window.innerWidth / 2;
+  windowHalfY = window.innerHeight / 2;
 } //onWindowResize()
 
 

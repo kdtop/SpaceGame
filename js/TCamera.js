@@ -16,7 +16,7 @@ class TCamera extends T3DObject {
 
 class TCamera extends T3DObject {
   constructor (aTrackedObject) {
-    super(CAMERA_MASS);
+    super(CAMERA_MASS, 'camera');
     this.trackedObject = aTrackedObject;  //will be a TVehicle
     this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2500 );
     this.camera.position.set( 0, 200, 800 );
@@ -60,7 +60,7 @@ class TCamera extends T3DObject {
     let deltaV = this.targetLookAtPos.clone();
     deltaV.sub(this.currentLookAtPos);
     let length = deltaV.length();
-    let frameLength = CAMERA_MAX_VELOCITY * deltaSec;  //how far we could travel in this one frame
+    let frameLength = CAMERA_MAX_PAN_VELOCITY * deltaSec;  //how far we could travel in this one frame
     if (length > frameLength) {
       deltaV.setLength(frameLength);
     }
@@ -68,6 +68,23 @@ class TCamera extends T3DObject {
     this.camera.lookAt(this.currentLookAtPos);
   }
   animateFollow(deltaSec) {
+    //deltaSec = 0.00125; //<-- temp!!!    
+    let attachDirV = this.trackedObject.cameraAttachement.clone();
+    attachDirV.sub(this.position);
+    let distToAttach = attachDirV.length();
+    let maxDist = CAMERA_MAX_FOLLOW_VELOCITY * deltaSec; 
+    if (maxDist <= distToAttach ) {      
+      attachDirV.setLength(maxDist);
+      this.position.add(attachDirV);
+    } else {
+      this.position.copy(ship.cameraAttachement);
+    }  
+    this.camera.position.copy(this.position);
+    this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
+    this.animateLookAtPos(deltaSec);
+  }
+  animateFollow0(deltaSec) {  //delete later...
+    //NOTE: The use of springs led to excess oscillation, so I am dropping the approach.  
     //deltaSec = 0.00125; //<-- temp!!!
     let attachDirV = ship.cameraAttachement.clone();
     attachDirV.sub(this.position);
@@ -96,14 +113,13 @@ class TCamera extends T3DObject {
     } else {
       dampenFactor = 0.5;
     }
-
     //I want to ensure the camera doesn't overshoot the target in the next animation frame.
     //  I will assume the next animation frame will be similar to this one.
     //  D=R*T,  R=D/T
     //  Rate that would overshoot target would be R > distToAttach/deltaSec
     let maxRate = (distToAttach / deltaSec) ;
     //maxRate = maxRate * 0.5;  //manual adjustment factor
-    if (maxRate > CAMERA_MAX_VELOCITY) maxRate=CAMERA_MAX_VELOCITY;
+    if (maxRate > CAMERA_MAX_FOLLOW_VELOCITY) maxRate=CAMERA_MAX_FOLLOW_VELOCITY;
     if (this.velocity.length() > maxRate) {
       this.velocity.setLength(maxRate);
     }
@@ -123,16 +139,20 @@ class TCamera extends T3DObject {
     //this.camera.lookAt(this.trackedObject.cockpitLookAt);
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
     this.animateLookAtPos(deltaSec);
-  }
-  animateOrbit(deltaSec) {
-    this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
+  }  
+  setToOrbitParameters(deltaSec) {
     this.position.x = Math.cos( this.orbit.xzAngle ) * this.radius;
     this.position.z = Math.sin( this.orbit.xzAngle ) * this.radius;
-    this.position.y = 200;
+    this.position.y = Math.sin(this.orbit.zyAngle) * this.radius;
     this.camera.position.copy(this.position);
     this.targetLookAtPos.copy(scene.position);
     //this.camera.lookAt( scene.position );
     this.animateLookAtPos(deltaSec);
+  }  
+  animateOrbit(deltaSec) {
+    this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
+    this.orbit.zyAngle = Pi/16;
+    this.setToOrbitParameters();
   }
   animateHighAbove(deltaSec) {
     let dirV2 = this.dirV.clone();
@@ -143,6 +163,12 @@ class TCamera extends T3DObject {
     this.animateLookAtPos(deltaSec);
   }
   animateMouseControl(deltaSec) {
+    //NOTE: mouse (0,0) is center of screen.      
+    this.orbit.xzAngle = Pi * (mouseX / windowHalfX);
+    this.orbit.zyAngle = Pi/2 * (mouseY / windowHalfY);
+    this.setToOrbitParameters();    
+  }
+  animateMouseControl0(deltaSec) {  //delete later...
     //mouseX = 0;
     //this.orbit.xzAngleVelocity = 0;
     let maxXZAngularVelocity = Pi/2;  //radians/second
@@ -170,7 +196,7 @@ class TCamera extends T3DObject {
     //this.camera.lookAt( scene.position );
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
-  }
+  }  
   animateCockpit(deltaSec) {
     this.camera.position.copy(this.trackedObject.cockpitPos);
     //this.camera.lookAt(this.trackedObject.cockpitLookAt);
@@ -186,7 +212,4 @@ class TCamera extends T3DObject {
     newPosition.add(delta);
     this.position.copy(newPosition);
   }
-
-
-
 }

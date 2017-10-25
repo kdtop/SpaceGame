@@ -51,8 +51,13 @@
   }
 
   function animateObjects(deltaSec) {
+    
+    //for (var i=0; i < gameObjects.length; i++) {
+    //  gameObjects[i].animate();
+    //}  
     sun.animate(deltaSec);
     ship.animate(deltaSec);
+    rocket.animate(deltaSec);
     gameCamera.animate(deltaSec);
     //animateLight(deltaSec);
   }

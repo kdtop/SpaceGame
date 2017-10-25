@@ -16,7 +16,7 @@ class TShip extends TVehicle {
     this.objectOffset.set(5, 0, 0);   
     this.position.set(150,0,0);
     this.maxThrust = SHIP_THRUST_MAX;  //deltaV/sec  default value
-    this.modelBaseRotationY = Pi/2;
+    //this.modelBaseRotationY = Pi/2;
     this.loadModel('models/galosha/galosha2.obj');
     this.plane = PLANE_XZ;
     this.wingSmokeLeftPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 10,

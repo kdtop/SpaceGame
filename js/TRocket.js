@@ -15,7 +15,7 @@ class TRocket extends TVehicle {
     this.remainingLifeSpan = 0;
     this.ownerVehicle = aVehicle;
     this.visible = false; //true means rocket is moving independently
-    this.offsetFromOwner = new TOffset(0,-40,0);   //location of this relative to owner vehicle
+    this.offsetFromOwner = new TOffset(0,60,0);   //location of this relative to owner vehicle
     this.hide();
   }  
   animate(deltaSec) {
@@ -27,7 +27,7 @@ class TRocket extends TVehicle {
     for (var i=0; i < hitArray.length; i++) hitArray[i].handleRocketStrike(this);
     if (shouldExplode) this.explode();  
   } 
-  hitOtherObjets(hitArray) {
+  hitOtherObjects(hitArray) {
     this.otherObjetsInDistSq(hitArray, ROCKET_STRIKE_DIST_SQUARED);
   }
   launch() {

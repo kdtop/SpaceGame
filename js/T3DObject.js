@@ -28,11 +28,20 @@ class T3DObject {
   lookAtVelocity () {
   rotateTowardsV (targetV, rotationRate, deltaSec)  {
   rotateTowardsVelocity (rotationRate, deltaSec)  {
+  animate(deltaSec)  {
+  offsetPos(offset) {
+  offsetVelocity(offset) {
+  handleRocketStrike(rocket) {
+  otherObjetsInDistSq(objArray, distSq) {
+  hide() {
+  unhide() {
+  explode() {  //override in descendants for points etc...
+  setScale(scaleV) {
   onOBJTransvserseCallback(child) {
-  //function onModelLoadedCallback ( object) {
+  onModelLoadedCallback(loadedObject) {
   onModelLoadErrorCallback(xhr) {
   onModelLoadProgressCallback(xhr) {
-  loadModel(modelFileName) {  
+  loadModel(modelFileName) {
 }
 
 */
@@ -196,13 +205,35 @@ class T3DObject extends T3DPoint {
     this.object.scale.copy(scaleV);
     this.modelScaleV.copy(scaleV);
   }    
-  /*
   onOBJTransvserseCallback(child) {
     if (child instanceof THREE.Mesh) {
       child.material.map = this.texture;
     }
   }
-  */
+  onModelLoadedCallback(loadedObject) {
+    loadedObject.traverse((child)=> this.onOBJTransvserseCallback(child)); 
+    this.object = loadedObject;
+    this.object.name = this.name
+    this.object.scale.copy(this.modelScaleV);
+    this.object.rotation.y = this.modelBaseRotationY;
+    this.resetPositionToInit(sun);  //TO DO <-- make more generic
+    scene.add(this.object);
+    
+    if (this.showPosMarker == true) {
+      let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
+      let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
+      this.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
+      scene.add(this.originIndicator);
+    }
+    
+    if (this.showCameraAttachmentMarker == true) {
+      let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+      let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
+      this.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
+      scene.add(this.cameraAttachementMarker);
+    }
+    this.loaded = true;
+  }  
   onModelLoadErrorCallback(xhr) {
     //any load error handler can go here
   }
@@ -212,14 +243,6 @@ class T3DObject extends T3DPoint {
       console.log(Math.round(percentComplete, 2) + '% downloaded');
     }
   }
-  shipModelLoadedCallBack(loadedObject) {
-    //having to use ship in global scope because 'this' is lost by callback! 
-    onModelLoadedCallback(loadedObject, ship);      
-  }    
-  rocketModelLoadedCallBack(loadedObject) {
-    //having to use rocket in global scope because 'this' is lost by callback!  
-    onModelLoadedCallback(loadedObject, rocket);     
-  }    
   loadModel(modelFileName) {
     this.texture = new THREE.CanvasTexture( generateTexture( 0, 0.5, 1 ), THREE.UVMapping );
     let loadManager = new THREE.LoadingManager();
@@ -227,89 +250,14 @@ class T3DObject extends T3DPoint {
       console.log(item, loaded, total);
     };
     let localOnLoadedCallbackFn = null;
-    //This below is a horrendous hack that I hate to have to use.  Loosing 'this' during callback
-    if (this.name == 'ship') localOnLoadedCallbackFn = this.shipModelLoadedCallBack;
-    if (this.name == 'rocket') localOnLoadedCallbackFn = this.rocketModelLoadedCallBack;
-    if (!localOnLoadedCallbackFn) return;
     let OBJloader = new THREE.OBJLoader(loadManager);
     OBJloader.load(
       modelFileName, 
-      localOnLoadedCallbackFn,
+      (loadedObject)=> this.onModelLoadedCallback(loadedObject),
       this.onModelLoadProgressCallback,
       this.onModelLoadErrorCallback
     ); //OBJloader.load()
-    /*
-    OBJloader.load(
-      modelFileName, 
-      function (loadedObject) { //<-- this is callback function after model loaded
-        loadedObject.traverse(this.onOBJTransvserseCallback);
-        this.object = loadedObject;
-        this.object.name = this.name
-        this.object.scale.copy(this.modelScaleV);
-        this.object.rotation.y = modelBaseRotationY;
-        this.resetPositionToInit(sun);  //TO DO <-- make more generic
-        scene.add(this.object);
-        
-        if (this.showPosMarker == true) {
-          let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
-          let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
-          this.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
-          scene.add(this.originIndicator);
-        }
-        
-        if (this.showCameraAttachmentMarker == true) {
-          let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-          let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
-          this.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
-          scene.add(this.cameraAttachementMarker);
-        }
-        
-        this.loaded = true;
-      },          
-      //this.onModelLoadedCallback, //<-- handles putting into scene after load
-      this.onModelLoadProgressCallback,
-      this.onModelLoadErrorCallback
-    ); //OBJloader.load()    
-    */
-  }      
-                                      
+  }                                            
 }
 
-function onOBJTransvserseCallback(child) {
-  if (child instanceof THREE.Mesh) {
-    child.material.map = this.texture;
-  }
-}  
-     
-                                            
-function onModelLoadedCallback(loadedObject, contextThis) {
-  loadedObject.traverse( 
-    function (child) {
-      if (child instanceof THREE.Mesh) {
-        child.material.map = contextThis.texture;
-      }
-    }                  
-  );
-  contextThis.object = loadedObject;
-  contextThis.object.name = contextThis.name
-  contextThis.object.scale.copy(contextThis.modelScaleV);
-  contextThis.object.rotation.y = contextThis.modelBaseRotationY;
-  contextThis.resetPositionToInit(sun);  //TO DO <-- make more generic
-  scene.add(contextThis.object);
-  
-  if (contextThis.showPosMarker == true) {
-    let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
-    let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
-    contextThis.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
-    scene.add(contextThis.originIndicator);
-  }
-  
-  if (contextThis.showCameraAttachmentMarker == true) {
-    let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-    let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
-    contextThis.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
-    scene.add(contextThis.cameraAttachementMarker);
-  }
-  contextThis.loaded = true;
-}
 

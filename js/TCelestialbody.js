@@ -4,7 +4,7 @@ class TCelestialBody extends T3DObject {
     super(mass, aName);
     this.realWorldSize = realSize;  // KM radius
     this.radius = gameSize;         //desired size in graphic world
-    this.rotationVelocityY = Pi;    //radians/sec
+    this.rotationVelocityY = Pi/4;    //radians/sec
 
     let aTexture = new THREE.TextureLoader().load( fileName );
     let aMaterial = new THREE.MeshBasicMaterial( { map: aTexture } );

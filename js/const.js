@@ -3,7 +3,8 @@
 const Pi = 3.14159 ;
 const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
-const CAMERA_MAX_VELOCITY = 2000; //voxels/sec
+const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
+const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
 
 const GRAV_CONST = 0.02;  // N * meters^2 /mass^2  //<-- Not consistent with real world.
 //const GRAV_CONST = 0.0000000000667;  // N * meters^2 /mass^2  //<-- real world

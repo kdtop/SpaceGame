@@ -20,7 +20,7 @@ class TVehicle extends T3DObject {
     //--- public stuff -----
     this.originIndicator = {};                   //An Object3D to visualize where location of ship.position is.
     this.plane = PLANE_UNK;                      //either "xy", or "xz", or "yz" depending on which plane the ship is orbiting in.
-    this.cameraAttachmentOffset = new TOffset(-30,20,0); //location of camera attachemnt relative to object
+    this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
     this.cameraAttachement = new THREE.Vector3();//When camera is following vehicle, this will be it's target location
     this.cockpitOffset = new TOffset(20,10,0);   //location of cockpit relative to object
     this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
@@ -148,7 +148,7 @@ class TVehicle extends T3DObject {
     //debugShowXfrm(this);  //draw three lines showing matrix orientation
     //if (SHOW_SHIP_POS_MARKER == true) this.originIndicator.position.copy (this.position);
     if (SHOW_CAMERA_ATTACHEMENT_MARKER == true)
-      this.cameraAttachementMarker.position.copy(this.cockpitLookAt);
+      this.cameraAttachementMarker.position.copy(this.cameraAttachement);
   }
   resetPositionToInit(sun) {
     this.position.set(0, 0, 250);

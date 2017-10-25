@@ -35,13 +35,13 @@ function onKeyPress(event) {
     gameCamera.setMode(CAMERA_MODE_FOLLOW);
     event.preventDefault();
   } else if (k == '3') {
-    gameCamera.setMode(CAMERA_MODE_HIGH_ABOVE);
+    gameCamera.setMode(CAMERA_MODE_COCKPIT);   
     event.preventDefault();
   } else if (k == '4') {
     gameCamera.setMode(CAMERA_MODE_MOUSE);
     event.preventDefault();
   } else if (k == '5') {
-    gameCamera.setMode(CAMERA_MODE_COCKPIT);
+    gameCamera.setMode(CAMERA_MODE_HIGH_ABOVE);   
     event.preventDefault();
   } else if (k == 'p') {
     gamePaused = !gamePaused;
