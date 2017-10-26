@@ -22,6 +22,7 @@ class TRocket extends TVehicle {
     this.ownerVehicle = params.ownerVehicle||null;
     this.visible = false; //true means rocket is moving independently
     this.offsetFromOwner = new TOffset(60,0,0);   //location of this relative to owner vehicle
+    this.enginePS.positionOffset.set(-16,-2,0);
     this.hide();
   }  
   explode() {  

@@ -211,7 +211,12 @@ class T3DObject extends T3DPoint {
   setScale(scalar) {
     let scaleV = new THREE.Vector3(scalar, scalar, scalar);        
     this.setScaleV(scaleV);
-  }          
+  }      
+  resetPositionToInit() {
+    super.resetPositionToInit();
+    if (!this.visible) this.unhide();
+  }
+  
 }
 
 

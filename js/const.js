@@ -25,7 +25,7 @@ const SHIP_INIT_POSITION = new THREE.Vector3(0,0,250);
 const SHIP_SHOW_POS_MARKER = false;
 const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = false;
 
-const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
+const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300b.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
 const ROCKET_THRUST_MAX = 50;  //500;  //deltaV/sec
 const ROCKET_LIFESPAN = 5; //__ seconds between launch and explosion

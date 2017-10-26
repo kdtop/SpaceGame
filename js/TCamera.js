@@ -100,6 +100,7 @@ class TCamera extends T3DObject {
     this.camera.position.copy(this.position);
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
+    globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
   }  
   animateOrbit(deltaSec) {
     this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
@@ -116,9 +117,10 @@ class TCamera extends T3DObject {
   }
   animateMouseControl(deltaSec) {
     //NOTE: mouse (0,0) is center of screen.    
-    if (!mouseDown) return;
-    this.orbit.xzAngle = Pi * (mouseX / windowHalfX);
-    this.orbit.zyAngle = Pi/2 * (mouseY / windowHalfY);
+    if (mouseDown) {
+      this.orbit.xzAngle = Pi * (mouseX / windowHalfX);
+      this.orbit.zyAngle = Pi/2 * (mouseY / windowHalfY);
+    }  
     this.setToOrbitParameters();    
   }
   animateCockpit(deltaSec) {
