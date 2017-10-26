@@ -1,7 +1,33 @@
 
+function onDocumentMouseMove( event ) {
+    mouseX = event.clientX - windowHalfX;
+    mouseY = event.clientY - windowHalfY;
+}
+
+function onDocumentTouchStart( event ) {
+  if ( event.touches.length == 1 ) {
+    event.preventDefault();
+    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+  }
+}
+function onDocumentTouchMove( event ) {
+  if ( event.touches.length == 1 ) {
+    event.preventDefault();
+    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+  }
+}
+
+function onMouseDown(event) {
+  mouseDown = true;        
+}        
+
+function onMouseUp(event) {
+  mouseDown = false;        
+}        
 
 function onMouseWheel(event) {
-  //console.log(event);
   gameCamera.radius += event.deltaY;
   if (gameCamera.radius < 0) gameCamera.radius *= -1;
 }
@@ -16,7 +42,7 @@ function onKeyUp(event) {
   let k = event.key;
   let code = event.code;
   if (code == 'Escape') {
-    ship.resetPositionToInit(sun);
+    ship.resetPositionToInit();
   } else if (keyDown['s']) {
     gameCamera.orbit.xzAngleVelocity = 0;
   }
@@ -51,6 +77,8 @@ function onKeyPress(event) {
     disableGravity = !disableGravity;
   } else if (k == 'f') {
     ship.launchRocket();
+  } else if (k == 'k') {
+    ship.stop();  //best if gravity truned off first with 'g'
   }
 }
 

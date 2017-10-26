@@ -1,4 +1,4 @@
-//T3DObject defined in T3DObject.js
+//TModelObject defined in TModelObject.js
 
 /*
 class TVehicle extends T3DObject {
@@ -6,29 +6,41 @@ class TVehicle extends T3DObject {
   thrust(accel, deltaSec)  {
   orbit(aBody) {
   animate(deltaSec) {
-  resetPositionToInit(sun) {
+  resetPositionToInit() {  //override
 }
 
 */
 
 
-class TVehicle extends T3DObject {
-  constructor (mass, aName) {
-    super(mass, aName);
+class TVehicle extends TModelObject {
+  constructor(params) {
+    //Input:           
+    //  params.mass
+    //  params.name
+    //  params.initPosition
+    //  params.maxThrust                   -- optional.  Default = 100 deltaV/sec
+    //  params.modelFName                  -- required for model loading
+    //  params.modelBaseRotationY          -- optional.  default = 0
+    //  params.autoAddToScene              -- optional.  Default = true;
+    //  params.modelScale                  -- optional, default = 1
+    //  params.plane                       -- optional.  default PLANE_XZ
+    //  params.showCameraAttachmentMarker  -- default is false 
+    //  params.showPosMarker               -- default is false
+    //-----------------------
+    super(params);
     //--- private stuff -----
     this.private_throttle = 0;
     //--- public stuff -----
-    this.originIndicator = {};                   //An Object3D to visualize where location of ship.position is.
-    this.plane = PLANE_UNK;                      //either "xy", or "xz", or "yz" depending on which plane the ship is orbiting in.
+    this.originIndicator = {};                           //An Object3D to visualize where location of ship.position is.
     this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
-    this.cameraAttachement = new THREE.Vector3();//When camera is following vehicle, this will be it's target location
-    this.cockpitOffset = new TOffset(20,10,0);   //location of cockpit relative to object
-    this.cockpitPos = new THREE.Vector3();       //when in cockpit mode, this will be camera position
-    this.cockpitLookAt = new THREE.Vector3();    //when in cockpit mode, this will be a point in front of ship to look towards
-    this.engineSound = null;                     //will be THREE.Audio object
+    this.cameraAttachement = new THREE.Vector3();        //When camera is following vehicle, this will be it's target location
+    this.cockpitOffset = new TOffset(20,10,0);           //location of cockpit relative to object
+    this.cockpitPos = new THREE.Vector3();               //when in cockpit mode, this will be camera position
+    this.cockpitLookAt = new THREE.Vector3();            //when in cockpit mode, this will be a point in front of ship to look towards
+    this.engineSound = null;                             //will be THREE.Audio object
     this.engineSoundStartOffset = 0;
-    this.maxThrust = 100;  //deltaV/sec  default value
-    this.rocketPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
+    this.maxThrust = params.maxThrust||100;              //deltaV/sec 
+    this.enginePS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
                                      positionOffset : new TOffset(-7,7,0),
                                    velocityOffset: new TOffset(-80,0,0),
                                  decaySec: 1, initScale: 8, posVariance: 2,
@@ -55,12 +67,13 @@ class TVehicle extends T3DObject {
           this.engineSound.stop();
         }  
       }  
-    }  
-    this.rocketPS.throttle = value;
+    }
+    if (this.enginePS) this.enginePS.throttle = value;
   }
   get throttle() {
     return this.private_throttle;
   }
+  //=== methods ========
   thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
   //Input: accel  -- SCALAR deltaV/sec
   //       deltaSec -- elapsed time for this frame
@@ -69,7 +82,10 @@ class TVehicle extends T3DObject {
     deltaV.setLength(accel * deltaSec)
     this.accelerate(deltaV);
   }
-  //=== methods ========
+  explode() {  
+    super.explode(); 
+    this.throttle = 0;
+  }     
   orbit(aBody) {
   //Input: aBody - TCelestialBody
   //NOTE: formula found here: http://www.physicsclassroom.com/class/circles/Lesson-4/Mathematics-of-Satellite-Motion
@@ -84,7 +100,7 @@ class TVehicle extends T3DObject {
     //NOTE: Later, when on a different plane, will need to use a different "up" vector
     //      instead of just plusY
     orbitV.cross(plusYV);  //result should be unit length
-    orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found experimentally
+    orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found via trial and error
     this.velocity.copy(orbitV);
   }
   getGravityAccelV(aBody, deltaSec) {
@@ -108,16 +124,14 @@ class TVehicle extends T3DObject {
   }
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
-    this.velocity.clampLength(-500, 500);  //keep velocity length within -500 to 500 voxels/sec
+    this.velocity.clampLength(-500,500);  //keep velocity length within -500 to 500 voxels/sec
   }
   animateParticles(deltaSec) {  //animate particle system
-    this.rocketPS.animate(deltaSec);  
-      
+    this.enginePS.animate(deltaSec);        
   }    
   animate(deltaSec) {
     super.animate(deltaSec);  //First, change postion based on current velocity
-    this.animateParticles(deltaSec);  //animate particle system
-  
+    this.animateParticles(deltaSec);  //animate particle system 
     this.thrust(this.maxThrust  * this.private_throttle/100, deltaSec);
 
     if (!disableGravity) {
@@ -128,7 +142,7 @@ class TVehicle extends T3DObject {
     }
 
     //set position of model relative to current object position
-    this.object.position.copy(this.objectOffset.combineWithObjectAddVector(this,this.position));
+    this.object.position.copy(this.objectOffset.combineWithObjectPosition(this));
 
     autoPointTowardsMotionDelay -= deltaSec;
     if (autoPointTowardsMotionDelay <= 0) {
@@ -136,25 +150,17 @@ class TVehicle extends T3DObject {
       //this.rotateTowardsVelocity (2*Pi, deltaSec);   //gradually orient towards direction of object's velocity
     }
 
-    //Calculate position for following camera attachement
-    this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectAddVector(this,this.position);
+    this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectPosition(this); //position for following camera attachement
+    this.cockpitPos = this.cockpitOffset.combineWithObjectPosition(this); //position for cockpit camera
+    this.cockpitLookAt = this.lookingAtPos(100).add(this.cockpitPos); //postion for cockpit camera to look at
 
-    //Calculate position for cockpit camera
-    this.cockpitPos = this.cockpitOffset.combineWithObjectAddVector(this,this.position);
-
-    //Now calculate a postion for cockpit camera to look at
-    this.cockpitLookAt = this.lookingAtPos(100).add(this.cockpitPos);
-
-    //debugShowXfrm(this);  //draw three lines showing matrix orientation
-    //if (SHOW_SHIP_POS_MARKER == true) this.originIndicator.position.copy (this.position);
-    if (SHOW_CAMERA_ATTACHEMENT_MARKER == true)
-      this.cameraAttachementMarker.position.copy(this.cameraAttachement);
+    if (this.showPosMarker) this.originIndicator.position.copy(this.position);
+    if (this.showCameraAttachmentMarker) this.cameraAttachementMarker.position.copy(this.cameraAttachement);
+    //debugShowXfrm(this);  //draw three lines showing matrix orientation    
   }
-  resetPositionToInit(sun) {
-    this.position.set(0, 0, 250);
-    this.velocity.set(0, 0,   0);
-    this.orbit(sun);
+  
+  resetPositionToInit() {
+    super.resetPositionToInit()
+    this.orbit(sun);  //<-- to do, make more generic...
   }
-
-
 }

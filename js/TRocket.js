@@ -1,44 +1,62 @@
 
 
 class TRocket extends TVehicle {
-  constructor (mass, aName, aVehicle) {
-    super(mass, aName);
-    this.loaded = false;
-    this.showPosMarker  = SHOW_SHIP_POS_MARKER; 
-    this.showCameraAttachmentMarker = SHOW_CAMERA_ATTACHEMENT_MARKER;
-    this.modelBaseRotationY = Pi/2;
-    this.loadModel('models/AVMT300/AVMT300.obj');
-    this.normalScale = THREE.Vector3(1, 1, 1);
-    this.plane = PLANE_XZ;
-    this.maxThrust = ROCKET_THRUST_MAX;  //deltaV/sec    
+  constructor(params) {
+    //Input:           
+    //  params.mass
+    //  params.name
+    //  params.initPosition
+    //  params.modelFName
+    //  params.ownerVehicle
+    //  params.plane -- optional.  default PLANE_XZ
+    //-----------------------
+    params.modelBaseRotationY = Pi/2;
+    params.maxThrust = ROCKET_THRUST_MAX;  //deltaV/sec  
+    params.autoAddToScene = false;
+    params.modelScale = 0.75;
+    params.showPosMarker  = ROCKET_SHOW_POS_MARKER; 
+    params.showCameraAttachmentMarker = ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER;
+    super(params);
     this.lifeSpanTime = ROCKET_LIFESPAN;  //seconds until explosion
     this.remainingLifeSpan = 0;
-    this.ownerVehicle = aVehicle;
+    this.ownerVehicle = params.ownerVehicle||null;
     this.visible = false; //true means rocket is moving independently
-    this.offsetFromOwner = new TOffset(0,60,0);   //location of this relative to owner vehicle
+    this.offsetFromOwner = new TOffset(60,0,0);   //location of this relative to owner vehicle
     this.hide();
   }  
+  explode() {  
+    super.explode(); 
+    //more here if needed....
+  }      
   animate(deltaSec) {
-    if (!this.visible)  return;  //note: rocket is invisible when not launched
+    if (!this.visible) {
+      if (this.enginePS.hasActiveParticles()) {
+        this.animateParticles(deltaSec);
+      }        
+      return;  //note: rocket is invisible when not launched
+    }
     super.animate(deltaSec);  //First, change postion based on current velocity
-    this.remainingLifespan -= deltaSec;
+    this.remainingLifeSpan -= deltaSec;
     let hitArray = [];  this.hitOtherObjects(hitArray);
-    var shouldExplode = ((hitArray.length > 0)||(this.remainingLifespan < 0));
+    var shouldExplode = ((hitArray.length > 0)||(this.remainingLifeSpan < 0));
     for (var i=0; i < hitArray.length; i++) hitArray[i].handleRocketStrike(this);
-    if (shouldExplode) this.explode();  
+    if (shouldExplode) {
+      this.explode();  
+    }  
   } 
   hitOtherObjects(hitArray) {
     this.otherObjetsInDistSq(hitArray, ROCKET_STRIKE_DIST_SQUARED);
   }
   launch() {
     //calculate launch postion based on owner
-    let newPosition = this.offsetFromOwner.combineWithObject(this.ownerVehicle);
+    let newPosition = this.offsetFromOwner.combineWithObjectPosition(this.ownerVehicle);
+    this.velocity.copy(this.ownerVehicle.velocity);
     this.position.copy(newPosition);
     this.object.lookAt(this.ownerVehicle.lookingAtPos(100));
     this.unhide();
     this.throttle = 100;
     this.visible = true;
-    //this.setScale(this.normalScale);
+    //this.setScaleV(this.normalScale);
     this.remainingLifeSpan = this.lifeSpanTime;
   }    
 }

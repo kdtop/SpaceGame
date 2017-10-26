@@ -23,12 +23,16 @@
   
   function checkIfLoaded() {
     loadedStatus.ship = ship.loaded;
+    if (USING_SHIP2) {
+      loadedStatus.ship2 = ship2.loaded;  //temp
+    } else loadedStatus.ship2 = true; 
     loadedStatus.sun = sun.loaded;
     loadedStatus.skyBox = skyBox.loaded;
-    //loaded.rocket = rocket.loaded;
+    loadedStatus.rocket = rocket.loaded;
     //rocketSound : false
     loadedStatus.allLoaded = (
       loadedStatus.ship &&
+      loadedStatus.ship2 &&  //temp
       loadedStatus.sun &&
       loadedStatus.skyBox && 
       loadedStatus.rocket && 
@@ -40,8 +44,12 @@
     if (!loadedStatus.allLoaded) checkIfLoaded();
     if (loadedStatus.allLoaded) {
       let deltaSec = clock.getDelta();
-      //deltaSec = 0.01;  //<-- Debug option for prolonged frames when stepping through
-      handleKeyAction(ship,deltaSec);
+      if (debugging) deltaSec = 0.01;  //<-- Debug option for prolonged frames when stepping through
+      if (USING_SHIP2) {
+        handleKeyAction(ship2,deltaSec);
+      } else {
+        handleKeyAction(ship,deltaSec);
+      }      
       animateObjects(deltaSec);
       debugAnimate(deltaSec)
       renderer.render( scene, gameCamera.camera );
@@ -56,7 +64,8 @@
     //  gameObjects[i].animate();
     //}  
     sun.animate(deltaSec);
-    ship.animate(deltaSec);
+    ship.animate(deltaSec);    
+    if (USING_SHIP2) ship2.animate(deltaSec);  //temp
     rocket.animate(deltaSec);
     gameCamera.animate(deltaSec);
     //animateLight(deltaSec);

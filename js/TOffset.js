@@ -7,6 +7,9 @@ class TOffset extends THREE.Vector3 {
   set up(value) {
   get left() {
   set left(value) {
+  combineWithObject(a3DObject) {
+  combineWithObjectAddVector(a3DObject, aVector) {
+  combineWithObjectPosition(a3DObject) {
 }
 */
 
@@ -53,6 +56,13 @@ class TOffset extends THREE.Vector3 {
     //Result: a THREE.Vector3
     let result = this.combineWithObject(a3DObject);
     result.add(aVector);
+    return result;
+  }
+  combineWithObjectPosition(a3DObject) {
+    //input: object -- A T3DObject
+    //Result: a THREE.Vector3
+    let result = this.combineWithObject(a3DObject);
+    result.add(a3DObject.position);
     return result;
   }
 }

@@ -1,23 +1,35 @@
 
 class TCelestialBody extends T3DObject {
-  constructor (mass, realSize, gameSize, fileName, aName) {
-    super(mass, aName);
-    this.realWorldSize = realSize;  // KM radius
-    this.radius = gameSize;         //desired size in graphic world
-    this.rotationVelocityY = Pi/4;    //radians/sec
+//  constructor (mass, realSize, gameSize, fileName, aName, aInitPosition) {
+  constructor(params) {
+    //Input:           
+    //  params.mass
+    //  params.name
+    //  params.initPosition
+    //  params.realSize
+    //  params.gameSize
+    //  params.textureFName
+    //-----------------------
+    super(params);
+    //super(mass, aName, aInitPosition);
+    //this.realWorldSize = realSize;  // KM radius
+    this.realWorldSize = params.realSize||1;  // KM radius
+    //this.radius = gameSize;         //desired size in graphic world
+    this.radius = params.gameSize||1;         //desired size in graphic world
+    this.rotationVelocity.y = Pi/4;    //radians/sec
 
-    let aTexture = new THREE.TextureLoader().load( fileName );
+    //let aTexture = new THREE.TextureLoader().load( fileName );
+    let aTexture = new THREE.TextureLoader().load(params.textureFName);
     let aMaterial = new THREE.MeshBasicMaterial( { map: aTexture } );
     let aGeometry = new THREE.SphereGeometry(this.radius, 32, 16 );
     this.object = new THREE.Mesh( aGeometry, aMaterial );
-    this.object.position.set(0,0,0);
-    this.object.name = aName;
+    //this.object.name = aName;
+    this.object.name = params.name;
     this.loaded = true;
     scene.add(this.object);
-
   }
   animate(deltaSec) {
     super.animate(deltaSec);
-    this.object.rotation.y -= this.rotationVelocityY * deltaSec;
+    this.object.rotation.y -= this.rotationVelocity.y * deltaSec;
   }
 }

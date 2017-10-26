@@ -11,10 +11,9 @@ class T3DObject {
   this.modelScaleV  
   this.object   //this will be the THREE.Object3D for the vehicle
   this.objectOffset  //this is an Offset displacing 3D model from game position.
-  this.modelBaseRotationY
   this.plane 
   //--------- member functions --------------
-  constructor(mass, aName) {
+  constructor() {
   get inV() {
   get upV() {
   get leftV() {
@@ -36,28 +35,31 @@ class T3DObject {
   hide() {
   unhide() {
   explode() {  //override in descendants for points etc...
-  setScale(scaleV) {
-  onOBJTransvserseCallback(child) {
-  onModelLoadedCallback(loadedObject) {
-  onModelLoadErrorCallback(xhr) {
-  onModelLoadProgressCallback(xhr) {
-  loadModel(modelFileName) {
+  setScaleV(scaleV) {
+  setScale(scalar) {
 }
 
 */
 
 class T3DObject extends T3DPoint {
-  constructor(mass, aName) {
-    super(mass, aName);
+  constructor(params) {
+    //Input:           
+    //  params.mass
+    //  params.name
+    //  params.initPosition
+    //  params.modelScale  -- optional, default = 1
+    //  params.plane -- optional.  default PLANE_XZ
+    //-----------------------
+    super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
     this.loaded = false;
     this.showPosMarker = false; 
     this.showCameraAttachmentMarker = false; 
-    this.modelScaleV = new THREE.Vector3(1,1,1);
-    this.object = null;                          //this will be the THREE.Object3D for the vehicle
-    this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model from game position.
-    this.modelBaseRotationY = 0;
-    this.plane = PLANE_UNK;
+    let modelScale = params.modelScale||1
+    this.modelScaleV = new THREE.Vector3(modelScale, modelScale, modelScale);
+    this.object = null;                          //this will be the THREE.Object3D for descendents
+    this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model/object from game position.
+    this.plane = params.plane||PLANE_XZ;
     this.visible = true;
     gameObjects.push(this);
   }
@@ -149,7 +151,7 @@ class T3DObject extends T3DPoint {
   }
   animate(deltaSec)  {
     super.animate(deltaSec);
-    this.object.position.clone(this.position);
+    this.object.position.copy(this.position);
   }
   offsetPos(offset) {
     //input: offset -- a TOffset
@@ -158,7 +160,7 @@ class T3DObject extends T3DPoint {
     //                               + T3DObject.upV * 1
     //                               + T3DObject.leftV * 1
     //Result: returns this.positon + offset
-    let result = offset.combineWithObjectAddVector(this, this.position);
+    let result = offset.combineWithObjectPosition(this);
     return result;
   }
   offsetVelocity(offset) {
@@ -182,13 +184,14 @@ class T3DObject extends T3DPoint {
     //       distSq -- the square of the proximity distance
     let p = new THREE.Vector3();
     for (var i=0; i < gameObjects.length; i++) {
+      if (gameObjects[i] == this) continue;            
       p.copy(gameObjects[i].position);
       p.sub(this.position);
       if (p.lengthSq() < distSq) objArray.push(gameObjects[i]);
     }  
   }  
   hide() {
-    //this.setScale(VERY_TINY_SCALE_V);  //perhaps not needed
+    //this.setScaleV(VERY_TINY_SCALE_V);  //perhaps not needed
     this.position.copy(nullV);
     this.velocity.copy(nullV);
     this.visible = false;
@@ -201,63 +204,14 @@ class T3DObject extends T3DPoint {
     //FINISH -- launch explosion
     this.hide();    
   }     
-  setScale(scaleV) {
-    this.object.scale.copy(scaleV);
+  setScaleV(scaleV) {
+    if (this.object) this.object.scale.copy(scaleV);
     this.modelScaleV.copy(scaleV);
-  }    
-  onOBJTransvserseCallback(child) {
-    if (child instanceof THREE.Mesh) {
-      child.material.map = this.texture;
-    }
-  }
-  onModelLoadedCallback(loadedObject) {
-    loadedObject.traverse((child)=> this.onOBJTransvserseCallback(child)); 
-    this.object = loadedObject;
-    this.object.name = this.name
-    this.object.scale.copy(this.modelScaleV);
-    this.object.rotation.y = this.modelBaseRotationY;
-    this.resetPositionToInit(sun);  //TO DO <-- make more generic
-    scene.add(this.object);
-    
-    if (this.showPosMarker == true) {
-      let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
-      let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
-      this.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
-      scene.add(this.originIndicator);
-    }
-    
-    if (this.showCameraAttachmentMarker == true) {
-      let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-      let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
-      this.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
-      scene.add(this.cameraAttachementMarker);
-    }
-    this.loaded = true;
-  }  
-  onModelLoadErrorCallback(xhr) {
-    //any load error handler can go here
-  }
-  onModelLoadProgressCallback(xhr) {
-    if (xhr.lengthComputable) {
-      let percentComplete = xhr.loaded / xhr.total * 100;
-      console.log(Math.round(percentComplete, 2) + '% downloaded');
-    }
-  }
-  loadModel(modelFileName) {
-    this.texture = new THREE.CanvasTexture( generateTexture( 0, 0.5, 1 ), THREE.UVMapping );
-    let loadManager = new THREE.LoadingManager();
-    loadManager.onProgress = function ( item, loaded, total ) {
-      console.log(item, loaded, total);
-    };
-    let localOnLoadedCallbackFn = null;
-    let OBJloader = new THREE.OBJLoader(loadManager);
-    OBJloader.load(
-      modelFileName, 
-      (loadedObject)=> this.onModelLoadedCallback(loadedObject),
-      this.onModelLoadProgressCallback,
-      this.onModelLoadErrorCallback
-    ); //OBJloader.load()
-  }                                            
+  }   
+  setScale(scalar) {
+    let scaleV = new THREE.Vector3(scalar, scalar, scalar);        
+    this.setScaleV(scaleV);
+  }          
 }
 
 

@@ -5,6 +5,7 @@ const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
 const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
+const CAMERA_INIT_POSITION = new THREE.Vector3(0,200,800);
 
 const GRAV_CONST = 0.02;  // N * meters^2 /mass^2  //<-- Not consistent with real world.
 //const GRAV_CONST = 0.0000000000667;  // N * meters^2 /mass^2  //<-- real world
@@ -13,18 +14,25 @@ const SUN_MASS = 2e30;  //2e30 = 2x10^30 kg
 const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
 const SUN_GAME_SIZE = 40;  //voxels of radius
 const VERY_TINY_SCALE = 0.0001; //A number to scale objects such that they are not visible. 
-const VERY_TINY_SCALE_V = THREE.Vector3(VERY_TINY_SCALE, VERY_TINY_SCALE, VERY_TINY_SCALE);
+const VERY_TINY_SCALE_V = new THREE.Vector3(VERY_TINY_SCALE, VERY_TINY_SCALE, VERY_TINY_SCALE);
 
+const SHIP_MODEL_FNAME = 'models/galosha/galosha2.obj';
 const SHIP_MASS = 9e5;  //900,000; //kg
 const SHIP_ROTATION_RATE = Pi;  //radians/second
 const SHIP_THROTTLE_DELTA_RATE = 200;  //100%/sec
 const SHIP_THRUST_MAX = 100;  //deltaV/sec
+const SHIP_INIT_POSITION = new THREE.Vector3(0,0,250);
+const SHIP_SHOW_POS_MARKER = false;
+const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = false;
 
+const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
-const ROCKET_THRUST_MAX = 500;  //deltaV/sec
-const ROCKET_LIFESPAN = 4; //__ seconds between launch and explosion
+const ROCKET_THRUST_MAX = 50;  //500;  //deltaV/sec
+const ROCKET_LIFESPAN = 5; //__ seconds between launch and explosion
 const ROCKET_STRIKE_DIST = 20;
 const ROCKET_STRIKE_DIST_SQUARED = ROCKET_STRIKE_DIST * ROCKET_STRIKE_DIST;
+const ROCKET_SHOW_POS_MARKER = false;
+const ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER = false;
 
 
 const RED_BLUE_SPRITE_COLORS = [
@@ -42,8 +50,6 @@ const GRAY_SPRITE_COLORS = [
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
 
-const SHOW_CAMERA_ATTACHEMENT_MARKER = false;
-const SHOW_SHIP_POS_MARKER = false;
 
 const CAMERA_MODE_UNK = 0;
 const CAMERA_MODE_ORBIT = 1;

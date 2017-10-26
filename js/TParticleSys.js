@@ -20,6 +20,8 @@ class TParticleSys {
   set throttle(value) {
   init()  {
   getUnusedParticle()  {
+  emit() {
+  hasActiveParticles() {
   animate(deltaSec) {  
 }
 
@@ -167,6 +169,17 @@ class TParticleSys {
     let particle = this.getUnusedParticle();
     particle.activate(initScale, decaySec, initPosition, initVelocity);
   }
+  hasActiveParticles() {
+    let result = false;
+    let tempParticle = null;
+    let arrayLength = this.particlesArray.length;
+    for (var i = 0; i < arrayLength; i++) {
+      tempParticle = this.particlesArray[i];
+      result = result || tempParticle.isActive;
+      if (result) break;  //quit as soon as 1 active particle found
+    }
+    return result;
+  }        
   animate(deltaSec) {
     //call emit() based on this.emitRate;
     this.numToEmit += this.emitRate * deltaSec;  //may only increase by 0.0234 particles/cycle

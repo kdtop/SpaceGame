@@ -15,11 +15,21 @@ class TCamera extends T3DObject {
 
 
 class TCamera extends T3DObject {
-  constructor (aTrackedObject) {
-    super(CAMERA_MASS, 'camera');
-    this.trackedObject = aTrackedObject;  //will be a TVehicle
+  //constructor (aTrackedObject) {
+  constructor(params) {
+    //Input:           
+    //  params.mass
+    //  params.name
+    //  params.initPosition
+    //  params.trackedObject
+    //-----------------------
+    super(params);
+    //super(CAMERA_MASS, 'camera');
+    //this.trackedObject = aTrackedObject;  //will be a TVehicle
+    this.trackedObject = params.trackedObject;  //will be a TVehicle
     this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2500 );
-    this.camera.position.set( 0, 200, 800 );
+    //this.camera.position.set( 0, 200, 800 );
+    this.camera.position.copy(params.initPosition);
     this.targetLookAtPos = new THREE.Vector3();
     this.currentLookAtPos = new THREE.Vector3();
     this.orbit = {};
@@ -83,70 +93,12 @@ class TCamera extends T3DObject {
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
     this.animateLookAtPos(deltaSec);
   }
-  animateFollow0(deltaSec) {  //delete later...
-    //NOTE: The use of springs led to excess oscillation, so I am dropping the approach.  
-    //deltaSec = 0.00125; //<-- temp!!!
-    let attachDirV = ship.cameraAttachement.clone();
-    attachDirV.sub(this.position);
-    let distToAttach = attachDirV.length();
-    let dampenFactor = 0.1;
-
-    if (distToAttach > 10) {
-      //Redirect all velocity to direction of attachement.
-      let newVelocityV = attachDirV.clone()
-      newVelocityV.setLength(this.velocity.length());
-      this.velocity.copy(newVelocityV);
-
-      //Next accelerate camera towards attachement
-      attachDirV.normalize();
-
-      //F = k * x;
-      //F on camera = K * distToAttach
-      //F = m * accleration
-      //K * distToAttach = m * acceleration
-      //acceleration = K * distToAttach / m
-      //DeltaV = acceleration * deltaSec
-      //DeltaV = K * distToAttach * deltaSec / m
-      let scalar = this.springK * distToAttach * deltaSec / this.mass;
-      attachDirV.multiplyScalar(scalar);
-      this.velocity.add(attachDirV);
-    } else {
-      dampenFactor = 0.5;
-    }
-    //I want to ensure the camera doesn't overshoot the target in the next animation frame.
-    //  I will assume the next animation frame will be similar to this one.
-    //  D=R*T,  R=D/T
-    //  Rate that would overshoot target would be R > distToAttach/deltaSec
-    let maxRate = (distToAttach / deltaSec) ;
-    //maxRate = maxRate * 0.5;  //manual adjustment factor
-    if (maxRate > CAMERA_MAX_FOLLOW_VELOCITY) maxRate=CAMERA_MAX_FOLLOW_VELOCITY;
-    if (this.velocity.length() > maxRate) {
-      this.velocity.setLength(maxRate);
-    }
-
-    //change in position = this.velocity * deltaSec
-    let deltaPos = this.velocity.clone();
-    deltaPos.multiplyScalar(deltaSec);
-    this.position.add(deltaPos);
-    //wrapPosition(this.position);  <-- will wrap based on when trackedObject is wrapped
-
-    //dampen camera velocity
-    var vel = this.velocity.clone();
-    vel.multiplyScalar(1- (dampenFactor * deltaSec));   //dampen by 10%/sec
-    this.velocity.copy(vel);
-    this.camera.position.copy(this.position);
-
-    //this.camera.lookAt(this.trackedObject.cockpitLookAt);
-    this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
-    this.animateLookAtPos(deltaSec);
-  }  
   setToOrbitParameters(deltaSec) {
     this.position.x = Math.cos( this.orbit.xzAngle ) * this.radius;
     this.position.z = Math.sin( this.orbit.xzAngle ) * this.radius;
     this.position.y = Math.sin(this.orbit.zyAngle) * this.radius;
     this.camera.position.copy(this.position);
     this.targetLookAtPos.copy(scene.position);
-    //this.camera.lookAt( scene.position );
     this.animateLookAtPos(deltaSec);
   }  
   animateOrbit(deltaSec) {
@@ -163,40 +115,12 @@ class TCamera extends T3DObject {
     this.animateLookAtPos(deltaSec);
   }
   animateMouseControl(deltaSec) {
-    //NOTE: mouse (0,0) is center of screen.      
+    //NOTE: mouse (0,0) is center of screen.    
+    if (!mouseDown) return;
     this.orbit.xzAngle = Pi * (mouseX / windowHalfX);
     this.orbit.zyAngle = Pi/2 * (mouseY / windowHalfY);
     this.setToOrbitParameters();    
   }
-  animateMouseControl0(deltaSec) {  //delete later...
-    //mouseX = 0;
-    //this.orbit.xzAngleVelocity = 0;
-    let maxXZAngularVelocity = Pi/2;  //radians/second
-    let maxZYAngularVelocity = Pi/4;  //radians/second
-    let deltaXZAngularVelocity = (mouseX / windowHalfX) * maxXZAngularVelocity * deltaSec;
-    this.orbit.xzAngleVelocity += deltaXZAngularVelocity;
-
-    globalDebugMessage = 'deltaXZAngularVelocity=' + deltaXZAngularVelocity.toString() + ', ' +
-                         'this.orbit.xzAngleVelocity=' + this.orbit.xzAngleVelocity.toString();
-    if (this.orbit.xzAngleVelocity < -maxXZAngularVelocity) this.orbit.xzAngleVelocity = -maxXZAngularVelocity;
-    if (this.orbit.xzAngleVelocity > maxXZAngularVelocity) this.orbit.xzAngleVelocity = maxXZAngularVelocity;
-
-    let deltaZYAngle = (mouseY / windowHalfY) * maxXZAngularVelocity * deltaSec;
-    this.orbit.zyAngle += deltaZYAngle;
-    if (this.orbit.zyAngle < -Pi/2) this.orbit.zyAngle = -Pi/2;
-    if (this.orbit.zyAngle > Pi/2) this.orbit.zyAngle = Pi/2;
-
-    this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
-    //let radius = GRID_SIZE/2 + 400;
-    this.position.x = Math.cos(this.orbit.xzAngle) * this.radius;
-    this.position.z = Math.sin(this.orbit.xzAngle) * this.radius;
-    //this.position.y = 200;
-    this.position.y = Math.sin(this.orbit.zyAngle) * this.radius;
-    this.camera.position.copy(this.position);
-    //this.camera.lookAt( scene.position );
-    this.targetLookAtPos.copy(scene.position);
-    this.animateLookAtPos(deltaSec);
-  }  
   animateCockpit(deltaSec) {
     this.camera.position.copy(this.trackedObject.cockpitPos);
     //this.camera.lookAt(this.trackedObject.cockpitLookAt);
