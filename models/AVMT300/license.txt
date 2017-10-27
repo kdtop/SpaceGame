@@ -1,5 +1,8 @@
 downloaded from here on 10/17/17:
 
+Model was modified: it was rotated 90 degrees on the Z axis using Blender.
+
+
 https://free3d.com/3d-model/sm-2-missile-defense--51283.html
 License is stated to be "commercial use license"
 This term is clarified here: https://free3d.com/terms-conditions

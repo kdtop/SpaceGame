@@ -28,7 +28,8 @@
     } else loadedStatus.ship2 = true; 
     loadedStatus.sun = sun.loaded;
     loadedStatus.skyBox = skyBox.loaded;
-    loadedStatus.rocket = rocket.loaded;
+    //loadedStatus.rocket = rocket.loaded;
+    loadedStatus.rocket = ship.rocketsLoaded()
     //rocketSound : false
     loadedStatus.allLoaded = (
       loadedStatus.ship &&
@@ -66,7 +67,7 @@
     sun.animate(deltaSec);
     ship.animate(deltaSec);    
     if (USING_SHIP2) ship2.animate(deltaSec);  //temp
-    rocket.animate(deltaSec);
+    //rocket.animate(deltaSec);
     gameCamera.animate(deltaSec);
     //animateLight(deltaSec);
   }

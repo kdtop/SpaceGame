@@ -4,7 +4,7 @@
 /*
 class TModelObject extends T3DObject {
   constructor(mass, aName, aModelFName, aInitPosition) {
-  this.modelBaseRotationY
+  //this.modelBaseRotationY
   onOBJTransvserseCallback(child) {
   onModelLoadedCallback(loadedObject) {
   onModelLoadErrorCallback(xhr) {
@@ -16,28 +16,32 @@ class TModelObject extends T3DObject {
 
 
 class TModelObject extends T3DObject {
+  //This class differs from T3DObject in that the .object here is a loaded model (e.g. .obj file),
+  //     wherease in T3DObject, they could be generic constructed sphere etc.  
   constructor(params) {
     //Input:           
     //  params.mass
     //  params.name
     //  params.initPosition
-    //  params.modelFName                  -- required for model loading
-    //  params.modelBaseRotationY          -- optional.  default = 0
-    //  params.autoAddToScene              -- optional.  Default = true;
-    //  params.modelScale                  -- optional, default = 1
-    //  params.plane                       -- optional.  default PLANE_XZ
-    //  params.showCameraAttachmentMarker  -- default is false 
-    //  params.showPosMarker               -- default is false
+    //  params.modelFName          -- required for model loading
+    //  params.modelBaseRotationY  -- optional.  Default = 0  <-- removed
+    //  params.autoAddToScene      -- optional.  Default = true;
+    //  params.modelScale          -- optional,  Default = 1
+    //  params.plane               -- optional.  Default PLANE_XZ
+    //  params.showPosMarker       -- optional.  Default is false
     //-----------------------
     super(params);
-    this.modelBaseRotationY = params.modelBaseRotationY||0;
     this.normalScale = this.modelScaleV.clone();
     this.autoAddToScene = (params.autoAddToScene !== false);
-    this.showCameraAttachmentMarker = (params.showCameraAttachmentMarker == true); 
-    this.showPosMarker = (params.showPosMarker == true);
     let modelFName = params.modelFName||''; 
     if (modelFName !== '') this.loadModel(modelFName);
   }  
+  setPosition(P) {  //unify moving of this.position into one function
+    super.setPosition(P)
+    //set position of model relative to current object position
+    this.object.position.copy(this.objectOffset.combineWithObjectPosition(this));
+  }          
+  
   onOBJTransvserseCallback(child) {
     if (child instanceof THREE.Mesh) {
       child.material.map = this.texture;
@@ -49,25 +53,11 @@ class TModelObject extends T3DObject {
     this.object = loadedObject;
     this.object.name = this.name
     this.object.scale.copy(this.modelScaleV);
-    this.object.rotation.y = this.modelBaseRotationY;    
+    //NOTE: I can't change the object baseline orientation here because I am later 
+    //     telling the object to lookAt() a given point, which would override changes.  
     this.calculateInUpLeft ();
-    this.object.rotateOnAxis(this.upV, this.modelBaseRotationY);
     this.resetPositionToInit();  
-    if (this.autoAddToScene) scene.add(this.object);
-    
-    if (this.showPosMarker == true) {
-      let originMaterial = new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } );
-      let originGeometry = new THREE.SphereGeometry( 30, 32, 16 );
-      this.originIndicator = new THREE.Mesh(originGeometry, originMaterial);
-      scene.add(this.originIndicator);
-    }
-    
-    if (this.showCameraAttachmentMarker == true) {
-      let cameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-      let cameraTargetGeometry = new THREE.SphereGeometry( 8, 10, 10 );
-      this.cameraAttachementMarker = new THREE.Mesh(cameraTargetGeometry, cameraTargetMaterial );
-      scene.add(this.cameraAttachementMarker);
-    }
+    if (this.autoAddToScene) scene.add(this.object);    
     this.loaded = true;
   }  
   onModelLoadErrorCallback(xhr) {
@@ -82,7 +72,7 @@ class TModelObject extends T3DObject {
   loadModel(modelFileName) {
     this.texture = new THREE.CanvasTexture( generateTexture( 0, 0.5, 1 ), THREE.UVMapping );
     let loadManager = new THREE.LoadingManager();
-    loadManager.onProgress = function ( item, loaded, total ) {
+    loadManager.onProgress = function (item, loaded, total) {
       console.log(item, loaded, total);
     };
     let localOnLoadedCallbackFn = null;

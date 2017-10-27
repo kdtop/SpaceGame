@@ -13,40 +13,61 @@ class TVehicle extends T3DObject {
 
 
 class TVehicle extends TModelObject {
+  //NOTe: This class introduces an engine and responds to gravity
   constructor(params) {
     //Input:           
     //  params.mass
     //  params.name
     //  params.initPosition
-    //  params.maxThrust                   -- optional.  Default = 100 deltaV/sec
+    //  params.maxThrust                   -- Default = 100 deltaV/sec
     //  params.modelFName                  -- required for model loading
-    //  params.modelBaseRotationY          -- optional.  default = 0
-    //  params.autoAddToScene              -- optional.  Default = true;
-    //  params.modelScale                  -- optional, default = 1
-    //  params.plane                       -- optional.  default PLANE_XZ
+    //  params.modelBaseRotationY          -- default = 0  <-- removed
+    //  params.autoAddToScene              -- Default = true;
+    //  params.modelScale                  -- default = 1
+    //  params.plane                       -- default PLANE_XZ
     //  params.showCameraAttachmentMarker  -- default is false 
     //  params.showPosMarker               -- default is false
+    //  params.showCockpitLookat           -- default is false
+    //  params.showCockpitPosition         -- default is false   
+    //  params.engineColors                -- default is RED_BLUE_SPRITE_COLORS  
     //-----------------------
     super(params);
     //--- private stuff -----
     this.private_throttle = 0;
     //--- public stuff -----
-    this.originIndicator = {};                           //An Object3D to visualize where location of ship.position is.
-    this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
+    this.cameraAttachmentOffset = new TOffset(-40,20,0); //Default location of camera attachemnt relative to object
     this.cameraAttachement = new THREE.Vector3();        //When camera is following vehicle, this will be it's target location
-    this.cockpitOffset = new TOffset(20,10,0);           //location of cockpit relative to object
+    this.cockpitOffset = new TOffset(20,10,0);           //Default location of cockpit relative to object
     this.cockpitPos = new THREE.Vector3();               //when in cockpit mode, this will be camera position
     this.cockpitLookAt = new THREE.Vector3();            //when in cockpit mode, this will be a point in front of ship to look towards
     this.engineSound = null;                             //will be THREE.Audio object
     this.engineSoundStartOffset = 0;
     this.maxThrust = params.maxThrust||100;              //deltaV/sec 
+    let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
+
     this.enginePS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
                                      positionOffset : new TOffset(-7,7,0),
                                    velocityOffset: new TOffset(-80,0,0),
                                  decaySec: 1, initScale: 8, posVariance: 2,
                                decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
-                             colors : RED_BLUE_SPRITE_COLORS,
+                             colors : engineColors,
                            });
+    this.showCameraAttachmentMarker = (params.showCameraAttachmentMarker == true); 
+    if (this.showCameraAttachmentMarker == true) {
+      this.cameraAttachmentMarker = debugPositionMarker.clone();
+      scene.add(this.cameraAttachmentMarker);
+    }
+    this.showCockpitLookat = (params.showCockpitLookat == true);
+    if (this.showCockpitLookat == true) {
+      this.cockpitLookatMarker = debugPositionMarker.clone();
+      scene.add(this.cockpitLookatMarker);
+    }
+    this.showCockpitPosition = (params.showCockpitPosition == true);
+    if (this.showCockpitPosition == true) {
+      this.cockpitPositionMarker = debugPositionMarker.clone();
+      scene.add(this.cockpitPositionMarker);
+    }
+    
     this.throttle = 0;
   }
   //=== properties ======
@@ -131,19 +152,15 @@ class TVehicle extends TModelObject {
   }    
   animate(deltaSec) {
     super.animate(deltaSec);  //First, change postion based on current velocity
-    this.animateParticles(deltaSec);  //animate particle system 
+    this.animateParticles(deltaSec);  //animate particle system
+    //--NOTE: Below calculates velocity etc that will be used to set position during NEXT animation cycle
     this.thrust(this.maxThrust  * this.private_throttle/100, deltaSec);
-
     if (!disableGravity) {
       //Later I can make a loop that cycles through all other objects
       //  and gets force from each -- i.e. could have 2 suns...
       let deltaV = this.getGravityAccelV(sun, deltaSec);
       this.accelerate(deltaV)
     }
-
-    //set position of model relative to current object position
-    this.object.position.copy(this.objectOffset.combineWithObjectPosition(this));
-
     autoPointTowardsMotionDelay -= deltaSec;
     if (autoPointTowardsMotionDelay <= 0) {
       //Below makes ship jitter.  Fix later...
@@ -151,16 +168,32 @@ class TVehicle extends TModelObject {
     }
 
     this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectPosition(this); //position for following camera attachement
-    this.cockpitPos = this.cockpitOffset.combineWithObjectPosition(this); //position for cockpit camera
-    this.cockpitLookAt = this.lookingAtPos(100).add(this.cockpitPos); //postion for cockpit camera to look at
+    if (this.cameraAttachmentMarker) this.cameraAttachmentMarker.position.copy(this.cameraAttachement);
 
-    if (this.showPosMarker) this.originIndicator.position.copy(this.position);
-    if (this.showCameraAttachmentMarker) this.cameraAttachementMarker.position.copy(this.cameraAttachement);
-    //debugShowXfrm(this);  //draw three lines showing matrix orientation    
+    this.cockpitPos = this.cockpitOffset.combineWithObjectPosition(this); //position for cockpit camera    
+    if (this.cockpitPositionMarker) this.cockpitPositionMarker.position.copy(this.cockpitPos);
+    
+    //this.cockpitLookAt = this.lookingAtPos(100).add(this.cockpitPos); //postion for cockpit camera to look at
+    this.cockpitLookAt = this.lookingAtPos(100);  //postion for cockpit camera to look at
+    if (this.cockpitLookatMarker) this.cockpitLookatMarker.position.copy(this.cockpitLookAt);
+    
   }
   
   resetPositionToInit() {
     super.resetPositionToInit()
     this.orbit(sun);  //<-- to do, make more generic...
   }
+  hide() {
+    super.hide();        
+    if (this.cameraAttachmentMarker) scene.remove(this.cameraAttachmentMarker);        
+    if (this.cockpitLookatMarker)    scene.remove(this.cockpitLookatMarker);        
+    if (this.cockpitPositionMarker)  scene.remove(this.cockpitPositionMarker);            
+  }
+  unhide() {
+    super.unhide();          
+    if (this.cameraAttachmentMarker) scene.add(this.cameraAttachmentMarker);        
+    if (this.cockpitLookatMarker)    scene.add(this.cockpitLookatMarker);        
+    if (this.cockpitPositionMarker)  scene.add(this.cockpitPositionMarker);            
+  }         
+    
 }

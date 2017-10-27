@@ -11,19 +11,13 @@ class TCelestialBody extends T3DObject {
     //  params.textureFName
     //-----------------------
     super(params);
-    //super(mass, aName, aInitPosition);
-    //this.realWorldSize = realSize;  // KM radius
     this.realWorldSize = params.realSize||1;  // KM radius
-    //this.radius = gameSize;         //desired size in graphic world
     this.radius = params.gameSize||1;         //desired size in graphic world
     this.rotationVelocity.y = Pi/4;    //radians/sec
-
-    //let aTexture = new THREE.TextureLoader().load( fileName );
     let aTexture = new THREE.TextureLoader().load(params.textureFName);
     let aMaterial = new THREE.MeshBasicMaterial( { map: aTexture } );
     let aGeometry = new THREE.SphereGeometry(this.radius, 32, 16 );
     this.object = new THREE.Mesh( aGeometry, aMaterial );
-    //this.object.name = aName;
     this.object.name = params.name;
     this.loaded = true;
     scene.add(this.object);

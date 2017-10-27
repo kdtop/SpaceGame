@@ -24,12 +24,10 @@ class TCamera extends T3DObject {
     //  params.trackedObject
     //-----------------------
     super(params);
-    //super(CAMERA_MASS, 'camera');
-    //this.trackedObject = aTrackedObject;  //will be a TVehicle
     this.trackedObject = params.trackedObject;  //will be a TVehicle
     this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2500 );
-    //this.camera.position.set( 0, 200, 800 );
-    this.camera.position.copy(params.initPosition);
+    this.object = this.camera;
+    this.setPosition(params.initPosition);
     this.targetLookAtPos = new THREE.Vector3();
     this.currentLookAtPos = new THREE.Vector3();
     this.orbit = {};
@@ -63,7 +61,7 @@ class TCamera extends T3DObject {
       }
       this.radius = GRID_SIZE*1/4;
       this.dirV.multiplyScalar(this.radius);
-      this.camera.position.copy(this.dirV);
+      this.setPosition(this.dirV);
     }
   }
   animateLookAtPos(deltaSec) {
@@ -78,26 +76,27 @@ class TCamera extends T3DObject {
     this.camera.lookAt(this.currentLookAtPos);
   }
   animateFollow(deltaSec) {
-    //deltaSec = 0.00125; //<-- temp!!!    
     let attachDirV = this.trackedObject.cameraAttachement.clone();
     attachDirV.sub(this.position);
     let distToAttach = attachDirV.length();
     let maxDist = CAMERA_MAX_FOLLOW_VELOCITY * deltaSec; 
+    let newPos = this.position.clone();
     if (maxDist <= distToAttach ) {      
       attachDirV.setLength(maxDist);
-      this.position.add(attachDirV);
+      newPos.add(attachDirV);
     } else {
-      this.position.copy(ship.cameraAttachement);
+      newPos.copy(ship.cameraAttachement);
     }  
-    this.camera.position.copy(this.position);
+    this.setPosition(newPos);
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
     this.animateLookAtPos(deltaSec);
   }
   setToOrbitParameters(deltaSec) {
-    this.position.x = Math.cos( this.orbit.xzAngle ) * this.radius;
-    this.position.z = Math.sin( this.orbit.xzAngle ) * this.radius;
-    this.position.y = Math.sin(this.orbit.zyAngle) * this.radius;
-    this.camera.position.copy(this.position);
+    let newPos = new THREE.Vector3();
+    newPos.x = Math.cos( this.orbit.xzAngle ) * this.radius;
+    newPos.z = Math.sin( this.orbit.xzAngle ) * this.radius;
+    newPos.y = Math.sin(this.orbit.zyAngle) * this.radius;
+    this.setPosition(newPos);
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
     globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
@@ -110,8 +109,7 @@ class TCamera extends T3DObject {
   animateHighAbove(deltaSec) {
     let dirV2 = this.dirV.clone();
     dirV2.setLength(this.radius);
-    this.camera.position.copy(dirV2);
-    //this.camera.lookAt(this.trackedObject.position);
+    this.setPosition(dirV2);
     this.targetLookAtPos.copy(this.trackedObject.position);
     this.animateLookAtPos(deltaSec);
   }
@@ -124,8 +122,7 @@ class TCamera extends T3DObject {
     this.setToOrbitParameters();    
   }
   animateCockpit(deltaSec) {
-    this.camera.position.copy(this.trackedObject.cockpitPos);
-    //this.camera.lookAt(this.trackedObject.cockpitLookAt);
+    this.setPosition(this.trackedObject.cockpitPos);
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
     this.animateLookAtPos(deltaSec);
   }
@@ -136,6 +133,6 @@ class TCamera extends T3DObject {
     delta.sub(originalP);  //delta is vector from object position before it was wrapped to camera position
     let newPosition = p.clone();
     newPosition.add(delta);
-    this.position.copy(newPosition);
+    this.setPosition(newPosition);
   }
 }

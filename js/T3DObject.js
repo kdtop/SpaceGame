@@ -18,7 +18,8 @@ class T3DObject {
   get upV() {
   get leftV() {
   get futurePos() {
-  function lookingAtPos(distance)  {
+  lookingAtPosAtOrigin(distance) {  
+  lookingAtPos(distance)  {
   getInUpLeft(inV, upV, leftV) {
   calculateInUpLeft () {
   yaw(deltaAngle, deltaSec) {
@@ -47,20 +48,24 @@ class T3DObject extends T3DPoint {
     //  params.mass
     //  params.name
     //  params.initPosition
-    //  params.modelScale  -- optional, default = 1
-    //  params.plane -- optional.  default PLANE_XZ
+    //  params.modelScale          -- optional, default = 1
+    //  params.plane               -- optional.  default PLANE_XZ
+    //  params.showPosMarker       -- default is false
     //-----------------------
     super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
     this.loaded = false;
-    this.showPosMarker = false; 
-    this.showCameraAttachmentMarker = false; 
     let modelScale = params.modelScale||1
     this.modelScaleV = new THREE.Vector3(modelScale, modelScale, modelScale);
     this.object = null;                          //this will be the THREE.Object3D for descendents
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model/object from game position.
     this.plane = params.plane||PLANE_XZ;
     this.visible = true;
+    this.showPosMarker = (params.showPosMarker == true);
+    if (this.showPosMarker == true) {
+      this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of ship
+      scene.add(this.originIndicator);
+    }
     gameObjects.push(this);
   }
   //=== Class Properties =====
@@ -82,12 +87,18 @@ class T3DObject extends T3DPoint {
     p2.add(this.velocity);  //will use velocity * 1 second
     return p2;
   }
-  lookingAtPos(distance) {
-  //Results: return point in front of object, based on current orientation
+  lookingAtPosAtOrigin(distance) {
+  //Results: return point in front of object, based on current orientation, as if object is at origin
     this.calculateInUpLeft ();
     let forwardV = this.inV;
     forwardV.multiplyScalar(distance);
     return forwardV;
+  }
+  lookingAtPos(distance) {
+  //Results: return point in front of object, based on current orientation
+    let result = this.lookingAtPosAtOrigin(distance)
+    result.add(this.position);
+    return result;
   }
   //=== Class Methods =====
   getInUpLeft(inV, upV, leftV) {
@@ -109,6 +120,7 @@ class T3DObject extends T3DPoint {
   yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
     this.calculateInUpLeft ();
     this.object.rotateOnAxis(this.upV, deltaAngle * deltaSec);
+    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.upV, deltaAngle * deltaSec);
   }
   pitch(deltaAngle, deltaSec)  {  //pitch is like a ship nosing up or nosing down.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
@@ -116,6 +128,7 @@ class T3DObject extends T3DPoint {
   //results: none
     this.calculateInUpLeft ();
     this.object.rotateOnAxis(this.leftV, deltaAngle * deltaSec);
+    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.leftV, deltaAngle * deltaSec);
   }
   roll(deltaAngle, deltaSec)  {  //roll is like a barrel roll in an airplane.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
@@ -123,16 +136,27 @@ class T3DObject extends T3DPoint {
   //results: none
     this.calculateInUpLeft ();
     this.object.rotateOnAxis(this.inV, deltaAngle * deltaSec);
+    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.inV, deltaAngle * deltaSec);
   }
+  setPosition(P) {  //unify moving of this.position into one function
+    this.position.copy(P)          
+    this.object.position.copy(P);
+    if (this.originIndicator) this.originIndicator.position.copy(P);    
+  }          
   lookAtVelocity () {  //orient in direction of velocity
     this.object.lookAt(this.futurePos);
+    if (this.originIndicator) this.originIndicator.lookAt(this.futurePos);
   }
+  lookAtTarget(P) {  //instantly look at target vector P
+    this.object.lookAt(P);
+    if (this.originIndicator) this.originIndicator.lookAt(P);
+  }        
   rotateTowardsV (targetV, rotationRate, deltaSec)  {  //orient towards direction of targetV
     //Input: targetV -- vector to rotate orientation towards
     //       rotationRate -- radians/sec
     //       deltaSec: milliseconds for this frame
     //results: none
-    let laV = this.lookingAtPos(10);
+    let laV = this.lookingAtPosAtOrigin(10);
     let crossV = laV.cross(targetV);  //cross product is perpendicular to both other vectors
     crossV.normalize();
     let dotProd = laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
@@ -140,6 +164,7 @@ class T3DObject extends T3DPoint {
     if (Math.abs(rotRad) > (1/360) * 2*Pi) {  //ignore rotation when within 1 degrees
       if (dotProd > 0) radRad *= -1;
       this.object.rotateOnAxis(crossV, rotRad);
+      if (this.originIndicator) this.originIndicator.rotateOnAxis(crossV, rotRad);
     }
   }
   rotateTowardsVelocity (rotationRate, deltaSec)  {  //gradually orient towards direction of object's velocity
@@ -151,7 +176,9 @@ class T3DObject extends T3DPoint {
   }
   animate(deltaSec)  {
     super.animate(deltaSec);
-    this.object.position.copy(this.position);
+    this.setPosition(this.position); //ensure everything with changes made by T3DPoint
+    //this.object.position.copy(this.position);
+    //if (this.originIndicator) this.originIndicator.position.copy(this.position);    
   }
   offsetPos(offset) {
     //input: offset -- a TOffset
@@ -196,9 +223,12 @@ class T3DObject extends T3DPoint {
     this.velocity.copy(nullV);
     this.visible = false;
     if (this.object) scene.remove(this.object);
+    if (this.originIndicator) scene.remove(this.originIndicator);        
   }  
   unhide() {
     if (this.object) scene.add(this.object);
+    if (this.originIndicator) scene.add(this.originIndicator); 
+    this.visible = true;
   }  
   explode() {  //override in descendants for points etc...
     //FINISH -- launch explosion

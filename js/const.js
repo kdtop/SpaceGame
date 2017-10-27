@@ -16,29 +16,44 @@ const SUN_GAME_SIZE = 40;  //voxels of radius
 const VERY_TINY_SCALE = 0.0001; //A number to scale objects such that they are not visible. 
 const VERY_TINY_SCALE_V = new THREE.Vector3(VERY_TINY_SCALE, VERY_TINY_SCALE, VERY_TINY_SCALE);
 
+const DEBUG_SHOW_POSITION_MARKERS = false;
+
 const SHIP_MODEL_FNAME = 'models/galosha/galosha2.obj';
 const SHIP_MASS = 9e5;  //900,000; //kg
 const SHIP_ROTATION_RATE = Pi;  //radians/second
 const SHIP_THROTTLE_DELTA_RATE = 200;  //100%/sec
 const SHIP_THRUST_MAX = 100;  //deltaV/sec
 const SHIP_INIT_POSITION = new THREE.Vector3(0,0,250);
-const SHIP_SHOW_POS_MARKER = false;
-const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = false;
+const SHIP_SHOW_POS_MARKER = DEBUG_SHOW_POSITION_MARKERS;
+const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
+const SHIP_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
+const SHIP_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
+const SHIP_NUM_ROCKETS = 4;
+const SHIP_WING_SPREAD = 50; //used to evenly space out rocket firing positions. 
 
-const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300b.obj';
+const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
-const ROCKET_THRUST_MAX = 50;  //500;  //deltaV/sec
-const ROCKET_LIFESPAN = 5; //__ seconds between launch and explosion
+const ROCKET_THRUST_MAX = 500;  //deltaV/sec
+const ROCKET_LIFESPAN = 5; // # seconds between launch and explosion
 const ROCKET_STRIKE_DIST = 20;
 const ROCKET_STRIKE_DIST_SQUARED = ROCKET_STRIKE_DIST * ROCKET_STRIKE_DIST;
-const ROCKET_SHOW_POS_MARKER = false;
-const ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER = false;
-
+const ROCKET_SHOW_POS_MARKER = DEBUG_SHOW_POSITION_MARKERS;
+const ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
+const ROCKET_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
+const ROCKET_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
 
 const RED_BLUE_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
   {pct : 0.2, color: 'rgba(255,   0,   0, 1)'},  //red at 20% radius
   {pct : 0.4, color: 'rgba(0  ,   0,  64, 1)'},  //dark blue 40% radius
+];  
+
+const RED_ORANGE_BROWN_SPRITE_COLORS = [
+  {pct : 0.0,  color: 'rgba(255, 255, 255, 1)'},   //white at center
+  {pct : 0.05, color: 'rgba(255,   0,   0, 1)'},  //red at 5% radius
+  {pct : 0.15, color: 'rgba(255, 153,   0, 1)'},  //orange at 15% radius
+  {pct : 0.3,  color: 'rgba(153, 102,  51, 1)'},   //dark brown 30% radius
+  {pct : 0.4,  color: 'rgba(0  ,   0,  0, 1)'},    //black 40% radius];  
 ];  
 
 const GRAY_SPRITE_COLORS = [
@@ -49,7 +64,6 @@ const GRAY_SPRITE_COLORS = [
 
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
-
 
 const CAMERA_MODE_UNK = 0;
 const CAMERA_MODE_ORBIT = 1;

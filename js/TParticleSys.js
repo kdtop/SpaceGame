@@ -50,10 +50,6 @@ class TParticle  extends T3DPoint {
     this.object.scale.y = value;
     this.object.scale.z = value;
   }
-  //setPosition(positionV) {
-  //  this.position.copy(positionV);
-  //  this.object.position.copy(positionV);
-  //}
   get isActive() {
     return (this.private_scale > 0.1);
   }
@@ -64,15 +60,18 @@ class TParticle  extends T3DPoint {
     this.object.position.copy(this.position);
     let newScale = this.private_scale - this.decayRate * deltaSec;
     this.scale = newScale;
+    if (!this.isActive) this.inactivate();
   }
   activate(initScale, decaySec, initPosition, velocityV) {
     this.scale = initScale;       //triggers setter of property
     this.decayRate = initScale / decaySec;  //gives scale decrease/sec
     this.position = initPosition; //triggers setter of property
     this.velocity.copy(velocityV);
+    scene.add(this.object);    
   }
   inactivate() {
     this.scale = 0;
+    scene.remove(this.object);    
   }
 }
 
@@ -155,7 +154,7 @@ class TParticleSys {
     if (particle == null) {
       particle = new TParticle(this.aMaterial, 0, 0, nullV, nullV);
       this.particlesArray.push(particle);
-      this.scene.add(particle.object);
+      //this.scene.add(particle.object);
     }
     return particle;
   }

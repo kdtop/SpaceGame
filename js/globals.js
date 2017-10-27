@@ -6,6 +6,10 @@ var renderer;
 var pointLight;
 
 var debugging = false;
+var debugCameraTargetGeometry = new THREE.SphereGeometry( 4, 5, 5 );
+var debugCameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+var debugPositionMarker = new THREE.Mesh(debugCameraTargetGeometry, debugCameraTargetMaterial);
+
 
 var loadedStatus = {
   allLoaded : false,  //will be set to true when all others loaded.   
@@ -41,20 +45,9 @@ if (USING_SHIP2) {
   var ship2 = new TShip({
     mass: SHIP_MASS, 
     name: 'ship2',
-    modelFName: ROCKET_MODEL_FNAME,
+    modelFName: SHIP_MODEL_FNAME,
     initPosition: SHIP2_INIT_POSITION});
 }  
-
-
-//NOTE: Eventually, I want to make rocket(s) to be owned by ship, not in global scope
-//   To do this, I need to figure out how to retain this context in callback functions
-//var rocket = new TRocket(ROCKET_MASS, 'rocket', ship, ROCKET_MODEL_FNAME, nullV);
-var rocket = new TRocket({
-  mass: ROCKET_MASS,
-  name: 'rocket', 
-  ownerVehicle: ship, 
-  modelFName: ROCKET_MODEL_FNAME, 
-  initPosition: nullV});
 
 var gameCamera = new TCamera({
   mass: CAMERA_MASS,
