@@ -18,7 +18,11 @@ class TRocket extends TVehicle {
     params.showCameraAttachmentMarker = ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER;
     params.showCockpitLookat = ROCKET_SHOW_COCKPIT_LOOKAT;
     params.showCockpitPosition = ROCKET_SHOW_COCKPIT_POS;
-    params.engineColors = RED_ORANGE_BROWN_SPRITE_COLORS;    
+    params.engineColors = RED_ORANGE_BROWN_SPRITE_COLORS;  
+    params.maxVelocity = ROCKET_VELOCITY_MAX;    
+    params.engineSoundFName = ROCKET_SOUND_ENGINE;
+    params.engineSoundMaxVolume = 0.30;
+    params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
     super(params);
     this.lifeSpanTime = ROCKET_LIFESPAN;  //seconds until explosion
     this.remainingLifeSpan = 0;
@@ -26,6 +30,12 @@ class TRocket extends TVehicle {
     this.visible = false; //true means rocket is moving independently
     this.offsetFromOwner = new TOffset(40,0,0);   //location of this relative to owner vehicle
     this.enginePS.positionOffset.set(-16,-2,0);
+    //setup launch sound
+    this.launchSound = new THREE.Audio(gameSounds.audioListener); 
+    gameSounds.loadSound(ROCKET_SOUND_LAUNCH, this.launchSound);
+    this.launchSound.setLoop(false);
+    this.launchSound.setVolume(1.0);  
+    
     this.hide();
   }  
   explode() {  
@@ -72,7 +82,6 @@ class TRocket extends TVehicle {
     this.throttle = 100;
     this.remainingLifeSpan = this.lifeSpanTime;
     
-    //this.throttle = 1;  //<--- debug, remove later
-
+    this.launchSound.play();
   }    
 }

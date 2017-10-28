@@ -24,7 +24,7 @@ class TCamera extends T3DObject {
     //  params.trackedObject
     //-----------------------
     super(params);
-    this.trackedObject = params.trackedObject;  //will be a TVehicle
+    this.trackedObject = params.trackedObject||null;  //will be a TVehicle
     this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2500 );
     this.object = this.camera;
     this.setPosition(params.initPosition);

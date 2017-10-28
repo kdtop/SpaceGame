@@ -20,6 +20,7 @@ class TVehicle extends TModelObject {
     //  params.name
     //  params.initPosition
     //  params.maxThrust                   -- Default = 100 deltaV/sec
+    //  params.maxVelocity                 -- Default = 500 deltaV/sec
     //  params.modelFName                  -- required for model loading
     //  params.modelBaseRotationY          -- default = 0  <-- removed
     //  params.autoAddToScene              -- Default = true;
@@ -29,7 +30,10 @@ class TVehicle extends TModelObject {
     //  params.showPosMarker               -- default is false
     //  params.showCockpitLookat           -- default is false
     //  params.showCockpitPosition         -- default is false   
-    //  params.engineColors                -- default is RED_BLUE_SPRITE_COLORS  
+    //  params.engineColors                -- default is RED_BLUE_SPRITE_COLORS
+    //  params.engineSoundFName            -- required if sound wanted
+    //  params.engineSoundMaxVolume        -- default = 1 (0.8 means max volume 80% normal)
+    //  params.explodeSoundFName           -- required if sound wanted 
     //-----------------------
     super(params);
     //--- private stuff -----
@@ -42,7 +46,9 @@ class TVehicle extends TModelObject {
     this.cockpitLookAt = new THREE.Vector3();            //when in cockpit mode, this will be a point in front of ship to look towards
     this.engineSound = null;                             //will be THREE.Audio object
     this.engineSoundStartOffset = 0;
-    this.maxThrust = params.maxThrust||100;              //deltaV/sec 
+    this.engineSoundMaxVolume = params.engineSoundMaxVolume||1;
+    this.maxThrust = params.maxThrust||100;              //deltaV/sec
+    this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
 
     this.enginePS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
@@ -67,6 +73,18 @@ class TVehicle extends TModelObject {
       this.cockpitPositionMarker = debugPositionMarker.clone();
       scene.add(this.cockpitPositionMarker);
     }
+    //setup vehicle engine sound
+    if (params.engineSoundFName != '') {
+      this.engineSound = new THREE.Audio(gameSounds.audioListener); 
+      gameSounds.loadSound(params.engineSoundFName, this.engineSound);
+      this.engineSoundStartOffset = 0;  
+    }
+    //setup  explode sound
+    if (params.explodeSoundFName != '') {
+      this.explodeSound = new THREE.Audio(gameSounds.audioListener); 
+      gameSounds.loadSound(params.explodeSoundFName, this.explodeSound);
+      this.explodeSound.setLoop(false);
+    }
     
     this.throttle = 0;
   }
@@ -82,7 +100,8 @@ class TVehicle extends TModelObject {
           this.engineSound.play();  // play the audio
           this.engineSound.setLoop(true); 
         }  
-        this.engineSound.setVolume(2*value/100);
+        let volume = (2 * value / 100) * this.engineSoundMaxVolume;
+        this.engineSound.setVolume(volume);
       } else {
         if ((this.engineSound)&&(this.engineSound.isPlaying)) {
           this.engineSound.stop();
@@ -106,6 +125,7 @@ class TVehicle extends TModelObject {
   explode() {  
     super.explode(); 
     this.throttle = 0;
+    if (this.explodeSound) this.explodeSound.play();
   }     
   orbit(aBody) {
   //Input: aBody - TCelestialBody
@@ -145,7 +165,7 @@ class TVehicle extends TModelObject {
   }
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
-    this.velocity.clampLength(-500,500);  //keep velocity length within -500 to 500 voxels/sec
+    this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
   }
   animateParticles(deltaSec) {  //animate particle system
     this.enginePS.animate(deltaSec);        

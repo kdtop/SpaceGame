@@ -27,6 +27,10 @@ class TShip extends TVehicle {
     params.showCameraAttachmentMarker = SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER;
     params.showCockpitLookat = SHIP_SHOW_COCKPIT_LOOKAT;
     params.showCockpitPosition = SHIP_SHOW_COCKPIT_POS;
+    params.maxVelocity = SHIP_VELOCITY_MAX;
+    params.engineSoundFName = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
+    params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
+
     super(params);
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
     this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
@@ -60,7 +64,7 @@ class TShip extends TVehicle {
       aRocket.offsetFromOwner.left = leftOffset;
       this.rockets.push(aRocket);                  
     }            
-  }  //constructor  
+  }  //constructor     
   set throttle(value) {
     super.throttle = value
     if (this.wingSmokeLeftPS) this.wingSmokeLeftPS.throttle = value;
@@ -69,6 +73,7 @@ class TShip extends TVehicle {
   get throttle() {
     return super.throttle;          
   }   
+  
   rocketsLoaded() {
     //later I will expande this to multiple rockets.
     let result = false;

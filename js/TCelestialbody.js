@@ -1,6 +1,5 @@
 
 class TCelestialBody extends T3DObject {
-//  constructor (mass, realSize, gameSize, fileName, aName, aInitPosition) {
   constructor(params) {
     //Input:           
     //  params.mass
@@ -22,6 +21,10 @@ class TCelestialBody extends T3DObject {
     this.loaded = true;
     scene.add(this.object);
   }
+  explode() {  
+    //override ancestor to keep planet from blowing up.          
+    //this.hide();    
+  }     
   animate(deltaSec) {
     super.animate(deltaSec);
     this.object.rotation.y -= this.rotationVelocity.y * deltaSec;

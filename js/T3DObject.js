@@ -106,8 +106,7 @@ class T3DObject extends T3DPoint {
     //       inV -- an OUT parameter.   Returns X axis vector (relative to Matrix)
     //       upV -- an OUT parameter.   Returns Y axis vector (relative to Matrix)
     //       leftV -- an OUT parameter. Returns Z axis vector (relative to Matrix)
-    //NOTE: The in and left are relative to loaded ship.  I am unsure if the
-    //      ship model is pre-rotated confusing the orientation.
+    //NOTE: The in, up, and left are relative to loaded ship. 
     //results: none
       this.object.matrix.extractBasis (leftV, upV, inV);
   }
@@ -218,7 +217,6 @@ class T3DObject extends T3DPoint {
     }  
   }  
   hide() {
-    //this.setScaleV(VERY_TINY_SCALE_V);  //perhaps not needed
     this.position.copy(nullV);
     this.velocity.copy(nullV);
     this.visible = false;
@@ -231,7 +229,7 @@ class T3DObject extends T3DPoint {
     this.visible = true;
   }  
   explode() {  //override in descendants for points etc...
-    //FINISH -- launch explosion
+    //FINISH -- launch explosion animation
     this.hide();    
   }     
   setScaleV(scaleV) {

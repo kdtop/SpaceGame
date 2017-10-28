@@ -10,6 +10,16 @@ var debugCameraTargetGeometry = new THREE.SphereGeometry( 4, 5, 5 );
 var debugCameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 var debugPositionMarker = new THREE.Mesh(debugCameraTargetGeometry, debugCameraTargetMaterial);
 
+var gameObjects = []; //to be filled with T3DObjects or descendents during object constructors
+
+var gameCamera = new TCamera({
+  mass: CAMERA_MASS,
+  name: 'camera',
+  initPosition: CAMERA_INIT_POSITION,
+  //trackedObject: ship,   //<--- will set below. 
+});
+
+var gameSounds = new TSounds(); //finish after figure out closures in classes, to have access to 'this'
 
 var loadedStatus = {
   allLoaded : false,  //will be set to true when all others loaded.   
@@ -20,7 +30,6 @@ var loadedStatus = {
   rocketSound : true
 };
 
-var gameObjects = []; //to be filled with T3DObjects or descendents during object constructors
 var scene = new THREE.Scene();
 var clock = new THREE.Clock(true);
 var skyBox = new TSkybox();
@@ -30,13 +39,17 @@ var sun = new TCelestialBody({
   gameSize: SUN_GAME_SIZE,
   textureFName: 'textures/land_ocean_ice_cloud_2048.jpg',
   name: 'sun', 
-  initPosition: nullV});
+  initPosition: nullV
+});
 
 var ship = new TShip({
-   mass:SHIP_MASS, 
-   name: 'ship',
-   modelFName: SHIP_MODEL_FNAME,
-   initPosition: SHIP_INIT_POSITION});
+  mass:SHIP_MASS, 
+  name: 'ship',
+  modelFName: SHIP_MODEL_FNAME,
+  initPosition: SHIP_INIT_POSITION
+});
+gameCamera.trackedObject = ship;
+
 
 //temp
 const USING_SHIP2 = false;
@@ -49,13 +62,9 @@ if (USING_SHIP2) {
     initPosition: SHIP2_INIT_POSITION});
 }  
 
-var gameCamera = new TCamera({
-  mass: CAMERA_MASS,
-  name: 'camera',
-  initPosition: CAMERA_INIT_POSITION,
-  trackedObject: ship});
-
-//var gameSounds = new TSounds(); //finish after figure out closures in classes, to have access to 'this'
+var gridXZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
+var gridXY = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
+var gridYZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
 
 var mouseX = 0;  //maybe later turn into Vector2
 var mouseY = 0;

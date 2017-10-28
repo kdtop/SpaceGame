@@ -14,4 +14,12 @@ class TSounds {
    this.ambientAudio = new THREE.Audio(this.audioListener);  
       
   }
+  loadSound(fileName, audioObj) {
+    this.audioLoader.load(  
+      fileName,  // resource URL
+      (audioBuffer) => {audioObj.setBuffer(audioBuffer)},
+      (xhr) => {console.log(fileName + '  ' + (xhr.loaded / xhr.total * 100) + '% loaded')},  //download progresses callback
+      (xhr) =>  {console.log( 'An error happened during audio loading of: ' + fileName)}    //download errors callback
+    );  
+  }          
 }
