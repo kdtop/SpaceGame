@@ -19,15 +19,15 @@ var gameCamera = new TCamera({
   //trackedObject: ship,   //<--- will set below. 
 });
 
-var gameSounds = new TSounds(); //finish after figure out closures in classes, to have access to 'this'
+var gameSounds = new TSounds(); 
 
 var loadedStatus = {
-  allLoaded : false,  //will be set to true when all others loaded.   
-  ship : false,
-  sun : false,
-  skyBox : false, 
-  rocket : false, 
-  rocketSound : true
+  allLoaded :   false,  //<-- will be set to true when all others loaded.   
+  ship :        false,
+  sun :         false,
+  skyBox :      false, 
+  rockets :     false, 
+  rocketSound : true   //<--- implement later.
 };
 
 var scene = new THREE.Scene();

@@ -125,11 +125,4 @@ class TShip extends TVehicle {
     this.wingSmokeLeftPS.animate(deltaSec);  
     this.wingSmokeRightPS.animate(deltaSec);        
   } 
-  animate(deltaSec) {
-    super.animate(deltaSec);
-    //this.rocket.animate(deltaSec);    
-    for (var i=0; i < SHIP_NUM_ROCKETS; i++) {
-      this.rockets[i].animate(deltaSec);
-    }                
-  }  
 }

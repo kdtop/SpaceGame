@@ -5,7 +5,7 @@ Contents:
   function wrapPosition(aObject,  p)    //p is Vector3
   function wrapRadians (Rad)
   function generateTexture( r, g, b )
-  function generateSprite() {
+  function generateSpriteCanvas() {
   function vector3ToString(v)   //v is Vector3
   function debugInfo(id, Msg)
   function getLine(p1, p2, aColor)
@@ -64,7 +64,7 @@ function generateTexture( r, g, b ) {
   return canvas;
 }
 
-function generateSprite(colors) {
+function generateSpriteCanvas(colors) {
   //Input: Colors: -- array of JSON objects with colors -- e.g. 
   //             [{pct:0.4, color:'rgba(128,2,15,1)'},...] 
   var canvas = document.createElement('canvas');
@@ -86,11 +86,6 @@ function generateSprite(colors) {
 function vector3ToString(v) {  //v is Vector3
   let s = '(' + v.x.toFixed(5) + ', ' + v.y.toFixed(5) + ', ' + v.z.toFixed(5) + ')';
   return s;
-}
-
-function debugInfo(id, Msg) {
-  let elem = document.getElementById(id);
-  elem.innerHTML = Msg;
 }
 
 function getLine(p1, p2, aColor) {

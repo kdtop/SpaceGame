@@ -4,6 +4,11 @@ function debugAnimate(deltaSec) {
 */
 
 
+function debugInfo(id, Msg) {
+  let elem = document.getElementById(id);
+  elem.innerHTML = Msg;
+}
+
 function debugAnimate(deltaSec) {
 
   debugInfoCounter +=1;

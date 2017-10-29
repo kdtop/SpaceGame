@@ -11,6 +11,17 @@ class TParticle  extends T3DPoint {
   inactivate() {
 }
 
+
+class TAnimatedParticle extends T3DPoint {
+  constructor(params) {
+  activate(initPosition, velocityV) {
+  inactivate() {
+  offsetForTile(tileNum) {
+  animateTexture(deltaSec) {
+  animate(deltaSec) {
+}        
+
+
 class TParticleSys {
   constructor(aParent,
               offsetIn, offsetUp, offsetLeft,
@@ -29,17 +40,24 @@ class TParticleSys {
 
 
 // ======= Types ================
-class TParticle  extends T3DPoint {
-  constructor (aMaterial, initScale, decaySec, initPosition, velocityV) {
-    //input: aMateraial -- a THREE.SpriteMaterial
-    //       initScale -- 1 for normal size, 2 for double etc (can be fractional)
-    //       decaySec -- gives planned time for particle to decrease from initScale to 0
-    //       initPosition -- a THREE.Vector3;
-    //       velocityV -- vector for motion of particle.
-    super(1);  //sprite will have a default mass of 1 kg
-    this.object = new THREE.Sprite(aMaterial);
-    this.private_scale = initScale;
-    this.activate(initScale, decaySec, initPosition, velocityV);
+class TParticle extends T3DPoint {
+  constructor(params) {
+    //Input:
+    //  params.material       -- a THREE.js material
+    //  params.initScale      -- 1 for normal size, 2 for double etc (can be fractional). Default is 1
+    //  params.decaySec       -- gives planned time for particle to decrease from initScale to 0.  Default is 1
+    //  params.initPosition   -- a THREE.Vector3.  Default is (0,0)
+    //  params.velocityV      -- vector for motion of particle.
+    //  params.mass           -- default is 1
+    //  params.name           -- default is 'particle'
+    params.name = params.name||'particle';
+    super(params);  
+    this.object = new THREE.Sprite(params.material);
+    this.private_scale = params.initScale||1;
+    this.decaySec = params.decaySec||1;
+    if (!params.initPosition) params.initPosition = new THREE.Vector3();
+    if (!params.velocityV) params.velocityV = new THREE.Vector3();
+    this.activate(this.private_scale, this.decaySec, params.initPosition, params.velocityV);
   }
   // == properties =====
   set scale(value) {
@@ -65,7 +83,7 @@ class TParticle  extends T3DPoint {
   activate(initScale, decaySec, initPosition, velocityV) {
     this.scale = initScale;       //triggers setter of property
     this.decayRate = initScale / decaySec;  //gives scale decrease/sec
-    this.position = initPosition; //triggers setter of property
+    this.position.copy(initPosition); 
     this.velocity.copy(velocityV);
     scene.add(this.object);    
   }
@@ -75,18 +93,109 @@ class TParticle  extends T3DPoint {
   }
 }
 
+class TAnimatedParticle extends T3DPoint {
+        
+//to-do -- change to make descendent of TParticle -- put back in scaling and decay stuff.          
+        
+//NOTE 1: This is a cousin class, not a descendent class, of TParticle
+//NOTE 3: the texture passed in params.materials has some requirements:
+//        -- image width must be power of 2: 2,4,8,16,32,64,128,256,512,1024,2048 etc.
+//        -- image height must also be power of 2.  Doesn't have to be same as width
+//        -- First frame image of sequence should be in upper left.  Then next frame would be
+//           to the right, and so on, along first row.  Then wrap like reading a book
+//           to begin again at left-hand side of image to 2nd row.
+//        -- It is OK for there to be blank spaces at end of sequence.  These will not
+//           be shown, as long as correct number of images specified in params.numTiles
+//        -- the passed texture will be modified during the animation sequence.  So
+//           the image should be unique, or the animation here will affect the appearance
+//           of other objects.  
+  constructor(params) {
+    //Input:
+    //  params.texture        -- Required.  A THREE.js texture -- Should be a tiled image containing all frames of animation
+    //  params.numTilesHoriz  -- Required.  Should be image height / tile height.  This is the number of rows on the image (including any blank rows needed to make image power of 2 size)
+    //  params.numTilesVert   -- Required.  Should be image width / tile width
+    //  params.numTiles       -- Required.  Number of frame images in the sequence (don't include trailing empty space needed for power of 2)
+    //  params.cycleTime      -- Required.  Number of seconds to show entire animation sequence
+    //  params.scale          -- 1 for normal size, 2 for double etc (can be fractional). Default is 1
+    //  params.initPosition   -- a THREE.Vector3.  Default is (0,0)
+    //  params.velocityV      -- vector for motion of particle.
+    //  params.mass           -- default is 1
+    //  params.name           -- default is 'particle'
+    //  params.loop           -- default is true;
+    params.name = params.name||'animated-particle';
+    super(params);
+    this.isActive = false;
+    if (!params.initPosition) params.initPosition = new THREE.Vector3();
+    if (!params.velocityV) params.velocityV = new THREE.Vector3();
+    this.activate(params.initPosition, params.velocityV);
+    this.numTilesHorizontal = params.numTilesHoriz;
+    this.numTilesVertical = params.numTilesVert;
+    this.scale = params.scale||1;
+    this.texture = params.texture;
+    this.loop = (params.loop == true);        
+    this.numberOfTiles = params.numTiles; //may not be same as tilesHoriz * tilesVert if there are blank tiles at the bottom
+    this.texture.wrapS = THREE.RepeatWrapping; 
+    this.texture.wrapT = THREE.RepeatWrapping; 
+    this.texture.repeat.set(1/this.numTilesHorizontal, 1/this.numTilesVertical);
+    this.tileDisplayDuration = params.cycleTime;  // how long should each image be displayed?
+    this.material = new THREE.SpriteMaterial({
+      map: this.texture, 
+      blending: THREE.AdditiveBlending
+    });
+    this.object = new THREE.Sprite(this.material);
+    this.object.position.copy(this.position);
+    this.object.scale.set(this.scale, this.scale, this.scale);
+  }  
+  activate(initPosition, velocityV) {
+    this.position.copy(initPosition); 
+    this.velocity.copy(velocityV);
+    this.isActive = true;
+    this.currentDisplayTime = 0;  // how long has the current image been displayed?
+    this.currentTileNum = 0; //set index of tile to beginning.  
+    this.currentColumn = 0;
+    this.currentRow = 0;
+    scene.add(this.object);    
+  }
+  inactivate() {
+    this.isActive = false;
+    scene.remove(this.object);    
+  }
+  offsetForTile(tileNum) {
+    var result = new THREE.Vector2();
+    result.x = this.currentColumn / this.tilesHorizontal;
+    result.y = (this.tilesVertical - currentRow - 1) / this.tilesVertical;
+    return result;          
+  }          
+  animateTexture(deltaSec) {
+    //NOTE: Code modified from here http://stemkoski.github.io/Three.js/Texture-Animation.html          
+    this.currentDisplayTime += deltaSec;
+    while (this.currentDisplayTime > this.tileDisplayDuration) {
+      this.currentDisplayTime -= this.tileDisplayDuration;
+      this.currentTileNum += 1;
+      if (this.currentTile >= this.numberOfTiles) {
+        if (this.loop) {              
+          this.currentTile = 0;
+        } else {
+          this.inactivate();
+          break;
+        }        
+      }  
+      this.currentColumn = this.currentTileNum % this.numTilesHorizontal;       //first column is 0
+      this.currentRow = Math.floor( this.currentTile / this.tilesHorizontal );  //first row is 0
+      while (this.currentRow >= this.numtilesVertical) this.currentRow -= 1;
+    }
+    texture.offset.copy(offsetForTile(this.currrentTileNum));
+  }   
+  animate(deltaSec) {
+    if (!this.isActive) return;  //no animation if not active
+    super.animate(deltaSec);
+    this.object.position.copy(this.position);
+    this.animateTexture(deltaSec);
+  }  
+}        
+
 
 class TParticleSys {
-  /*
-  constructor(aScene,
-              aParent,
-              emitRate,
-              positionOffset,
-              velocityOffset,
-              decaySec,
-              initScale,
-              posVariance, decayVariance, scaleVariance, velocityVariance) {
-    */
     constructor(params) {
     //Input:  params.aScene -- a THREE.scene
     //        params.aParent -- should be a T3DObject
@@ -130,7 +239,7 @@ class TParticleSys {
   }
   // --- Methods -------
   init()  {
-    var spriteCanvas = generateSprite(this.colors);
+    var spriteCanvas = generateSpriteCanvas(this.colors);
     var textureMap = new THREE.CanvasTexture(spriteCanvas);
     var spriteParams = {
       map: textureMap,
@@ -152,9 +261,14 @@ class TParticleSys {
       }
     }
     if (particle == null) {
-      particle = new TParticle(this.aMaterial, 0, 0, nullV, nullV);
+      particle = new TParticle({
+        material: this.aMaterial, 
+        initScale: 0, 
+        decaySec: 0, 
+        initPosition: nullV, 
+        velocityV: nullV
+      });
       this.particlesArray.push(particle);
-      //this.scene.add(particle.object);
     }
     return particle;
   }

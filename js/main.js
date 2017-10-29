@@ -28,15 +28,13 @@
     } else loadedStatus.ship2 = true; 
     loadedStatus.sun = sun.loaded;
     loadedStatus.skyBox = skyBox.loaded;
-    //loadedStatus.rocket = rocket.loaded;
-    loadedStatus.rocket = ship.rocketsLoaded()
-    //rocketSound : false
+    loadedStatus.rockets = ship.rocketsLoaded()
     loadedStatus.allLoaded = (
       loadedStatus.ship &&
       loadedStatus.ship2 &&  //temp
       loadedStatus.sun &&
       loadedStatus.skyBox && 
-      loadedStatus.rocket && 
+      loadedStatus.rockets && 
       loadedStatus.rocketSound
     );
   }    
@@ -61,24 +59,9 @@
 
   function animateObjects(deltaSec) {
     
-    //for (var i=0; i < gameObjects.length; i++) {
-    //  gameObjects[i].animate();
-    //}  
-    sun.animate(deltaSec);
-    ship.animate(deltaSec);    
-    if (USING_SHIP2) ship2.animate(deltaSec);  //temp
-    //rocket.animate(deltaSec);
-    gameCamera.animate(deltaSec);
-    //animateLight(deltaSec);
+    for (var i=0; i < gameObjects.length; i++) {
+      gameObjects[i].animate(deltaSec);
+    }  
   }
-
-  function animateLight(deltaSec) {
-    //let timer = 0.0001 * Date.now();
-    //pointLight.position.x = Math.sin( timer * 7 ) * 300;
-    //pointLight.position.y = Math.cos( timer * 5 ) * 400;
-    //pointLight.position.z = Math.cos( timer * 3 ) * 300;
-  }
-
   init();
-  //animate();  //<---- this is launched from callback started in init()
   animate();  

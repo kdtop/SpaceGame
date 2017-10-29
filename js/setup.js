@@ -5,9 +5,29 @@ function init() {
 
   // Grid -------------
            
-  gridXY.rotation.y = 0;     scene.add(gridXZ);
+  gridXZ.rotation.y = 0;     scene.add(gridXZ);
   //gridXY.rotation.x = Pi/2;  scene.add(gridXY);
   //gridYZ.rotation.z = Pi/2;  scene.add(gridYZ); 
+    
+  /*
+  //--- debug test ----- 
+  var gridplaneSize = 20;
+  var color = 0xFFDCBB;
+  var plGeometry = new THREE.PlaneGeometry(GRID_SIZE, GRID_SIZE, GRID_DIVS, GRID_DIVS);
+  var plMaterial = new THREE.MeshBasicMaterial({
+          color:GRID_COLOR, 
+          ambient:GRID_COLOR, 
+          side:THREE.DoubleSide, 
+          opacity:0.2, 
+          transparent:true, 
+          depthWrite: false 
+  });
+  var planeXY = new THREE.Mesh(plGeometry, plMaterial);
+  planeXY.rotation.x = 0;;
+  scene.add(planeXY);
+  planeXY.receiveShadow = true;  
+  //--- end debug test ----- 
+  */
   
   // Lights
   scene.add( new THREE.AmbientLight( 0xffff99 ) );

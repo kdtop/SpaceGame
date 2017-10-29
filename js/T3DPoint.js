@@ -1,7 +1,7 @@
 
 /*
 class T3DPoint {
-  constructor() {
+  constructor(params) {
   animate(deltaSec)  {
   resetPositionToInit() {
 }
@@ -17,7 +17,7 @@ class T3DPoint {
     //  params.initPosition
     //-----------------------
     this.name = params.name||'default name';
-    this.mass = params.mass||1;                           //the mass of the point
+    this.mass = params.mass||1;                  //the mass of the point
     this.initPosition = new THREE.Vector3();     //Initial position
     this.position = new THREE.Vector3();         //the is the location to be used for game physics
     if (params.initPosition) {
