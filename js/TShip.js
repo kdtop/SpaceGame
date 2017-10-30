@@ -31,7 +31,7 @@ class TShip extends TVehicle {
     params.maxVelocity = SHIP_VELOCITY_MAX;
     params.engineSoundFName = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
     params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
-
+    //------------------------
     super(params);
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
     this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
@@ -75,18 +75,21 @@ class TShip extends TVehicle {
     return super.throttle;          
   }     
   rocketsLoaded() {
-    //later I will expande this to multiple rockets.
-    let result = false;
+    let result = true;
     for (var i=0; i < SHIP_NUM_ROCKETS; i++) {
-      result = result||this.rockets[i].loaded;
-      if (result) break;
+      result = result && this.rockets[i].loaded;
+      if (result == false) break;
     }        
     return result;          
-    //return this.rocket.loaded;          
   }
   allLoaded() {
-    return this.rocketsLoaded()&&this.loaded;
-  }  
+    let result = super.allLoaded();
+    result = result && this.rocketsLoaded();
+    result = result && this.wingSmokeRightPS.allLoaded();
+    result = result && this.wingSmokeLeftPS.allLoaded();    
+    //more here if needed
+    return result;
+  }    
   nextReadyRocket()  {  //returns a TRocket, or null
     let result = null;          
     for (var i=0; i < SHIP_NUM_ROCKETS; i++) {
@@ -102,13 +105,6 @@ class TShip extends TVehicle {
     let aRocket = this.nextReadyRocket();
     if (aRocket) aRocket.launch();
   }  
-  /*
-  loadSounds(audioListener, audioLoader) {
-    //NOTE: this will be called by gameSounds object 
-    this.engineSound = new THREE.Audio(audioListener);  
-    scene.add(this.engineSound);     
-  } 
-  */
   stop() {  //a debug function
     this.position.set(250,0,0);
     this.velocity.copy(nullV);

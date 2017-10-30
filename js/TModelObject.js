@@ -48,13 +48,14 @@ class TModelObject extends T3DObject {
     }
   }
   onModelLoadedCallback(loadedObject) {
-    console.log('In model callback.  Name='+this.Name);
+    //console.log('In model callback.  Name='+this.Name);
     loadedObject.traverse((child)=> this.onOBJTransvserseCallback(child)); 
     this.object = loadedObject;
     this.object.name = this.name
     this.object.scale.copy(this.modelScaleV);
     //NOTE: I can't change the object baseline orientation here because I am later 
-    //     telling the object to lookAt() a given point, which would override changes.  
+    //     telling the object to lookAt() a given point, which would override changes. 
+    //     I will have to use modeling software (e.g. Blender) to correct model orientation if needed.
     this.calculateInUpLeft ();
     this.resetPositionToInit();  
     if (this.autoAddToScene) scene.add(this.object);    
@@ -84,4 +85,10 @@ class TModelObject extends T3DObject {
       (xhr) => this.onModelLoadErrorCallback(xhr)
     ); 
   }
+  allLoaded() {
+    let result = super.allLoaded();
+    //more here if needed
+    return result;
+  }  
+  
 }  

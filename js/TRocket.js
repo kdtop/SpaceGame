@@ -10,7 +10,6 @@ class TRocket extends TVehicle {
     //  params.ownerVehicle
     //  params.plane -- optional.  default PLANE_XZ
     //-----------------------
-    //params.modelBaseRotationY = Pi/2;
     params.maxThrust = ROCKET_THRUST_MAX;  //deltaV/sec  
     params.autoAddToScene = false;
     params.modelScale = 0.75;
@@ -23,6 +22,7 @@ class TRocket extends TVehicle {
     params.engineSoundFName = ROCKET_SOUND_ENGINE;
     params.engineSoundMaxVolume = 0.30;
     params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
+    //------------------------
     super(params);
     this.lifeSpanTime = ROCKET_LIFESPAN;  //seconds until explosion
     this.remainingLifeSpan = 0;
@@ -30,24 +30,23 @@ class TRocket extends TVehicle {
     this.visible = false; //true means rocket is moving independently
     this.offsetFromOwner = new TOffset(40,0,0);   //location of this relative to owner vehicle
     this.enginePS.positionOffset.set(-16,-2,0);
-    //setup launch sound
     this.launchSound = gameSounds.setupSound({
       filename: ROCKET_SOUND_LAUNCH,
       loop: false,
       volume: 1,
     });     
-    //this.launchSound = new THREE.Audio(gameSounds.audioListener); 
-    //this.launchSound.tmgLoaded = false;    
-    //gameSounds.loadSound(ROCKET_SOUND_LAUNCH, this.launchSound);
-    //this.launchSound.setLoop(false);
-    //this.launchSound.setVolume(1.0);  
-    
     this.hide();
   }  
   explode() {  
     super.explode(); 
     //more here if needed....
-  }      
+  }
+  allLoaded() {
+    let result = super.allLoaded();
+    result = result && this.launchSound.tmgLoaded;
+    //more here if needed
+    return result;
+  }    
   animate(deltaSec) {
     if (!this.visible) {
       if (this.enginePS.hasActiveParticles()) {

@@ -25,6 +25,11 @@ class TCelestialBody extends T3DObject {
     //override ancestor to keep planet from blowing up.          
     //this.hide();    
   }     
+  allLoaded() {
+    let result = super.allLoaded();
+    //more here if needed
+    return result;
+  }    
   animate(deltaSec) {
     super.animate(deltaSec);
     this.object.rotation.y -= this.rotationVelocity.y * deltaSec;

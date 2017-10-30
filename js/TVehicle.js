@@ -84,31 +84,21 @@ class TVehicle extends TModelObject {
     }
     //setup vehicle engine sound
     if (params.engineSoundFName != '') {
-      //this.engineSound = new THREE.Audio(gameSounds.audioListener);
-      //this.engineSound.tmgLoaded = false;
-      //gameSounds.loadSound(params.engineSoundFName, this.engineSound);
-      this.engineSoundStartOffset = 0;
-      
+      this.engineSoundStartOffset = 0;      
       this.engineSound = gameSounds.setupSound({
         filename: params.engineSoundFName,
         loop: true,
         volume: 1,
-      });          
-      
+      });                
     }
     //setup  explode sound
     if (params.explodeSoundFName != '') {
-      //this.explodeSound = new THREE.Audio(gameSounds.audioListener); 
-      //this.engineSound.tmgLoaded = false;
-      //gameSounds.loadSound(params.explodeSoundFName, this.explodeSound);
-      //this.explodeSound.setLoop(false);
       this.explodeSound = gameSounds.setupSound({
         filename: params.explodeSoundFName,
         loop: false,
         volume: 1,
       });    
-    }
-    
+    }    
     this.throttle = 0;
   }
   //=== properties ======
@@ -116,18 +106,18 @@ class TVehicle extends TModelObject {
     if (value < 0) value = 0;
     if (value > 100) value = 100;
     this.private_throttle = value;
-    if (this.engineSound) {
+    if ((this.engineSound)&&(this.engineSound.tmgLoaded)) {
       if (value > 1) {
         if (!this.engineSound.isPlaying) {  
           this.engineSound.startTime = this.engineSoundStartOffset;  
-          if (this.engineSound.tmgLoaded == true) this.engineSound.play();  // play the audio
-          this.engineSound.setLoop(true); 
+          this.engineSound.play();  // play the audio
+          this.engineSound.setLoop(true);
         }  
         let volume = (2 * value / 100) * this.engineSoundMaxVolume;
         this.engineSound.setVolume(volume);
       } else {
-        if ((this.engineSound)&&(this.engineSound.isPlaying)) {
-          if (this.engineSound.tmgLoaded == true) this.engineSound.stop();
+        if (this.engineSound.isPlaying) {
+          this.engineSound.stop();
         }  
       }  
     }
@@ -137,6 +127,14 @@ class TVehicle extends TModelObject {
     return this.private_throttle;
   }
   //=== methods ========
+  allLoaded() {
+    let result = super.allLoaded();
+    result = result && this.engineSound.tmgLoaded;
+    result = result && this.explodeSound.tmgLoaded;    
+    result = result && this.enginePS.allLoaded();
+    //more here if needed
+    return result;
+  }  
   thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
   //Input: accel  -- SCALAR deltaV/sec
   //       deltaSec -- elapsed time for this frame

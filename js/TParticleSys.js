@@ -372,6 +372,13 @@ class TParticleSys {
     }
     return result;
   }        
+  allLoaded() {
+    let result = true;  //<-- To do: implement this...
+    //more here if needed
+    return result;
+  }  
+  
+  
   animate(deltaSec) {
     //call emit() based on this.emitRate;
     this.numToEmit += this.emitRate * deltaSec;  //may only increase by 0.0234 particles/cycle

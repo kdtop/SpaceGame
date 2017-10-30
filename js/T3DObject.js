@@ -173,6 +173,9 @@ class T3DObject extends T3DPoint {
     let fpV = this.futurePos;
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
+  allLoaded() {
+    return this.loaded;
+  }  
   animate(deltaSec)  {
     super.animate(deltaSec);
     this.setPosition(this.position); //ensure everything with changes made by T3DPoint
