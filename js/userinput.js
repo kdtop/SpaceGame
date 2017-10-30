@@ -41,11 +41,9 @@ function onKeyDown(event) {
 function onKeyUp(event) {
   let k = event.key;
   let code = event.code;
-  if (code == 'Escape') {
-    ship.resetPositionToInit();
-  } else if (keyDown['s']) {
-    gameCamera.orbit.xzAngleVelocity = 0;
-  }
+  if (code == 'Escape') { //for some reason Esc doesn't generate onKeyPress event
+    bufferedUserGameActions.push(SHIP_ACTION.resetPosToInit);
+  }  
   delete keyDown[event.key];
   delete keyDown[event.code];
   event.preventDefault();
@@ -55,88 +53,90 @@ function onKeyPress(event) {
   let k = event.key;
   let code = event.code;
   if (k == '1') {
-    gameCamera.setMode(CAMERA_MODE_ORBIT);
+    bufferedUserCameraActions.push(CAMERA_ACTION.setModeOrbit);
     event.preventDefault();
   } else if (k == '2') {
-    gameCamera.setMode(CAMERA_MODE_FOLLOW);
+    bufferedUserCameraActions.push(CAMERA_ACTION.setModeFollow);
     event.preventDefault();
   } else if (k == '3') {
-    gameCamera.setMode(CAMERA_MODE_COCKPIT);   
+    bufferedUserCameraActions.push(CAMERA_ACTION.setModeCockpit);
     event.preventDefault();
   } else if (k == '4') {
-    gameCamera.setMode(CAMERA_MODE_MOUSE);
+    bufferedUserCameraActions.push(CAMERA_ACTION.setModeMouse);
     event.preventDefault();
   } else if (k == '5') {
-    gameCamera.setMode(CAMERA_MODE_HIGH_ABOVE);   
+    bufferedUserCameraActions.push(CAMERA_ACTION.setModeHighAbove);
     event.preventDefault();
   } else if (k == 'p') {
-    gamePaused = !gamePaused;
-    if (!gamePaused) requestAnimationFrame(animate);
-    gamePaused ? clock.stop() : clock.start();
+    bufferedUserEnvironmentActions.push(ENV_ACTION.togglePause);    
+    if (gamePaused) requestAnimationFrame(animate); //<-- required to trigger handling of input if game currently paused.  
   } else if (k == 'g') {
-    disableGravity = !disableGravity;
+    bufferedUserEnvironmentActions.push(ENV_ACTION.toggleGravity);
   } else if (k == 'f') {
-    ship.launchRocket();
+    bufferedUserGameActions.push(SHIP_ACTION.launchRocket);
   } else if (k == 'k') {
-    ship.stop();  //best if gravity truned off first with 'g'
-  }
+    bufferedUserGameActions.push(SHIP_ACTION.stop);
+  }  
 }
 
+function getRemoteKeyShipAction(shipIndex) {
+  //Result is an array of SHIP_ACTION's
+  let resultArray = [];        
+  //implement later after communication channels to other players set up. 
+  return resultArray;  
+}  
 
+function getKeyShipAction(shipIndex)  {
+  //Result is an array of SHIP_ACTION's
+  if (shipIndex != localShipIndex) return getRemoteKeyShipAction(shipIndex);  
+  
+  let resultArray = bufferedUserGameActions.slice(); //copy array     
+  bufferedUserGameActions = [];  //reset buffer array
 
-function handleKeyAction(vehicle, deltaSec)  {
-  //handle key actions here for each animation cycle
   if ((keyDown['ArrowRight']) || (keyDown['Numpad6'])) {  //yaw right
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_XZ) {
-      vehicle.yaw(-SHIP_ROTATION_RATE, deltaSec);
-    }
+    resultArray.push(SHIP_ACTION.yawRight);
   }
-  if ((keyDown['ArrowLeft']) || (keyDown['Numpad4'])) {  //yaw left
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_XZ) {
-      vehicle.yaw(SHIP_ROTATION_RATE, deltaSec);
-    }
+  if ((keyDown['ArrowLeft']) || (keyDown['Numpad4'])) {   //yaw left
+    resultArray.push(SHIP_ACTION.yawLeft);
   }
-  if ((keyDown['ArrowUp']) || (keyDown['Numpad8'])) {   //pitch down
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_UNK) {
-      vehicle.pitch(SHIP_ROTATION_RATE, deltaSec);
-    }
+  if ((keyDown['ArrowUp']) || (keyDown['Numpad8'])) {     //pitch down
+    resultArray.push(SHIP_ACTION.pitchDn);
   }
-  if ((keyDown['ArrowDown']) || (keyDown['Numpad2'])) {  //pitch up
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_UNK) {
-      vehicle.pitch(-SHIP_ROTATION_RATE, deltaSec);
-    }
+  if ((keyDown['ArrowDown']) || (keyDown['Numpad2'])) {   //pitch up
+    resultArray.push(SHIP_ACTION.pitchUp);
   }
-  if ((keyDown['PageUp']) || (keyDown['Numpad9'])) {  //roll right
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_UNK) {
-      vehicle.roll(SHIP_ROTATION_RATE, deltaSec);
-    }
+  if ((keyDown['PageUp']) || (keyDown['Numpad9'])) {      //roll right
+    resultArray.push(SHIP_ACTION.rollRight);
   }
-  if ((keyDown['1']) || (keyDown['Numpad1'])) {  //roll left.
-    autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
-    if (vehicle.plane == PLANE_UNK) {
-      vehicle.roll(-SHIP_ROTATION_RATE, deltaSec);
-    }
+  if ((keyDown['1']) || (keyDown['Numpad1'])) {           //roll left.
+    resultArray.push(SHIP_ACTION.rollLeft);
   }
-  if ((keyDown['Enter']) || (keyDown['Numpad5'])) {  //Orient towards current velocity
-    //lookAtVelocity (vehicle);  //orient in direction of object's velocity
-    vehicle.lookAtVelocity();  //orient in direction of object's velocity
+  if ((keyDown['Enter']) || (keyDown['Numpad5'])) {       //Orient towards current velocity
+    resultArray.push(SHIP_ACTION.orientToVelocity);
   }
-  if (keyDown['Space']) {  //thrust
-    vehicle.throttle += SHIP_THROTTLE_DELTA_RATE * deltaSec
-    //vehicle.thrust(100, deltaSec);
+  if (keyDown['Space']) {                                 //thrust
+    resultArray.push(SHIP_ACTION.thrustMore);
   } else {
-    vehicle.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec
+    resultArray.push(SHIP_ACTION.thrustLess);
   }
-
-  if (keyDown['a']) {
-    gameCamera.orbit.xzAngleVelocity -= 0.1 * deltaSec;
-  }
-  if (keyDown['d']) {
-    gameCamera.orbit.xzAngleVelocity += 0.1 * deltaSec;
-  }
+  return resultArray;
 }
+
+function getKeyCameraAction() {
+  //Result is an array of CAMERA_ACTION's
+  let resultArray = bufferedUserCameraActions.slice(); //copy array     
+  bufferedUserEnvironmentActions = []; //reset buffer array
+  if (keyDown['a']) resultArray.push(CAMERA_ACTION.orbitAngleSub);
+  if (keyDown['d']) resultArray.push(CAMERA_ACTION.orbitAngleAdd);
+  if (keyDown['s']) resultArray.push(CAMERA_ACTION.orbitAngleZeror);
+  return resultArray;
+}
+  
+function getKeyEnvironmentAction() {
+  //Result is an array of ENV_ACTION's
+  let resultArray = bufferedUserEnvironmentActions.slice(); //copy array     
+  bufferedUserEnvironmentActions = [];  
+  //more here if needed
+  return resultArray;
+}
+

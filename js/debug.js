@@ -12,24 +12,8 @@ function debugInfo(id, Msg) {
 function debugAnimate(deltaSec) {
 
   debugInfoCounter +=1;
-  if ((1==0) && (debugInfoCounter > 80)) {
-    debugInfoCounter = 1;
-    let posInfo = 'ship.position = ' + vector3ToString(ship.position);
-    //debugInfo("info1", posInfo);
-    let velocityInfo = 'ship.velocity = ' + vector3ToString(ship.velocity);
-    //debugInfo("info2", velocityInfo);
-    let vectInfo = 'deltaV = ' + vector3ToString(deltaV);
-    debugInfo("info3", vectInfo);
-    vectInfo = 'Rotation = ' + vector3ToString(ship.object.rotation);
-    debugInfo("info4", vectInfo);
-    debugInfo("info5", JSON.stringify(keyDown));
-  }
-
-  debugInfoCounter +=1;
   if (debugInfoCounter > 60) {
     debugInfoCounter = 1;
-    //let posInfo = 'ship.position = ' + vector3ToString(ship.position);
-    //debugInfo("info1", posInfo);
     //let velocityInfo = 'camera.position = ' + vector3ToString(gameCamera.position);
     //debugInfo("info2", velocityInfo);
     //var deltaInfo = 'camera.velocity = ' + vector3ToString(gameCamera.velocity);

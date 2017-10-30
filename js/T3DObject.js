@@ -63,7 +63,7 @@ class T3DObject extends T3DPoint {
     this.visible = true;
     this.showPosMarker = (params.showPosMarker == true);
     if (this.showPosMarker == true) {
-      this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of ship
+      this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of object
       scene.add(this.originIndicator);
     }
     gameObjects.push(this);
@@ -106,14 +106,14 @@ class T3DObject extends T3DPoint {
     //       inV -- an OUT parameter.   Returns X axis vector (relative to Matrix)
     //       upV -- an OUT parameter.   Returns Y axis vector (relative to Matrix)
     //       leftV -- an OUT parameter. Returns Z axis vector (relative to Matrix)
-    //NOTE: The in, up, and left are relative to loaded ship. 
+    //NOTE: The in, up, and left are relative to loaded object. 
     //results: none
       this.object.matrix.extractBasis (leftV, upV, inV);
   }
   calculateInUpLeft () {
-    this.inVector = new THREE.Vector3();  //in is Z axis for loaded ship.
+    this.inVector = new THREE.Vector3();  //in is Z axis for loaded object.
     this.upVector = new THREE.Vector3();  //up is Y axis.
-    this.leftVector = new THREE.Vector3();//left is X axis for loaded ship.
+    this.leftVector = new THREE.Vector3();//left is X axis for loaded object.
     this.object.matrix.extractBasis (this.leftVector, this.upVector, this.inVector)
   }
   yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right

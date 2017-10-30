@@ -23,10 +23,9 @@ var gameSounds = new TSounds();
 
 var loadedStatus = {
   allLoaded :   false,  //<-- will be set to true when all others loaded.   
-  ship :        false,
+  ships :       false,
   sun :         false,
   skyBox :      false, 
-  rockets :     false, 
   rocketSound : true   //<--- implement later.
 };
 
@@ -42,25 +41,35 @@ var sun = new TCelestialBody({
   initPosition: nullV
 });
 
-var ship = new TShip({
+var aShip = new TShip({
   mass:SHIP_MASS, 
   name: 'ship',
   modelFName: SHIP_MODEL_FNAME,
   initPosition: SHIP_INIT_POSITION
 });
-gameCamera.trackedObject = ship;
 
+var shipsArray = [aShip]; //<-- will contain all ships (i.e. multiple if multiplayer
+var localShipIndex = 0;
+gameCamera.trackedObject = aShip;
 
-//temp
-const USING_SHIP2 = false;
-if (USING_SHIP2) {
-  const SHIP2_INIT_POSITION = new THREE.Vector3(0,0,-250);
-  var ship2 = new TShip({
-    mass: SHIP_MASS, 
-    name: 'ship2',
-    modelFName: SHIP_MODEL_FNAME,
-    initPosition: SHIP2_INIT_POSITION});
-}  
+var explosionManager = new TParticleSys({ 
+  name: 'Explosion_Manager',  
+  parent: null,
+  emitRate: 0,
+  positionOffset: new TOffset(0,0,0),
+  velocityOffset: new TOffset(0,0,0),
+  decaySec: 99999,
+  initScale: 40,
+  posVariance: 0,
+  velocityVariance: 0,
+  decayVariance: 0,
+  scaleVariance: 0,
+  animationTextureFName: '/textures/flame_combined.png',
+  numTilesHoriz: 8,  
+  numTilesVert: 4,
+  numTiles: 24,
+  cycleTime: 2,              
+});    
 
 var gridXZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
 var gridXY = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
@@ -79,7 +88,10 @@ var keyDown = {};  //object to hold which keys are currently pressed down
 var mouseDown = false;
 
 var gameLoaded = false;
-
 var gamePaused = false;
 var disableGravity  = false;
 var debugInfoCounter = 0;
+
+var bufferedUserGameActions = []; //This will hold actions from onKey events etc, until next cycle.
+var bufferedUserCameraActions = []; //This will hold actions from onKey events etc, until next cycle. 
+var bufferedUserEnvironmentActions = []; //This will hold actions from onKey events etc, until next cycle. 

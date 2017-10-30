@@ -1,12 +1,21 @@
 //TModelObject defined in TModelObject.js
 
 /*
-class TVehicle extends T3DObject {
-  constructor (mass) {
-  thrust(accel, deltaSec)  {
+class TVehicle extends TModelObject {
+  constructor(params) {
+  set throttle(value) {
+  get throttle() {
+  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
+  explode() {  
   orbit(aBody) {
+  getGravityAccelV(aBody, deltaSec) {
+  accelerate(deltaV) {
+  animateParticles(deltaSec) {  //animate particle system
   animate(deltaSec) {
-  resetPositionToInit() {  //override
+  resetPositionToInit() {
+  hide() {
+  unhide() {
+  handleAction(actionArray, deltaSec)  {
 }
 
 */
@@ -51,7 +60,7 @@ class TVehicle extends TModelObject {
     this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
 
-    this.enginePS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 200,
+    this.enginePS = new TParticleSys({ name: 'vehicle_engine_p_sys', parent: this, emitRate: 200,
                                      positionOffset : new TOffset(-7,7,0),
                                    velocityOffset: new TOffset(-80,0,0),
                                  decaySec: 1, initScale: 8, posVariance: 2,
@@ -75,15 +84,29 @@ class TVehicle extends TModelObject {
     }
     //setup vehicle engine sound
     if (params.engineSoundFName != '') {
-      this.engineSound = new THREE.Audio(gameSounds.audioListener); 
-      gameSounds.loadSound(params.engineSoundFName, this.engineSound);
-      this.engineSoundStartOffset = 0;  
+      //this.engineSound = new THREE.Audio(gameSounds.audioListener);
+      //this.engineSound.tmgLoaded = false;
+      //gameSounds.loadSound(params.engineSoundFName, this.engineSound);
+      this.engineSoundStartOffset = 0;
+      
+      this.engineSound = gameSounds.setupSound({
+        filename: params.engineSoundFName,
+        loop: true,
+        volume: 1,
+      });          
+      
     }
     //setup  explode sound
     if (params.explodeSoundFName != '') {
-      this.explodeSound = new THREE.Audio(gameSounds.audioListener); 
-      gameSounds.loadSound(params.explodeSoundFName, this.explodeSound);
-      this.explodeSound.setLoop(false);
+      //this.explodeSound = new THREE.Audio(gameSounds.audioListener); 
+      //this.engineSound.tmgLoaded = false;
+      //gameSounds.loadSound(params.explodeSoundFName, this.explodeSound);
+      //this.explodeSound.setLoop(false);
+      this.explodeSound = gameSounds.setupSound({
+        filename: params.explodeSoundFName,
+        loop: false,
+        volume: 1,
+      });    
     }
     
     this.throttle = 0;
@@ -97,14 +120,14 @@ class TVehicle extends TModelObject {
       if (value > 1) {
         if (!this.engineSound.isPlaying) {  
           this.engineSound.startTime = this.engineSoundStartOffset;  
-          this.engineSound.play();  // play the audio
+          if (this.engineSound.tmgLoaded == true) this.engineSound.play();  // play the audio
           this.engineSound.setLoop(true); 
         }  
         let volume = (2 * value / 100) * this.engineSoundMaxVolume;
         this.engineSound.setVolume(volume);
       } else {
         if ((this.engineSound)&&(this.engineSound.isPlaying)) {
-          this.engineSound.stop();
+          if (this.engineSound.tmgLoaded == true) this.engineSound.stop();
         }  
       }  
     }
@@ -132,7 +155,7 @@ class TVehicle extends TModelObject {
   //NOTE: formula found here: http://www.physicsclassroom.com/class/circles/Lesson-4/Mathematics-of-Satellite-Motion
   //      V^2 = G * aBody.mass / R
     let aBodyDirV = aBody.position.clone();
-    aBodyDirV.sub(ship.position);
+    aBodyDirV.sub(this.position);
     let distToaBody = aBodyDirV.length();  //radius of orbit
     let orbitVelocity = Math.sqrt(GRAV_CONST * aBody.mass / distToaBody);  //scalar speed
     aBodyDirV.normalize();
@@ -197,8 +220,7 @@ class TVehicle extends TModelObject {
     this.cockpitLookAt = this.lookingAtPos(100);  //postion for cockpit camera to look at
     if (this.cockpitLookatMarker) this.cockpitLookatMarker.position.copy(this.cockpitLookAt);
     
-  }
-  
+  }  
   resetPositionToInit() {
     super.resetPositionToInit()
     this.orbit(sun);  //<-- to do, make more generic...
@@ -214,6 +236,53 @@ class TVehicle extends TModelObject {
     if (this.cameraAttachmentMarker) scene.add(this.cameraAttachmentMarker);        
     if (this.cockpitLookatMarker)    scene.add(this.cockpitLookatMarker);        
     if (this.cockpitPositionMarker)  scene.add(this.cockpitPositionMarker);            
-  }         
+  }
+  handleAction(actionArray, deltaSec)  {
+    //Input: Action should be an array of entries from SHIP_ACTION
+    while (actionArray.length > 0) {
+      let action = actionArray.pop();
+      autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
+      switch (action) {
+        case SHIP_ACTION.yawRight:
+          this.yaw(-SHIP_ROTATION_RATE, deltaSec);
+          break;                               
+        case SHIP_ACTION.yawLeft:
+          this.yaw(SHIP_ROTATION_RATE, deltaSec);
+          break;
+        case SHIP_ACTION.pitchUp:
+          this.pitch(-SHIP_ROTATION_RATE, deltaSec);
+          break;
+        case SHIP_ACTION.pitchDn:
+          this.pitch(SHIP_ROTATION_RATE, deltaSec);
+          break;        
+        case SHIP_ACTION.rollRight:
+          this.roll(SHIP_ROTATION_RATE, deltaSec);
+          break;        
+        case SHIP_ACTION.rollLeft:
+          this.roll(-SHIP_ROTATION_RATE, deltaSec);
+          break;
+        case SHIP_ACTION.orientToVelocity:
+          this.lookAtVelocity();  //orient in direction of object's velocity
+          break;
+        case SHIP_ACTION.thrustMore:
+          this.throttle += SHIP_THROTTLE_DELTA_RATE * deltaSec
+          break
+        case SHIP_ACTION.thrustLess:
+          if (this.throttle > 0) {
+            this.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec
+          }  
+          break
+        case SHIP_ACTION.launchRocket:
+          this.launchRocket();
+          break
+        case SHIP_ACTION.stop:
+          this.stop;
+          break
+        case SHIP_ACTION.resetPosToInit:
+          this.resetPositionToInit();
+          break
+      } //switch
+    } //while  
+  }    
     
 }

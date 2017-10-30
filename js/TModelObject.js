@@ -80,8 +80,8 @@ class TModelObject extends T3DObject {
     OBJloader.load(
       modelFileName, 
       (loadedObject)=> this.onModelLoadedCallback(loadedObject),
-      this.onModelLoadProgressCallback,
-      this.onModelLoadErrorCallback
+      (xhr) => this.onModelLoadProgressCallback(xhr),
+      (xhr) => this.onModelLoadErrorCallback(xhr)
     ); 
   }
 }  

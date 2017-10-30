@@ -7,19 +7,26 @@ class TSounds {
     this.audioLoader = new THREE.AudioLoader();      
     gameCamera.camera.add(this.audioListener);  // add the listener to the camera
 
-    //ship.engineSound = new THREE.Audio(audioListener);  // instantiate audio object
-    //scene.add( ship.engineSound );  // add the audio object to the scene
-    //var audioLoader = new THREE.AudioLoader();  // instantiate a loader      
-      
    this.ambientAudio = new THREE.Audio(this.audioListener);  
-      
   }
-  loadSound(fileName, audioObj) {
+  onSoundLoadedCallback(aAudioObject, aAudioBuffer,params) {
+    aAudioObject.setBuffer(aAudioBuffer);
+    aAudioObject.tmgLoaded = true;
+    aAudioObject.setLoop(params.loop);
+    aAudioObject.setVolume(params.volume);      
+  }  
+  loadSound(params, aAudioObj) {
     this.audioLoader.load(  
-      fileName,  // resource URL
-      (audioBuffer) => {audioObj.setBuffer(audioBuffer)},
-      (xhr) => {console.log(fileName + '  ' + (xhr.loaded / xhr.total * 100) + '% loaded')},  //download progresses callback
-      (xhr) =>  {console.log( 'An error happened during audio loading of: ' + fileName)}    //download errors callback
+      params.filename,  // resource URL
+      (audioBuffer) => this.onSoundLoadedCallback(aAudioObj, audioBuffer, params),
+      (xhr) => {console.log(params.filename + '  ' + (xhr.loaded / xhr.total * 100) + '% loaded')},  //download progresses callback
+      (xhr) =>  {console.log('An error happened during audio loading of: ' + params.fileName)}    //download errors callback
     );  
-  }          
+  }
+  setupSound(params) {  //returns a THREE.Audio object
+    let result = new THREE.Audio(this.audioListener); 
+    result.tmgLoaded = false;    
+    this.loadSound(params, result);
+    return result;
+  }  
 }

@@ -31,10 +31,16 @@ class TRocket extends TVehicle {
     this.offsetFromOwner = new TOffset(40,0,0);   //location of this relative to owner vehicle
     this.enginePS.positionOffset.set(-16,-2,0);
     //setup launch sound
-    this.launchSound = new THREE.Audio(gameSounds.audioListener); 
-    gameSounds.loadSound(ROCKET_SOUND_LAUNCH, this.launchSound);
-    this.launchSound.setLoop(false);
-    this.launchSound.setVolume(1.0);  
+    this.launchSound = gameSounds.setupSound({
+      filename: ROCKET_SOUND_LAUNCH,
+      loop: false,
+      volume: 1,
+    });     
+    //this.launchSound = new THREE.Audio(gameSounds.audioListener); 
+    //this.launchSound.tmgLoaded = false;    
+    //gameSounds.loadSound(ROCKET_SOUND_LAUNCH, this.launchSound);
+    //this.launchSound.setLoop(false);
+    //this.launchSound.setVolume(1.0);  
     
     this.hide();
   }  

@@ -85,7 +85,7 @@ class TCamera extends T3DObject {
       attachDirV.setLength(maxDist);
       newPos.add(attachDirV);
     } else {
-      newPos.copy(ship.cameraAttachement);
+      newPos.copy(this.trackedObject.cameraAttachement);
     }  
     this.setPosition(newPos);
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
@@ -134,5 +134,37 @@ class TCamera extends T3DObject {
     let newPosition = p.clone();
     newPosition.add(delta);
     this.setPosition(newPosition);
-  }
+  }  
+  handleAction(actionArray, deltaSec)  {
+    //Input: Action should be an array of entries from CAMERA_ACTION's
+    while (actionArray.length > 0) {
+      let action = actionArray.pop();
+      switch (action) {
+        case CAMERA_ACTION.setModeOrbit:
+          this.setMode(CAMERA_MODE_ORBIT)
+          break;
+        case CAMERA_ACTION.setModeFollow:          
+          this.setMode(CAMERA_MODE_FOLLOW)
+          break;
+        case CAMERA_ACTION.setModeHighAbove:
+          this.setMode(CAMERA_MODE_HIGH_ABOVE)
+          break;        
+        case CAMERA_ACTION.setModeMouse:
+          this.setMode(CAMERA_MODE_MOUSE)
+          break;        
+        case CAMERA_ACTION.setModeCockpit:
+          this.setMode(CAMERA_MODE_COCKPIT)
+          break;
+        case CAMERA_ACTION.orbitAngleAdd:
+          this.orbit.xzAngleVelocity += 0.1 * deltaSec;          
+          break;
+        case CAMERA_ACTION.orbitAngleSub:
+          this.orbit.xzAngleVelocity -= 0.1 * deltaSec;
+          break
+        case CAMERA_ACTION.orbitAngleZero:
+          this.orbit.xzAngleVelocity = 0;          
+          break
+      } //switch
+    } //while  
+  }      
 }

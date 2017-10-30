@@ -6,8 +6,9 @@ class TShip extends TVehicle {
   set throttle(value) {
   get throttle() {
   rocketsLoaded() {  
+  allLoaded() {
   launchRocket() {
-  loadSounds(audioListener, audioLoader) {
+  //loadSounds(audioListener, audioLoader) {
   stop() {
   animateParticles(deltaSe) {  //animate particle system
   animate(deltaSec) {  
@@ -35,14 +36,14 @@ class TShip extends TVehicle {
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
     this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
     this.objectOffset.set(5, 0, 0);    //this is Offset displacing 3D model from game position.
-    this.wingSmokeLeftPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 10,
+    this.wingSmokeLeftPS = new TParticleSys({ name: 'ship_L_smoke_p_sys', parent: this, emitRate: 10,
                                             positionOffset : new TOffset(10,5,20),
                                           velocityOffset: new TOffset(-40,0,0),
                                         decaySec: 1, initScale: 4, posVariance: 0,
                                       decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
                                     colors : GRAY_SPRITE_COLORS,
                                    });
-    this.wingSmokeRightPS = new TParticleSys({ aScene: scene, aParent: this, emitRate: 10,
+    this.wingSmokeRightPS = new TParticleSys({ name: 'ship_R_smoke_p_sys', parent: this, emitRate: 10,
                                             positionOffset : new TOffset(10,5,-20),
                                           velocityOffset: new TOffset(-40,0,0),
                                         decaySec: 1, initScale: 4, posVariance: 0,
@@ -72,8 +73,7 @@ class TShip extends TVehicle {
   }   
   get throttle() {
     return super.throttle;          
-  }   
-  
+  }     
   rocketsLoaded() {
     //later I will expande this to multiple rockets.
     let result = false;
@@ -84,6 +84,9 @@ class TShip extends TVehicle {
     return result;          
     //return this.rocket.loaded;          
   }
+  allLoaded() {
+    return this.rocketsLoaded()&&this.loaded;
+  }  
   nextReadyRocket()  {  //returns a TRocket, or null
     let result = null;          
     for (var i=0; i < SHIP_NUM_ROCKETS; i++) {
@@ -99,13 +102,13 @@ class TShip extends TVehicle {
     let aRocket = this.nextReadyRocket();
     if (aRocket) aRocket.launch();
   }  
+  /*
   loadSounds(audioListener, audioLoader) {
     //NOTE: this will be called by gameSounds object 
     this.engineSound = new THREE.Audio(audioListener);  
     scene.add(this.engineSound);     
-    //finish after I figure out closures in classes
-    //  i.e. how to reference 'this' in the callback        
   } 
+  */
   stop() {  //a debug function
     this.position.set(250,0,0);
     this.velocity.copy(nullV);
