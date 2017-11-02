@@ -8,7 +8,7 @@ class TRocket extends TVehicle {
     //  params.initPosition
     //  params.modelFName
     //  params.ownerVehicle
-    //  params.plane -- optional.  default PLANE_XZ
+    //  params.plane -- optional.  default ORBIT_PLANE.xz
     //-----------------------
     params.maxThrust = ROCKET_THRUST_MAX;  //deltaV/sec  
     params.autoAddToScene = false;
@@ -38,7 +38,14 @@ class TRocket extends TVehicle {
     this.hide();
   }  
   explode() {  
+    let aPosition = this.position.clone();  
+    let aVelocity = this.velocity.clone();
     super.explode(); 
+    aVelocity.multiplyScalar(0.1);  //explosion animation will drift in prior direction at 10% velocity    
+    explosionManager.emitByParams({
+      initPosition: aPosition,
+      initVelocity: aVelocity
+    });            
     //more here if needed....
   }
   allLoaded() {

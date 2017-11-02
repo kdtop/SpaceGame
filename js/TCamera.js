@@ -35,28 +35,28 @@ class TCamera extends T3DObject {
     this.orbit.zyAngle = 0;
     this.orbit.xzAngleVelocity = 0.0; //0.1; //radians/sec
     this.radius = 100;
-    this.setMode(CAMERA_MODE_ORBIT);
+    this.setMode(CAMERA_MODE.orbit);
     this.springK = CAMERA_SPRING_CONST;
   }
   setMode(mode) {
     this.mode = mode;
-    if (mode == CAMERA_MODE_ORBIT) {
+    if (mode == CAMERA_MODE.orbit) {
       this.radius = GRID_SIZE/2 + 400;
       this.animate = this.animateOrbit;
-    } else if (mode == CAMERA_MODE_FOLLOW) {
+    } else if (mode == CAMERA_MODE.follow) {
       this.animate = this.animateFollow;
       this.velocity.set(0,0,0);
-    } else if (mode == CAMERA_MODE_MOUSE) {
+    } else if (mode == CAMERA_MODE.mouse) {
       this.animate = this.animateMouseControl;
       this.orbit.xzAngleVelocity = 0;
-    } else if (mode == CAMERA_MODE_COCKPIT) {
+    } else if (mode == CAMERA_MODE.cockpit) {
       this.animate = this.animateCockpit;
-    } else if (mode == CAMERA_MODE_HIGH_ABOVE) {
+    } else if (mode == CAMERA_MODE.highAbove) {
       this.animate = this.animateHighAbove;
       switch (this.trackedObject.plane) {
-        case PLANE_XY:  this.dirV = plusZV.clone();  break;
-        case PLANE_XZ:  this.dirV = plusYV.clone();  break;
-        case PLANE_YZ:  this.dirV = plusXV.clone();  break;
+        case ORBIT_PLANE.xy:  this.dirV = plusZV.clone();  break;
+        case ORBIT_PLANE.xz:  this.dirV = plusYV.clone();  break;
+        case ORBIT_PLANE.yz:  this.dirV = plusXV.clone();  break;
         default:        this.dirV = plusYV.clone();  break;
       }
       this.radius = GRID_SIZE*1/4;
@@ -128,7 +128,7 @@ class TCamera extends T3DObject {
   }
   objectWrapped(aObject, p, originalP) {
     if (aObject != this.trackedObject) return;  //ignore other objects camera is not tracking
-    if ([CAMERA_MODE_FOLLOW, CAMERA_MODE_COCKPIT].indexOf(this.mode) == -1) return;  //wrapping only applies for certain modes
+    if ([CAMERA_MODE.follow, CAMERA_MODE.cockpit].indexOf(this.mode) == -1) return;  //wrapping only applies for certain modes
     let delta = this.position.clone();
     delta.sub(originalP);  //delta is vector from object position before it was wrapped to camera position
     let newPosition = p.clone();
@@ -141,19 +141,19 @@ class TCamera extends T3DObject {
       let action = actionArray.pop();
       switch (action) {
         case CAMERA_ACTION.setModeOrbit:
-          this.setMode(CAMERA_MODE_ORBIT)
+          this.setMode(CAMERA_MODE.orbit);
           break;
         case CAMERA_ACTION.setModeFollow:          
-          this.setMode(CAMERA_MODE_FOLLOW)
+          this.setMode(CAMERA_MODE.follow);
           break;
         case CAMERA_ACTION.setModeHighAbove:
-          this.setMode(CAMERA_MODE_HIGH_ABOVE)
+          this.setMode(CAMERA_MODE.highAbove);
           break;        
         case CAMERA_ACTION.setModeMouse:
-          this.setMode(CAMERA_MODE_MOUSE)
+          this.setMode(CAMERA_MODE.mouse);
           break;        
         case CAMERA_ACTION.setModeCockpit:
-          this.setMode(CAMERA_MODE_COCKPIT)
+          this.setMode(CAMERA_MODE.cockpit);
           break;
         case CAMERA_ACTION.orbitAngleAdd:
           this.orbit.xzAngleVelocity += 0.1 * deltaSec;          

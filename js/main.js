@@ -33,7 +33,9 @@
       }
       gameCamera.handleAction(getKeyCameraAction());
       animateObjects(deltaSec);
-      debugAnimate(deltaSec)
+      debugAnimate(deltaSec);
+      /*annie.update(1000 * deltaSec);  //debug, remove later*/
+      explosionManager.animate(deltaSec);       
       renderer.render( scene, gameCamera.camera );
       //stats.update();
     }  
@@ -59,7 +61,7 @@
   function animateObjects(deltaSec) {    
     for (var i=0; i < gameObjects.length; i++) {
       gameObjects[i].animate(deltaSec);
-    }  
+    }      
   }
   
   

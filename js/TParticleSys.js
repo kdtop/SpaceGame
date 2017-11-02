@@ -30,6 +30,7 @@ class TParticleSys {
   set throttle(value) {
   init()  {
   getUnusedParticle()  {
+  emitByParams(params) {
   emit() {
   hasActiveParticles() {
   animate(deltaSec) {  
@@ -37,9 +38,9 @@ class TParticleSys {
 
 */
 
-
 // ======= Types ================
-class TParticle extends T3DPoint {
+//class TParticle extends T3DPoint {
+class TParticle extends T3DObject {
   constructor(params) {
     //Input:
     //  params.material       -- a THREE.js material
@@ -49,9 +50,12 @@ class TParticle extends T3DPoint {
     //  params.velocityV      -- vector for motion of particle.
     //  params.mass           -- default is 1
     //  params.name           -- default is 'particle'
+    //  params.excludeFromGameObjects -- default is false
     params.name = params.name||'particle';
+    params.excludeFromGameObjects = (params.excludeFromGameObjects != false);
     super(params);  
     this.object = new THREE.Sprite(params.material);
+    this.object.name = this.name;
     this.private_scale = params.initScale||1;
     this.decaySec = params.decaySec||1;
     if (!params.initPosition) params.initPosition = new THREE.Vector3();
@@ -74,7 +78,7 @@ class TParticle extends T3DPoint {
   animate(deltaSec) {
     if (!this.isActive) return;  //no animation if not active
     super.animate(deltaSec);
-    this.object.position.copy(this.position);
+    //this.object.position.copy(this.position);  
     let newScale = this.private_scale - this.decayRate * deltaSec;
     this.scale = newScale;
     if (!this.isActive) this.inactivate();
@@ -84,7 +88,8 @@ class TParticle extends T3DPoint {
     this.decayRate = initScale / decaySec;  //gives scale decrease/sec
     this.position.copy(initPosition); 
     this.velocity.copy(velocityV);
-    scene.add(this.object);    
+    //scene.add(this.object);
+    this.addToScene()
   }
   inactivate() {
     this.scale = 0;
@@ -122,22 +127,22 @@ class TAnimatedParticle extends TParticle {
     params.material = new THREE.SpriteMaterial({
       map: params.animationTexture, 
       blending: THREE.AdditiveBlending
+      //blending: THREE.NormalBlending
     });
-    super(params);
-    this.isActive = false;
     if (!params.initPosition) params.initPosition = new THREE.Vector3();
     if (!params.velocityV) params.velocityV = new THREE.Vector3();
-    this.activate(params.initPosition, params.velocityV);
+    params.excludeFromGameObjects = false;    
+    super(params);
+    //this.private_scale = 0;
     this.numTilesHorizontal = params.numTilesHoriz;
     this.numTilesVertical = params.numTilesVert;
     this.texture = params.animationTexture;
     this.loop = (params.loop == true);
-    this.animationIsActive = false;
     this.numberOfTiles = params.numTiles; //may not be same as tilesHoriz * tilesVert if there are blank tiles at the bottom
     this.texture.wrapS = THREE.RepeatWrapping; 
     this.texture.wrapT = THREE.RepeatWrapping; 
     this.texture.repeat.set(1/this.numTilesHorizontal, 1/this.numTilesVertical);
-    this.tileDisplayDuration = params.cycleTime;  // how long should each image be displayed?
+    this.tileDisplayDuration = params.cycleTime/this.numberOfTiles;  // how long should each image be displayed?
   }  
   activate(initScale, decaySec, initPosition, velocityV) {
     super.activate(initScale, decaySec, initPosition, velocityV);           
@@ -145,8 +150,7 @@ class TAnimatedParticle extends TParticle {
     this.currentTileNum = 0; //set index of tile to beginning.  
     this.currentColumn = 0;
     this.currentRow = 0;
-    this.animationIsActive = false;
-    scene.add(this.object);    
+    this.animationIsActive = true;
   }
   inactivate() {
     this.animationIsActive = false;
@@ -158,8 +162,8 @@ class TAnimatedParticle extends TParticle {
   }
   offsetForTile(tileNum) {
     var result = new THREE.Vector2();
-    result.x = this.currentColumn / this.tilesHorizontal;
-    result.y = (this.tilesVertical - currentRow - 1) / this.tilesVertical;
+    result.x = this.currentColumn / this.numTilesHorizontal;
+    result.y = (this.numTilesVertical - this.currentRow - 1) / this.numTilesVertical;
     return result;          
   }          
   animateTexture(deltaSec) {
@@ -168,19 +172,19 @@ class TAnimatedParticle extends TParticle {
     while (this.currentDisplayTime > this.tileDisplayDuration) {
       this.currentDisplayTime -= this.tileDisplayDuration;
       this.currentTileNum += 1;
-      if (this.currentTile >= this.numberOfTiles) {
+      if (this.currentTileNum >= this.numberOfTiles) {
         if (this.loop) {              
-          this.currentTile = 0;
+          this.currentTileNum = 0;
         } else {
           this.inactivate();
           break;
         }        
       }  
       this.currentColumn = this.currentTileNum % this.numTilesHorizontal;       //first column is 0
-      this.currentRow = Math.floor( this.currentTile / this.tilesHorizontal );  //first row is 0
+      this.currentRow = Math.floor( this.currentTileNum / this.numTilesHorizontal );  //first row is 0
       while (this.currentRow >= this.numtilesVertical) this.currentRow -= 1;
     }
-    this.texture.offset.copy(offsetForTile(this.currrentTileNum));
+    this.texture.offset.copy(this.offsetForTile(this.currentTileNum));
   }   
   animate(deltaSec) {
     if (!this.isActive) return;  //no animation if not active
@@ -211,6 +215,7 @@ class TParticleSys {
     //        params.numTilesVert           -- Required with animations.  Should be image height / tile height.  This is the number of rows on the image (including any blank rows needed to make image power of 2 size)
     //        params.numTiles               -- Required with animations.  Number of frame images in the sequence (don't include trailing empty space needed for power of 2)
     //        params.cycleTime              -- Required with animations.  Number of seconds to show entire animation sequence
+    //        params.loop                   -- optional. default is false
     this.name = params.name||'undefined';
     this.parent = params.parent;
     this.fullEmitRate = params.emitRate;  //this is emit rate when at full throttle (default)
@@ -236,8 +241,9 @@ class TParticleSys {
     this.numTilesHoriz = params.numTilesHoriz||1;
     this.numTilesVert = params.numTilesVert||1;
     this.numTiles = params.numTiles||1;
-    this.cycleTime = params.cycleTime||1;
-    this.preloadTextures = [];
+    this.cycleTime = params.cycleTime||1;  
+    this.loop = (params.loop == true);
+    this.preloadedTextures = [];
     this.numPreloadedTextures = 5;   
     this.init();
   }
@@ -269,7 +275,7 @@ class TParticleSys {
     }            
   }
   onTextureLoadedCallback(aTexture, aCallBackFn) {  //aCallBackFn if optional
-    this.preloadTextures.push(aTexture);  
+    this.preloadedTextures.push(aTexture);  
     if (aCallBackFn) aCallBackFn(aTexture);
   }  
   onTextureLoadProgressCallback(xhr) {
@@ -293,11 +299,11 @@ class TParticleSys {
     if (this.preloadedTextures.length > 0) {
       aCallbackFn(this.preloadedTextures.pop());
     } else {
-      addPreloadedTexture(
+      this.addPreloadedTexture(
         (aTexture) => aCallbackFn(this.preloadedTextures.pop())
       );  
     }            
-    if (this.preloadedTextures.length < 1) addPreloadedTexture(); //get another ready for next time. 
+    if (this.preloadedTextures.length < 1) this.addPreloadedTexture(); //get another ready for next time. 
   }          
   getUnusedParticle(aCallbackFn)  {
     //look for inactive particle in array.  If none found, than add one to array
@@ -323,18 +329,19 @@ class TParticleSys {
         this.particlesArray.push(particle);
         aCallbackFn(particle);
       } else if (this.mode == PARTICLES_MODE.animated) {
-        getUnusedTexture(
+        this.getUnusedTexture(
           (aTexture) => {
             particle = new TAnimatedParticle({
-              initScale: 0, 
-              decaySec: 0, 
-              initPosition: nullV, 
-              velocityV: nullV,   
-              animationTexture: aTexture, 
-              numTilesHoriz: params.numTilesHoriz,
-              numTilesVert: params.numTilesVert,
-              numTiles: params.numTiles,
-              cycleTime: params.cycleTime,
+              initScale:         0, 
+              decaySec:          0, 
+              initPosition:      nullV, 
+              velocityV:         nullV,   
+              animationTexture:  aTexture, 
+              numTilesHoriz:     this.numTilesHoriz,
+              numTilesVert:      this.numTilesVert,
+              numTiles:          this.numTiles,
+              cycleTime:         this.cycleTime,
+              loop:              this.loop,
             });
             this.particlesArray.push(particle);
             aCallbackFn(particle);
@@ -348,18 +355,24 @@ class TParticleSys {
     }      
     //return particle;
   }
-  emit() {
-    let initPosition = this.parent.offsetPos(this.positionOffset);
+  emitByParams(params) {
+    //input:  params.initPosition
+    //        params.initVelocity
+    let initPosition = params.initPosition;
+    let initVelocity = params.initVelocity;
     initPosition = randomizeVector(initPosition, this.posVariance);
-    let initVelocity = this.parent.offsetVelocity(this.velocityOffset);
     initVelocity = randomizeVector(initVelocity, this.velocityVariance);
     let decaySec = randomizeNum(this.decaySec, this.decayVariance);
     let initScale = randomizeNum(this.initScale, this.scaleVariance);
-    //let particle = this.getUnusedParticle();
-    //particle.activate(initScale, decaySec, initPosition, initVelocity);
     this.getUnusedParticle(
       (aParticle) => aParticle.activate(initScale, decaySec, initPosition, initVelocity)
     );    
+  }  
+  emit() {
+    this.emitByParams({
+      initPosition: this.parent.offsetPos(this.positionOffset),
+      initVelocity: this.parent.offsetVelocity(this.velocityOffset),
+    });    
   }
   hasActiveParticles() {
     let result = false;
@@ -376,9 +389,7 @@ class TParticleSys {
     let result = true;  //<-- To do: implement this...
     //more here if needed
     return result;
-  }  
-  
-  
+  }    
   animate(deltaSec) {
     //call emit() based on this.emitRate;
     this.numToEmit += this.emitRate * deltaSec;  //may only increase by 0.0234 particles/cycle

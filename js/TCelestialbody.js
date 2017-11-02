@@ -19,7 +19,8 @@ class TCelestialBody extends T3DObject {
     this.object = new THREE.Mesh( aGeometry, aMaterial );
     this.object.name = params.name;
     this.loaded = true;
-    scene.add(this.object);
+    this.addToScene();
+    //scene.add(this.object);
   }
   explode() {  
     //override ancestor to keep planet from blowing up.          

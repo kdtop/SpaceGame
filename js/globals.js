@@ -32,7 +32,8 @@ var loadedStatus = {
 var scene = new THREE.Scene();
 var clock = new THREE.Clock(true);
 var skyBox = new TSkybox();
-var sun = new TCelestialBody({
+
+var sun = new TCelestialBody({                            
   mass: SUN_MASS, 
   realSize: SUN_REAL_WORLD_SIZE,
   gameSize: SUN_GAME_SIZE,
@@ -40,36 +41,42 @@ var sun = new TCelestialBody({
   name: 'sun', 
   initPosition: nullV
 });
-
+    
 var aShip = new TShip({
   mass:SHIP_MASS, 
   name: 'ship',
   modelFName: SHIP_MODEL_FNAME,
-  initPosition: SHIP_INIT_POSITION
+  initPosition: SHIP_INIT_POSITION,
+  //excludeWingSmokePS: true,   //<--- debug, remove later
+  //excludeEnginePS: true,      //<--- debug, remove later
+
 });
 
-var shipsArray = [aShip]; //<-- will contain all ships (i.e. multiple if multiplayer
+var shipsArray = [aShip]; //<-- will contain all ships (i.e. multiple if multiplayer)
 var localShipIndex = 0;
 gameCamera.trackedObject = aShip;
 
 var explosionManager = new TParticleSys({ 
-  name: 'Explosion_Manager',  
-  parent: null,
-  emitRate: 0,
-  positionOffset: new TOffset(0,0,0),
-  velocityOffset: new TOffset(0,0,0),
-  decaySec: 99999,
-  initScale: 40,
-  posVariance: 0,
-  velocityVariance: 0,
-  decayVariance: 0,
-  scaleVariance: 0,
-  animationTextureFName: '/textures/flame_combined.png',
-  numTilesHoriz: 8,  
-  numTilesVert: 4,
-  numTiles: 24,
-  cycleTime: 2,              
+  name:                  'Explosion_Manager',                                  
+  parent:                null,
+  emitRate:              0,
+  positionOffset:        new TOffset(0,0,0),
+  velocityOffset:        new TOffset(0,0,0),
+  decaySec:              99999,
+  initScale:             80,
+  posVariance:           0,
+  velocityVariance:      0,
+  decayVariance:         0,                                             
+  scaleVariance:         0,
+  animationTextureFName: EXPLOSION_FILE_NAME,
+  numTilesHoriz:         8,  
+  numTilesVert:          4,
+  numTiles:              24,    
+  cycleTime:             3,                                                      
+  loop:                  false,
 });    
+                                                                  
+//gameObjects.push(explosionManager);
 
 var gridXZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
 var gridXY = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
@@ -95,3 +102,26 @@ var debugInfoCounter = 0;
 var bufferedUserGameActions = []; //This will hold actions from onKey events etc, until next cycle.
 var bufferedUserCameraActions = []; //This will hold actions from onKey events etc, until next cycle. 
 var bufferedUserEnvironmentActions = []; //This will hold actions from onKey events etc, until next cycle. 
+
+
+var onKeyPressMapping = {
+  'p' : { arr: bufferedUserEnvironmentActions,
+          msg: ENV_ACTION.togglePause,
+          fn: function() {
+                if (gamePaused) requestAnimationFrame(animate); //<-- required to trigger handling of input if game currently paused. 
+              }           
+        },
+  'g' : { arr: bufferedUserEnvironmentActions,
+          msg: ENV_ACTION.toggleGravity,
+        },
+  'f' : { arr: bufferedUserGameActions,
+          msg: VEHICLE_ACTION.launchRocket,
+        },
+  'k' : { arr: bufferedUserGameActions,
+          msg: VEHICLE_ACTION.stop,
+        },
+  'o' : { arr: bufferedUserGameActions,
+          msg: VEHICLE_ACTION.dropBomb,
+        },          
+};  
+

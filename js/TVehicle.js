@@ -34,7 +34,7 @@ class TVehicle extends TModelObject {
     //  params.modelBaseRotationY          -- default = 0  <-- removed
     //  params.autoAddToScene              -- Default = true;
     //  params.modelScale                  -- default = 1
-    //  params.plane                       -- default PLANE_XZ
+    //  params.plane                       -- default ORBIT_PLANE.xz
     //  params.showCameraAttachmentMarker  -- default is false 
     //  params.showPosMarker               -- default is false
     //  params.showCockpitLookat           -- default is false
@@ -43,6 +43,7 @@ class TVehicle extends TModelObject {
     //  params.engineSoundFName            -- required if sound wanted
     //  params.engineSoundMaxVolume        -- default = 1 (0.8 means max volume 80% normal)
     //  params.explodeSoundFName           -- required if sound wanted 
+    //  params.excludeEnginePS             -- default is false
     //-----------------------
     super(params);
     //--- private stuff -----
@@ -59,14 +60,15 @@ class TVehicle extends TModelObject {
     this.maxThrust = params.maxThrust||100;              //deltaV/sec
     this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
-
+    if (params.excludeEnginePS != true) {
     this.enginePS = new TParticleSys({ name: 'vehicle_engine_p_sys', parent: this, emitRate: 200,
-                                     positionOffset : new TOffset(-7,7,0),
-                                   velocityOffset: new TOffset(-80,0,0),
-                                 decaySec: 1, initScale: 8, posVariance: 2,
-                               decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
-                             colors : engineColors,
-                           });
+                                      positionOffset : new TOffset(-7,7,0),
+                                    velocityOffset: new TOffset(-80,0,0),
+                                  decaySec: 1, initScale: 8, posVariance: 2,
+                                decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
+                              colors : engineColors,
+                            });
+    }
     this.showCameraAttachmentMarker = (params.showCameraAttachmentMarker == true); 
     if (this.showCameraAttachmentMarker == true) {
       this.cameraAttachmentMarker = debugPositionMarker.clone();
@@ -131,7 +133,7 @@ class TVehicle extends TModelObject {
     let result = super.allLoaded();
     result = result && this.engineSound.tmgLoaded;
     result = result && this.explodeSound.tmgLoaded;    
-    result = result && this.enginePS.allLoaded();
+    if (this.enginePS) result = result && this.enginePS.allLoaded();
     //more here if needed
     return result;
   }  
@@ -189,7 +191,7 @@ class TVehicle extends TModelObject {
     this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
   }
   animateParticles(deltaSec) {  //animate particle system
-    this.enginePS.animate(deltaSec);        
+    if (this.enginePS) this.enginePS.animate(deltaSec);        
   }    
   animate(deltaSec) {
     super.animate(deltaSec);  //First, change postion based on current velocity
@@ -202,12 +204,6 @@ class TVehicle extends TModelObject {
       let deltaV = this.getGravityAccelV(sun, deltaSec);
       this.accelerate(deltaV)
     }
-    autoPointTowardsMotionDelay -= deltaSec;
-    if (autoPointTowardsMotionDelay <= 0) {
-      //Below makes ship jitter.  Fix later...
-      //this.rotateTowardsVelocity (2*Pi, deltaSec);   //gradually orient towards direction of object's velocity
-    }
-
     this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectPosition(this); //position for following camera attachement
     if (this.cameraAttachmentMarker) this.cameraAttachmentMarker.position.copy(this.cameraAttachement);
 
@@ -236,47 +232,53 @@ class TVehicle extends TModelObject {
     if (this.cockpitPositionMarker)  scene.add(this.cockpitPositionMarker);            
   }
   handleAction(actionArray, deltaSec)  {
-    //Input: Action should be an array of entries from SHIP_ACTION
+    //Input: Action should be an array of entries from VEHICLE_ACTION
     while (actionArray.length > 0) {
-      let action = actionArray.pop();
-      autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
+      let action = actionArray.pop();      
       switch (action) {
-        case SHIP_ACTION.yawRight:
+        case VEHICLE_ACTION.yawRight:
           this.yaw(-SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;                               
-        case SHIP_ACTION.yawLeft:
+        case VEHICLE_ACTION.yawLeft:
           this.yaw(SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;
-        case SHIP_ACTION.pitchUp:
+        case VEHICLE_ACTION.pitchUp:
           this.pitch(-SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;
-        case SHIP_ACTION.pitchDn:
+        case VEHICLE_ACTION.pitchDn:
           this.pitch(SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;        
-        case SHIP_ACTION.rollRight:
+        case VEHICLE_ACTION.rollRight:
           this.roll(SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;        
-        case SHIP_ACTION.rollLeft:
+        case VEHICLE_ACTION.rollLeft:
           this.roll(-SHIP_ROTATION_RATE, deltaSec);
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break;
-        case SHIP_ACTION.orientToVelocity:
+        case VEHICLE_ACTION.orientToVelocity:
           this.lookAtVelocity();  //orient in direction of object's velocity
           break;
-        case SHIP_ACTION.thrustMore:
+        case VEHICLE_ACTION.thrustMore:
           this.throttle += SHIP_THROTTLE_DELTA_RATE * deltaSec
           break
-        case SHIP_ACTION.thrustLess:
-          if (this.throttle > 0) {
-            this.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec
-          }  
+        case VEHICLE_ACTION.thrustLess:
+          if (this.throttle > 0) this.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec
           break
-        case SHIP_ACTION.launchRocket:
+        case VEHICLE_ACTION.launchRocket:
           this.launchRocket();
           break
-        case SHIP_ACTION.stop:
-          this.stop;
+        case VEHICLE_ACTION.dropBomb:
+          if (this.dropBomb) this.dropBomb();
           break
-        case SHIP_ACTION.resetPosToInit:
+        case VEHICLE_ACTION.stop:
+          this.stop();
+          break
+        case VEHICLE_ACTION.resetPosToInit:
           this.resetPositionToInit();
           break
       } //switch

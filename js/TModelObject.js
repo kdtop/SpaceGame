@@ -27,7 +27,7 @@ class TModelObject extends T3DObject {
     //  params.modelBaseRotationY  -- optional.  Default = 0  <-- removed
     //  params.autoAddToScene      -- optional.  Default = true;
     //  params.modelScale          -- optional,  Default = 1
-    //  params.plane               -- optional.  Default PLANE_XZ
+    //  params.plane               -- optional.  Default ORBIT_PLANE.xz
     //  params.showPosMarker       -- optional.  Default is false
     //-----------------------
     super(params);
@@ -58,7 +58,8 @@ class TModelObject extends T3DObject {
     //     I will have to use modeling software (e.g. Blender) to correct model orientation if needed.
     this.calculateInUpLeft ();
     this.resetPositionToInit();  
-    if (this.autoAddToScene) scene.add(this.object);    
+    //if (this.autoAddToScene) scene.add(this.object);    
+    if (this.autoAddToScene) this.addToScene();    
     this.loaded = true;
   }  
   onModelLoadErrorCallback(xhr) {

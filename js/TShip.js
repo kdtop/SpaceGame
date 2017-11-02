@@ -22,6 +22,8 @@ class TShip extends TVehicle {
     //  params.name
     //  params.initPosition
     //  params.modelFName
+    //  params.excludeWingSmokePS  --default = false
+    //  params.excludeEnginePS     -- default is false
     //-----------------------
     params.maxThrust = SHIP_THRUST_MAX;  
     params.showPosMarker = SHIP_SHOW_POS_MARKER; 
@@ -36,20 +38,33 @@ class TShip extends TVehicle {
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
     this.cameraAttachmentOffset = new TOffset(-40,20,0); //location of camera attachemnt relative to object
     this.objectOffset.set(5, 0, 0);    //this is Offset displacing 3D model from game position.
-    this.wingSmokeLeftPS = new TParticleSys({ name: 'ship_L_smoke_p_sys', parent: this, emitRate: 10,
-                                            positionOffset : new TOffset(10,5,20),
-                                          velocityOffset: new TOffset(-40,0,0),
-                                        decaySec: 1, initScale: 4, posVariance: 0,
-                                      decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
-                                    colors : GRAY_SPRITE_COLORS,
-                                   });
-    this.wingSmokeRightPS = new TParticleSys({ name: 'ship_R_smoke_p_sys', parent: this, emitRate: 10,
-                                            positionOffset : new TOffset(10,5,-20),
-                                          velocityOffset: new TOffset(-40,0,0),
-                                        decaySec: 1, initScale: 4, posVariance: 0,
-                                      decayVariance: 10, scaleVariance: 10,  velocityVariance: 10,
-                                    colors : GRAY_SPRITE_COLORS,
-                                   });
+    if (params.excludeWingSmokePS !== true) {
+      this.wingSmokeLeftPS = new TParticleSys({ name: 'ship_L_smoke_p_sys', 
+                                               parent: this, 
+                                              emitRate: 10,
+                                             positionOffset: new TOffset(10,5,20),
+                                           velocityOffset: new TOffset(-40,0,0),
+                                          decaySec: 1, 
+                                         initScale: 4, 
+                                        posVariance: 0,
+                                       decayVariance: 10, 
+                                      scaleVariance: 10,  
+                                     velocityVariance: 10,
+                                   colors: GRAY_SPRITE_COLORS,
+                                  });
+      this.wingSmokeRightPS = new TParticleSys({ name: 'ship_R_smoke_p_sys', 
+                                                parent: this, 
+                                               emitRate: 10,
+                                              positionOffset: new TOffset(10,5,-20),
+                                             velocityOffset: new TOffset(-40,0,0),
+                                            decaySec: 1, 
+                                           initScale: 4, 
+                                          posVariance: 0,
+                                         decayVariance: 10, 
+                                        scaleVariance: 10,  velocityVariance: 10,
+                                       colors: GRAY_SPRITE_COLORS,
+                                      });
+    }
     this.engineSoundStartOffset = 4;  //Starting at +4 is specific for slow-start engine mp3
     this.rockets = [];
     let leftWingTip = -(SHIP_WING_SPREAD/2);
@@ -85,8 +100,8 @@ class TShip extends TVehicle {
   allLoaded() {
     let result = super.allLoaded();
     result = result && this.rocketsLoaded();
-    result = result && this.wingSmokeRightPS.allLoaded();
-    result = result && this.wingSmokeLeftPS.allLoaded();    
+    if (this.wingSmokeRightPS) result = result && this.wingSmokeRightPS.allLoaded();
+    if (this.wingSmokeLeftPS) result = result && this.wingSmokeLeftPS.allLoaded();    
     //more here if needed
     return result;
   }    
@@ -100,28 +115,44 @@ class TShip extends TVehicle {
     return result;          
   }        
   launchRocket() {
-    //if (this.rocket.visible) return; //if visible, then already launched....
-    //this.rocket.launch();
     let aRocket = this.nextReadyRocket();
     if (aRocket) aRocket.launch();
+  }  
+  dropBomb() {  //initially, this is just a debug function
+    //let aPosition = new THREE.Vector3(150, 0, 0);  
+    let aPosition = this.position.clone();            
+    explosionManager.emitByParams({
+      initPosition: aPosition,
+      initVelocity: nullV.clone(),
+    });            
   }  
   stop() {  //a debug function
     this.position.set(250,0,0);
     this.velocity.copy(nullV);
   }    
+  animate(deltaSec) {
+    super.animate(deltaSec);
+    autoPointTowardsMotionDelay -= deltaSec;
+    if (autoPointTowardsMotionDelay <= 0) {
+      autoPointTowardsMotionDelay = 0;
+      //Below makes ship jitter.  Fix later...
+      //I think the RotateTowards function is wrong somehow...
+      //this.rotateTowardsVelocity (2*Pi, deltaSec);   //gradually orient towards direction of object's velocity
+    }
+  }  
   animateParticles(deltaSec) {  //animate particle system  
-    super.animateParticles(deltaSec);
     var speed = this.velocity.length();
     var fullEffect = 150; //voxels/second
     var throttle = (speed / fullEffect) * 100;
-    if (throttle > 100) throttle = 100;
-    
-    //set amount of smoke from wings to correlate with ship speed
-    //TO DO -- try commenting out lines below. I think not needed.  
-    this.wingSmokeLeftPS.throttle = throttle;
-    this.wingSmokeRightPS.throttle = throttle;
-    
-    this.wingSmokeLeftPS.animate(deltaSec);  
-    this.wingSmokeRightPS.animate(deltaSec);        
+    if (throttle > 100) throttle = 100;    
+    if (this.wingSmokeLeftPS) {
+      this.wingSmokeLeftPS.throttle = throttle;
+      this.wingSmokeLeftPS.animate(deltaSec);
+    }  
+    if (this.wingSmokeRightPS) {
+      this.wingSmokeRightPS.throttle = throttle;
+      this.wingSmokeRightPS.animate(deltaSec);
+    }  
+    super.animateParticles(deltaSec);
   } 
 }

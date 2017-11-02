@@ -7,6 +7,7 @@ class T3DPoint {
 }
 */
 
+var globalIDCounter = 0;
 
 // ======= Types ================
 class T3DPoint {
@@ -25,7 +26,20 @@ class T3DPoint {
       this.position.copy(params.initPosition); //set position to initial position, if provided.
     }  
     this.velocity = new THREE.Vector3();         //vector of point's velocity
+    this.tmgID = globalIDCounter++;
   }
+  addToScene() {  //add this to scene, **if** not already present
+    if (!this.object) return;
+    let found = false;
+    for (var i=0; i < scene.children.length; i++) {
+      if (!scene.children[i].tmgID) continue;
+      if (scene.children[i].tmgID == this.tmgID) {
+        found = true;
+        break;
+      }  
+    };
+    if (!found) scene.add(this.object);
+  }    
   animate(deltaSec)  {
     let deltaPos = this.velocity.clone();
     deltaPos.multiplyScalar(deltaSec);  //units are now delta voxels.

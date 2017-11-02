@@ -49,8 +49,9 @@ class T3DObject extends T3DPoint {
     //  params.name
     //  params.initPosition
     //  params.modelScale          -- optional, default = 1
-    //  params.plane               -- optional.  default PLANE_XZ
+    //  params.plane               -- optional.  default ORBIT_PLANE.xz
     //  params.showPosMarker       -- default is false
+    //  params.excludeFromGameObjects -- default is false
     //-----------------------
     super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
@@ -59,14 +60,14 @@ class T3DObject extends T3DPoint {
     this.modelScaleV = new THREE.Vector3(modelScale, modelScale, modelScale);
     this.object = null;                          //this will be the THREE.Object3D for descendents
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model/object from game position.
-    this.plane = params.plane||PLANE_XZ;
+    this.plane = params.plane||ORBIT_PLANE.xz;
     this.visible = true;
     this.showPosMarker = (params.showPosMarker == true);
     if (this.showPosMarker == true) {
       this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of object
       scene.add(this.originIndicator);
     }
-    gameObjects.push(this);
+    if (!params.excludeFromGameObjects) gameObjects.push(this);
   }
   //=== Class Properties =====
   get inV() {
@@ -140,7 +141,8 @@ class T3DObject extends T3DPoint {
   setPosition(P) {  //unify moving of this.position into one function
     this.position.copy(P)          
     this.object.position.copy(P);
-    if (this.originIndicator) this.originIndicator.position.copy(P);    
+    if (this.originIndicator) this.originIndicator.position.copy(P);  
+    if ((this.object)&&(!this.object.tmgID)) this.object.tmgID = this.tmgID;
   }          
   lookAtVelocity () {  //orient in direction of velocity
     this.object.lookAt(this.futurePos);
@@ -179,8 +181,6 @@ class T3DObject extends T3DPoint {
   animate(deltaSec)  {
     super.animate(deltaSec);
     this.setPosition(this.position); //ensure everything with changes made by T3DPoint
-    //this.object.position.copy(this.position);
-    //if (this.originIndicator) this.originIndicator.position.copy(this.position);    
   }
   offsetPos(offset) {
     //input: offset -- a TOffset
@@ -227,13 +227,18 @@ class T3DObject extends T3DPoint {
     if (this.originIndicator) scene.remove(this.originIndicator);        
   }  
   unhide() {
-    if (this.object) scene.add(this.object);
+    this.addToScene();
+    //if (this.object) scene.add(this.object);
     if (this.originIndicator) scene.add(this.originIndicator); 
     this.visible = true;
   }  
   explode() {  //override in descendants for points etc...
     //FINISH -- launch explosion animation
-    this.hide();    
+    this.hide(); 
+    explosionManager.emitByParams({
+       initPosition: this.position,
+       initVelocity: this.velocity,       
+    })    
   }     
   setScaleV(scaleV) {
     if (this.object) this.object.scale.copy(scaleV);

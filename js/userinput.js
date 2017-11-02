@@ -42,7 +42,7 @@ function onKeyUp(event) {
   let k = event.key;
   let code = event.code;
   if (code == 'Escape') { //for some reason Esc doesn't generate onKeyPress event
-    bufferedUserGameActions.push(SHIP_ACTION.resetPosToInit);
+    bufferedUserGameActions.push(VEHICLE_ACTION.resetPosToInit);
   }  
   delete keyDown[event.key];
   delete keyDown[event.code];
@@ -52,72 +52,56 @@ function onKeyUp(event) {
 function onKeyPress(event) {
   let k = event.key;
   let code = event.code;
-  if (k == '1') {
-    bufferedUserCameraActions.push(CAMERA_ACTION.setModeOrbit);
-    event.preventDefault();
-  } else if (k == '2') {
-    bufferedUserCameraActions.push(CAMERA_ACTION.setModeFollow);
-    event.preventDefault();
-  } else if (k == '3') {
-    bufferedUserCameraActions.push(CAMERA_ACTION.setModeCockpit);
-    event.preventDefault();
-  } else if (k == '4') {
-    bufferedUserCameraActions.push(CAMERA_ACTION.setModeMouse);
-    event.preventDefault();
-  } else if (k == '5') {
-    bufferedUserCameraActions.push(CAMERA_ACTION.setModeHighAbove);
-    event.preventDefault();
-  } else if (k == 'p') {
-    bufferedUserEnvironmentActions.push(ENV_ACTION.togglePause);    
-    if (gamePaused) requestAnimationFrame(animate); //<-- required to trigger handling of input if game currently paused.  
-  } else if (k == 'g') {
-    bufferedUserEnvironmentActions.push(ENV_ACTION.toggleGravity);
-  } else if (k == 'f') {
-    bufferedUserGameActions.push(SHIP_ACTION.launchRocket);
-  } else if (k == 'k') {
-    bufferedUserGameActions.push(SHIP_ACTION.stop);
-  }  
+  if (onKeyPressMapping[k]) {
+    let arr = onKeyPressMapping[k].arr;
+    let msg = onKeyPressMapping[k].msg;
+    let fn = onKeyPressMapping[k].fn;
+    arr.push(msg);
+    if (fn) fn();
+  }      
 }
 
 function getRemoteKeyShipAction(shipIndex) {
-  //Result is an array of SHIP_ACTION's
+  //Result is an arr9ay of VEHICLE_ACTION's
   let resultArray = [];        
   //implement later after communication channels to other players set up. 
   return resultArray;  
 }  
 
 function getKeyShipAction(shipIndex)  {
-  //Result is an array of SHIP_ACTION's
+  //Result is an array of VEHICLE_ACTION's
   if (shipIndex != localShipIndex) return getRemoteKeyShipAction(shipIndex);  
   
   let resultArray = bufferedUserGameActions.slice(); //copy array     
-  bufferedUserGameActions = [];  //reset buffer array
+  bufferedUserGameActions.length = 0;  //reset buffer array
 
   if ((keyDown['ArrowRight']) || (keyDown['Numpad6'])) {  //yaw right
-    resultArray.push(SHIP_ACTION.yawRight);
+    resultArray.push(VEHICLE_ACTION.yawRight);
   }
   if ((keyDown['ArrowLeft']) || (keyDown['Numpad4'])) {   //yaw left
-    resultArray.push(SHIP_ACTION.yawLeft);
+    resultArray.push(VEHICLE_ACTION.yawLeft);
   }
+  /*
   if ((keyDown['ArrowUp']) || (keyDown['Numpad8'])) {     //pitch down
-    resultArray.push(SHIP_ACTION.pitchDn);
+    resultArray.push(VEHICLE_ACTION.pitchDn);
   }
   if ((keyDown['ArrowDown']) || (keyDown['Numpad2'])) {   //pitch up
-    resultArray.push(SHIP_ACTION.pitchUp);
+    resultArray.push(VEHICLE_ACTION.pitchUp);
   }
   if ((keyDown['PageUp']) || (keyDown['Numpad9'])) {      //roll right
-    resultArray.push(SHIP_ACTION.rollRight);
+    resultArray.push(VEHICLE_ACTION.rollRight);
   }
   if ((keyDown['1']) || (keyDown['Numpad1'])) {           //roll left.
-    resultArray.push(SHIP_ACTION.rollLeft);
+    resultArray.push(VEHICLE_ACTION.rollLeft);
   }
+  */
   if ((keyDown['Enter']) || (keyDown['Numpad5'])) {       //Orient towards current velocity
-    resultArray.push(SHIP_ACTION.orientToVelocity);
+    resultArray.push(VEHICLE_ACTION.orientToVelocity);
   }
   if (keyDown['Space']) {                                 //thrust
-    resultArray.push(SHIP_ACTION.thrustMore);
+    resultArray.push(VEHICLE_ACTION.thrustMore);
   } else {
-    resultArray.push(SHIP_ACTION.thrustLess);
+    resultArray.push(VEHICLE_ACTION.thrustLess);
   }
   return resultArray;
 }
@@ -125,17 +109,22 @@ function getKeyShipAction(shipIndex)  {
 function getKeyCameraAction() {
   //Result is an array of CAMERA_ACTION's
   let resultArray = bufferedUserCameraActions.slice(); //copy array     
-  bufferedUserEnvironmentActions = []; //reset buffer array
+  bufferedUserCameraActions.length = 0; //reset buffer array
   if (keyDown['a']) resultArray.push(CAMERA_ACTION.orbitAngleSub);
   if (keyDown['d']) resultArray.push(CAMERA_ACTION.orbitAngleAdd);
   if (keyDown['s']) resultArray.push(CAMERA_ACTION.orbitAngleZeror);
+  if (keyDown['1']) resultArray.push(CAMERA_ACTION.setModeOrbit);
+  if (keyDown['2']) resultArray.push(CAMERA_ACTION.setModeFollow);
+  if (keyDown['3']) resultArray.push(CAMERA_ACTION.setModeCockpit);
+  if (keyDown['4']) resultArray.push(CAMERA_ACTION.setModeMouse);
+  if (keyDown['5']) resultArray.push(CAMERA_ACTION.setModeHighAbove); 
   return resultArray;
 }
   
 function getKeyEnvironmentAction() {
   //Result is an array of ENV_ACTION's
   let resultArray = bufferedUserEnvironmentActions.slice(); //copy array     
-  bufferedUserEnvironmentActions = [];  
+  bufferedUserEnvironmentActions.length = 0;  
   //more here if needed
   return resultArray;
 }
