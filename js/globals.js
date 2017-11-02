@@ -16,7 +16,7 @@ var gameCamera = new TCamera({
   mass: CAMERA_MASS,
   name: 'camera',
   initPosition: CAMERA_INIT_POSITION,
-  //trackedObject: ship,   //<--- will set below. 
+  trackedObject: null,   //<--- will set below. 
 });
 
 var gameSounds = new TSounds(); 
@@ -94,7 +94,7 @@ var autoPointTowardsMotionDelay = 0;  //When user turns ship, then this delay is
 var keyDown = {};  //object to hold which keys are currently pressed down
 var mouseDown = false;
 
-var gameLoaded = false;
+var gameLoaded = false;                                                                  
 var gamePaused = false;
 var disableGravity  = false;
 var debugInfoCounter = 0;
@@ -104,24 +104,48 @@ var bufferedUserCameraActions = []; //This will hold actions from onKey events e
 var bufferedUserEnvironmentActions = []; //This will hold actions from onKey events etc, until next cycle. 
 
 
-var onKeyPressMapping = {
-  'p' : { arr: bufferedUserEnvironmentActions,
-          msg: ENV_ACTION.togglePause,
-          fn: function() {
-                if (gamePaused) requestAnimationFrame(animate); //<-- required to trigger handling of input if game currently paused. 
-              }           
-        },
-  'g' : { arr: bufferedUserEnvironmentActions,
-          msg: ENV_ACTION.toggleGravity,
-        },
-  'f' : { arr: bufferedUserGameActions,
-          msg: VEHICLE_ACTION.launchRocket,
-        },
-  'k' : { arr: bufferedUserGameActions,
-          msg: VEHICLE_ACTION.stop,
-        },
-  'o' : { arr: bufferedUserGameActions,
-          msg: VEHICLE_ACTION.dropBomb,
-        },          
+var keyMapping = {
+  //-----Keys for onKeyPress handler ---------------------------
+           //Note: because arr is define for this group, they will be handled in onKeyPress()
+           'p' : { arr: bufferedUserEnvironmentActions,
+                   msg: ENV_ACTION.togglePause,
+                   fn: function() {
+                         if (gamePaused) requestAnimationFrame(animate); //<-- required to trigger handling of input if game currently paused. 
+                       }           
+                 },
+           'g' : { arr: bufferedUserEnvironmentActions,
+                   msg: ENV_ACTION.toggleGravity,
+                 },
+           'f' : { arr: bufferedUserGameActions,
+                   msg: VEHICLE_ACTION.launchRocket,
+                 },
+           'k' : { arr: bufferedUserGameActions,
+                   msg: VEHICLE_ACTION.stop,
+                 },
+           'o' : { arr: bufferedUserGameActions,
+                   msg: VEHICLE_ACTION.dropBomb,
+                 },          
+      'Escape' : { arr: bufferedUserGameActions,
+                   msg: VEHICLE_ACTION.resetPosToInit,
+                 },    
+  //--------Keys for getKeyCameraAction----------------------         
+           'a' : { msg: CAMERA_ACTION.orbitAngleSub     },
+           'd' : { msg: CAMERA_ACTION.orbitAngleAdd     },
+           's' : { msg: CAMERA_ACTION.orbitAngleZeror   },
+           '1' : { msg: CAMERA_ACTION.setModeOrbit      },
+           '2' : { msg: CAMERA_ACTION.setModeFollow     },
+           '3' : { msg: CAMERA_ACTION.setModeCockpit    },
+           '4' : { msg: CAMERA_ACTION.setModeMouse      },
+           '5' : { msg: CAMERA_ACTION.setModeHighAbove  },            
+  //--------Keys for getKeyVehicleAction---------------------         
+  'ArrowRight' : { msg: VEHICLE_ACTION.yawRight         },
+   'ArrowLeft' : { msg: VEHICLE_ACTION.yawLeft          },
+     'ArrowUp' : { msg: VEHICLE_ACTION.thrustMore       },
+      'PageUp' : { msg: VEHICLE_ACTION.pitchDn          },
+    'PageDown' : { msg: VEHICLE_ACTION.pitchUp          },
+           ']' : { msg: VEHICLE_ACTION.rollRight        },
+           '[' : { msg: VEHICLE_ACTION.rollLeft         },
+       'Enter' : { msg: VEHICLE_ACTION.orientToVelocity },
+  //---------------------------------------------------------
 };  
 

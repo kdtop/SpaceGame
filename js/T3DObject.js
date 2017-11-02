@@ -112,10 +112,24 @@ class T3DObject extends T3DPoint {
       this.object.matrix.extractBasis (leftV, upV, inV);
   }
   calculateInUpLeft () {
-    this.inVector = new THREE.Vector3();  //in is Z axis for loaded object.
-    this.upVector = new THREE.Vector3();  //up is Y axis.
-    this.leftVector = new THREE.Vector3();//left is X axis for loaded object.
+    this.inVector = new THREE.Vector3();  //in is Z axis for loaded object, initially
+    this.upVector = new THREE.Vector3();  //up is Y axis, initially
+    this.leftVector = new THREE.Vector3();//left is X axis for loaded object, initially
     this.object.matrix.extractBasis (this.leftVector, this.upVector, this.inVector)
+    //Ensure that the object is aligned with it's specified orbit plane
+    if (this.plane == ORBIT_PLANE.xy) {
+      this.inVector.z = 0;                           //In
+      this.leftVector.z = 0;                         //Left
+      this.upVector.x = 0;  this.upVector.y = 0;     //Up
+    } else if (this.plane == ORBIT_PLANE.xz) {
+      this.inVector.y = 0;                           //In
+      this.leftVector.y = 0;                         //Left
+      this.upVector.x = 0;  this.upVector.z = 0;     //Up      
+    } else if (this.plane == ORBIT_PLANE.yz) {
+      this.inVector.x = 0;                           //In
+      this.leftVector.x = 0;                         //Left
+      this.upVector.y = 0;  this.upVector.z = 0;     //Up            
+    }
   }
   yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
     this.calculateInUpLeft ();
@@ -158,6 +172,7 @@ class T3DObject extends T3DPoint {
     //       deltaSec: milliseconds for this frame
     //results: none
     let laV = this.lookingAtPosAtOrigin(10);
+    projectVectorOntoPlane(laV, this.plane) 
     let crossV = laV.cross(targetV);  //cross product is perpendicular to both other vectors
     crossV.normalize();
     let dotProd = laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors

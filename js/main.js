@@ -29,7 +29,7 @@
       let deltaSec = clock.getDelta();
       if (debugging) deltaSec = 0.01;  //<-- Debug option for prolonged frames when stepping through
       for (var i=0; i < shipsArray.length; i++) {
-        shipsArray[i].handleAction(getKeyShipAction(i), deltaSec);
+        shipsArray[i].handleAction(getKeyVehicleAction(i), deltaSec);
       }
       gameCamera.handleAction(getKeyCameraAction());
       animateObjects(deltaSec);

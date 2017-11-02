@@ -120,3 +120,15 @@ function randomizeVector(V, variance) {
   result.z = randomizeNum(result.z, variance);
   return result;
 }
+
+function projectVectorOntoPlane(V, plane)  {
+  //Input: V -- THREE.Vector3 -- modified by reference
+  //       plane -- ORBIT_PLANE
+  if (plane == ORBIT_PLANE.xy) {
+    V.z = 0;
+  } else if (plane == ORBIT_PLANE.xz) {
+    V.y = 0;
+  } else if (plane == ORBIT_PLANE.yz) {
+    V.x = 0;
+  }    
+}  
