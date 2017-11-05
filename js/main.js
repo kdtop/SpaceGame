@@ -33,9 +33,9 @@
       }
       gameCamera.handleAction(getKeyCameraAction());
       animateObjects(deltaSec);
+      gameGrids.animate(deltaSec, shipsArray);
       debugAnimate(deltaSec);
-      /*annie.update(1000 * deltaSec);  //debug, remove later*/
-      explosionManager.animate(deltaSec);       
+      explosionManager.animate(deltaSec);
       renderer.render( scene, gameCamera.camera );
       //stats.update();
     }  

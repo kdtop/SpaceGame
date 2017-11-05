@@ -5,7 +5,7 @@ const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
 const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
-const CAMERA_INIT_POSITION = new THREE.Vector3(0,200,800);
+const CAMERA_INIT_POSITION = new THREE.Vector3(200,200,800);
                     
 const CAMERA_MODE_MIN = 10, CAMERA_MODE_MAX = 29;
 const CAMERA_MODE = {
@@ -59,8 +59,18 @@ const ENV_ACTION = {
 const GRAV_CONST = 2e-2;  // N * meters^2 /mass^2  //<-- Real world is 6.67e-11
 const GRID_SIZE = 1600;  //- 2000 to + 2000 = 4000 true width
 const GRID_DIVS = 40;
-const GRID_COLOR = 0xffff99 ;
-const GRID_COLOR_CENTRAL_LINE = 0xffff11;
+
+const GRID_COLOR = 0xffffff ;              //white          -- 16777215
+const GRID_COLOR_CENTRAL_LINE = 0xe6e6e6;  //gray           -- 15132390
+
+const GRID1_COLOR = 0xffff99 ;              //light yellow  -- 16777113
+const GRID1_COLOR_CENTRAL_LINE = 0xffff11;  //darker yellow -- 16776977
+
+const GRID2_COLOR = 0x3399ff ;              //light blue    -- 3381759
+const GRID2_COLOR_CENTRAL_LINE = 0x0080ff;  //darker blue   -- 33023
+
+const GRID3_COLOR = 0xff80ff ;              //light purple  -- 16744703
+const GRID3_COLOR_CENTRAL_LINE = 0xff1aff;  //darker purple  --16718591
 
 const SUN_MASS = 2e30;  //2e30 = 2x10^30 kg
 const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
@@ -141,8 +151,17 @@ const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
 const ORBIT_PLANE = {
   unknown:  0,
   xy:       1,
+  yx:       1,
   xz:       2,
+  zx:       2,
   yz:       3,  
+  zy:       3,  
+}
+
+const ORBIT_PLANE_NAME = {
+  1: 'xy',   //Index should match value in ORBIT_PLANE
+  2: 'xz',   //Index should match value in ORBIT_PLANE
+  3: 'yz',   //Index should match value in ORBIT_PLANE
 }  
 
 const plusXV = new THREE.Vector3(1,0,0);

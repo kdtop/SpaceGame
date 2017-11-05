@@ -78,9 +78,23 @@ var explosionManager = new TParticleSys({
                                                                   
 //gameObjects.push(explosionManager);
 
-var gridXZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
-var gridXY = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
-var gridYZ = new THREE.GridHelper(GRID_SIZE, GRID_DIVS, GRID_COLOR_CENTRAL_LINE, GRID_COLOR);
+
+var gameGrids = new TGrids({
+  size:                GRID_SIZE, 
+  divs:                GRID_DIVS,
+  centerLineColorXZ:   GRID1_COLOR_CENTRAL_LINE, 
+  mainColorXZ:         GRID1_COLOR,    
+  centerLineColorYZ:   GRID2_COLOR_CENTRAL_LINE, 
+  mainColorYZ:         GRID2_COLOR,    
+  centerLineColorXY:   GRID3_COLOR_CENTRAL_LINE, 
+  mainColorXY:         GRID3_COLOR,                           
+  excludeXZ:           false, //floor
+  excludeYZ:           false,  
+  excludeXY:           false,
+  trackedObjects:      shipsArray,
+  gridVisibilityDist:  50,
+  glowVisibilityDist:  100,
+});    
 
 var mouseX = 0;  //maybe later turn into Vector2
 var mouseY = 0;

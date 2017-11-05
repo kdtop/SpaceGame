@@ -8,7 +8,11 @@ Contents:
   function generateSpriteCanvas() {
   function vector3ToString(v)   //v is Vector3
   function debugInfo(id, Msg)
-  function getLine(p1, p2, aColor)
+  function getLine(p1, p2, aColor)  
+  function getRandom(min, max) {
+  function randomizeNum(N, variance) {
+  function randomizeVector(V, variance) {
+  function projectVectorOntoPlane(V, plane)  {  
 */
 
 
