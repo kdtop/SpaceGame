@@ -25,18 +25,17 @@ class TCamera extends T3DObject {
     //-----------------------
     super(params);
     this.trackedObject = params.trackedObject||null;  //will be a TVehicle
-    this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2500 );
+    this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, GRID_SIZE*5 );
     this.object = this.camera;
     this.setPosition(params.initPosition);
     this.targetLookAtPos = new THREE.Vector3();
     this.currentLookAtPos = new THREE.Vector3();
     this.orbit = {};
-    this.orbit.xzAngle = 0;
-    this.orbit.zyAngle = 0;
+    this.orbit.xzAngle = Pi/4;
+    this.orbit.zyAngle = Pi/4;
     this.orbit.xzAngleVelocity = 0.0; //0.1; //radians/sec
     this.radius = 100;
     this.setMode(CAMERA_MODE.orbit);
-    this.springK = CAMERA_SPRING_CONST;
   }
   setMode(mode) {
     this.mode = mode;
@@ -116,8 +115,15 @@ class TCamera extends T3DObject {
   animateMouseControl(deltaSec) {
     //NOTE: mouse (0,0) is center of screen.    
     if (mouseDown) {
-      this.orbit.xzAngle = Pi * (mouseX / windowHalfX);
-      this.orbit.zyAngle = Pi/2 * (mouseY / windowHalfY);
+      let deltaMouse = mouse.clone();
+      deltaMouse.sub(mouseDownPos)
+      //this.orbit.xzAngle += Pi * (deltaMouse.x / windowHalfX);
+      this.orbit.xzAngle += deltaMouse.x / 100;
+      this.orbit.xzAngle = wrapRadians(this.orbit.xzAngle);
+      //this.orbit.zyAngle += Pi/2 * (deltaMouse.y / windowHalfY);
+      this.orbit.zyAngle += deltaMouse.y / 100;
+      this.orbit.zyAngle = wrapRadians(this.orbit.zyAngle);
+      mouseDownPos.copy(mouse);
     }  
     this.setToOrbitParameters();    
   }

@@ -43,6 +43,7 @@ class TVehicle extends TModelObject {
     //  params.engineSoundFName            -- required if sound wanted
     //  params.engineSoundMaxVolume        -- default = 1 (0.8 means max volume 80% normal)
     //  params.explodeSoundFName           -- required if sound wanted 
+    //  params.explodeSoundMaxVolume       -- default = 1 (0.8 means max volume 80% normal)
     //  params.excludeEnginePS             -- default is false
     //-----------------------
     super(params);
@@ -57,6 +58,7 @@ class TVehicle extends TModelObject {
     this.engineSound = null;                             //will be THREE.Audio object
     this.engineSoundStartOffset = 0;
     this.engineSoundMaxVolume = params.engineSoundMaxVolume||1;
+    this.explodeSoundMaxVolume = params.explodeSoundMaxVolume||1;
     this.maxThrust = params.maxThrust||100;              //deltaV/sec
     this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
@@ -90,7 +92,7 @@ class TVehicle extends TModelObject {
       this.engineSound = gameSounds.setupSound({
         filename: params.engineSoundFName,
         loop: true,
-        volume: 1,
+        volume: this.engineSoundMaxVolume,
       });                
     }
     //setup  explode sound
@@ -98,7 +100,7 @@ class TVehicle extends TModelObject {
       this.explodeSound = gameSounds.setupSound({
         filename: params.explodeSoundFName,
         loop: false,
-        volume: 1,
+        volume: this.explodeSoundMaxVolume,
       });    
     }    
     this.throttle = 0;

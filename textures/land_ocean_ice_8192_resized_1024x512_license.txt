@@ -1,0 +1,19 @@
+11/4/17
+Downloaded from here:
+ftp://neoftp.sci.gsfc.nasa.gov/bluemarble/land_ocean_ice_8192_preview.png
+
+I resized image with gimp to 1024x512
+
+Linked to from here:
+https://earthobservatory.nasa.gov/blogs/elegantfigures/2011/10/06/crafting-the-bl
+
+License: 
+"All the source files are archived on the original Blue Marble page. 
+They’re free to use and modify, but you can’t use them to imply you’re 
+associated with NASA."
+
+Blue Marble page is here:
+https://earthobservatory.nasa.gov/Features/BlueMarble/BlueMarble_2002.php
+
+Source files are here:
+ftp://neoftp.sci.gsfc.nasa.gov/bluemarble/

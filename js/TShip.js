@@ -31,8 +31,10 @@ class TShip extends TVehicle {
     params.showCockpitLookat = SHIP_SHOW_COCKPIT_LOOKAT;
     params.showCockpitPosition = SHIP_SHOW_COCKPIT_POS;
     params.maxVelocity = SHIP_VELOCITY_MAX;
-    params.engineSoundFName = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
-    params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
+    params.engineSoundFName = SHIP_SOUND_ENGINE;
+    params.explodeSoundFName = SHIP_SOUND_EXPLODE;
+    params.engineSoundMaxVolume = SHIP_SOUND_ENGINE_MAX_VOLUME,
+    params.explodeSoundMaxVolume = SHIP_SOUND_EXPLODE_MAX_VOLUME
     //------------------------
     super(params);
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object

@@ -37,7 +37,8 @@ var sun = new TCelestialBody({
   mass: SUN_MASS, 
   realSize: SUN_REAL_WORLD_SIZE,
   gameSize: SUN_GAME_SIZE,
-  textureFName: 'textures/land_ocean_ice_cloud_2048.jpg',
+  textureFName: SUN_TEXTURE_FILE_NAME,
+  atmosphereTextureFName: SUN_ATMOSPHERE_TEXTURE_FILE_NAME,
   name: 'sun', 
   initPosition: nullV
 });
@@ -92,12 +93,12 @@ var gameGrids = new TGrids({
   excludeYZ:           false,  
   excludeXY:           false,
   trackedObjects:      shipsArray,
-  gridVisibilityDist:  50,
-  glowVisibilityDist:  100,
+  gridVisibilityDist:  25,
+  glowVisibilityDist:  50,
 });    
 
-var mouseX = 0;  //maybe later turn into Vector2
-var mouseY = 0;
+var mouse = new THREE.Vector2(0,0);
+var mouseDownPos = new THREE.Vector2(0,0);
 
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
@@ -132,6 +133,7 @@ var keyMapping = {
                  },
            'f' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.launchRocket,
+                   noRepeat: true,
                  },
            'k' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.stop,

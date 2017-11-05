@@ -1,11 +1,13 @@
 
 
 const Pi = 3.14159 ;
-const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
+//const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
 const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
 const CAMERA_INIT_POSITION = new THREE.Vector3(200,200,800);
+const CAMERA_RADIUS_MIN = 100;
+const CAMERA_RADIUS_MAX = 2500;
                     
 const CAMERA_MODE_MIN = 10, CAMERA_MODE_MAX = 29;
 const CAMERA_MODE = {
@@ -75,8 +77,9 @@ const GRID3_COLOR_CENTRAL_LINE = 0xff1aff;  //darker purple  --16718591
 const SUN_MASS = 2e30;  //2e30 = 2x10^30 kg
 const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
 const SUN_GAME_SIZE = 40;  //voxels of radius
-const VERY_TINY_SCALE = 0.0001; //A number to scale objects such that they are not visible. 
-const VERY_TINY_SCALE_V = new THREE.Vector3(VERY_TINY_SCALE, VERY_TINY_SCALE, VERY_TINY_SCALE);
+//const SUN_TEXTURE_FILE_NAME = 'textures/land_ocean_ice_cloud_2048.jpg';
+const SUN_TEXTURE_FILE_NAME = 'textures/land_ocean_ice_8192_resized_1024x512.png';
+const SUN_ATMOSPHERE_TEXTURE_FILE_NAME = 'textures/Earth-clouds.png';
 
 const DEBUG_SHOW_POSITION_MARKERS = false;
 
@@ -96,7 +99,9 @@ const SHIP_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_NUM_ROCKETS = 4;
 const SHIP_WING_SPREAD = 50; //used to evenly space out rocket firing positions. 
 const SHIP_SOUND_ENGINE = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
+const SHIP_SOUND_ENGINE_MAX_VOLUME = 0.5;
 const SHIP_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-1303947570.mp3';
+const SHIP_SOUND_EXPLODE_MAX_VOLUME = 0.5;
 
 const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg

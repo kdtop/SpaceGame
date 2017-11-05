@@ -1,26 +1,40 @@
 
+function eventToLocalXY(x, y) {
+  //Returns coordinates transformed to screen coordinates, 
+  //(0,0) is center of screen
+  let result = new THREE.Vector2(x - windowHalfX, y - windowHalfY);
+  return result;
+}  
+
+
 function onDocumentMouseMove( event ) {
-    mouseX = event.clientX - windowHalfX;
-    mouseY = event.clientY - windowHalfY;
+  //mouse.x = event.clientX - windowHalfX;
+  //mouse.y = event.clientY - windowHalfY;  
+  mouse.copy(eventToLocalXY(event.clientX, event.clientY));
 }
 
 function onDocumentTouchStart( event ) {
   if ( event.touches.length == 1 ) {
     event.preventDefault();
-    mouseX = event.touches[ 0 ].pageX - windowHalfX;
-    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+    //mouse.x = event.touches[ 0 ].pageX - windowHalfX;
+    //mouse.y = event.touches[ 0 ].pageY - windowHalfY;
+    mouse.copy(eventToLocalXY(event.touches[0].pageX, event.touches[0].pageY));
   }
 }
 function onDocumentTouchMove( event ) {
   if ( event.touches.length == 1 ) {
     event.preventDefault();
-    mouseX = event.touches[ 0 ].pageX - windowHalfX;
-    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+    //mouse.x = event.touches[ 0 ].pageX - windowHalfX;
+    //mouse.y = event.touches[ 0 ].pageY - windowHalfY;
+    mouse.copy(eventToLocalXY(event.touches[0].pageX, event.touches[0].pageY));
   }
 }
 
 function onMouseDown(event) {
-  mouseDown = true;        
+  mouseDown = true;
+  //mouseDownPos.x = event.clientX - windowHalfX;
+  //mouseDownPos.y = event.clientY - windowHalfY;  
+  mouseDownPos.copy(eventToLocalXY(event.clientX, event.clientY));
 }        
 
 function onMouseUp(event) {
@@ -29,28 +43,29 @@ function onMouseUp(event) {
 
 function onMouseWheel(event) {
   gameCamera.radius += event.deltaY;
-  if (gameCamera.radius < 0) gameCamera.radius *= -1;
+  if (gameCamera.radius < CAMERA_RADIUS_MIN) gameCamera.radius = CAMERA_RADIUS_MIN;
+  if (gameCamera.radius > CAMERA_RADIUS_MAX) gameCamera.radius = CAMERA_RADIUS_MAX;
 }
 
 function onKeyDown(event) {
   keyDown[event.key] = true;
-  keyDown[event.code] = true;
+  //keyDown[event.code] = true;
   //event.preventDefault();
 }
 
 function onKeyUp(event) {
   let k = event.key;
-  let code = event.code;
+  //let code = event.code;
   //for some reason Esc doesn't generate onKeyPress event, so I have to handle here in onKeyUp
   if ((k == 'Escape')&&(keyMapping[k])) handleMappedKey(k);
   delete keyDown[event.key];
-  delete keyDown[event.code];
+  //delete keyDown[event.code];
   event.preventDefault();
 }
 
 function onKeyPress(event) {
   let k = event.key;
-  let code = event.code;
+  //let code = event.code;
   if (keyMapping[k]) handleMappedKey(k);
 }      
 
@@ -70,6 +85,9 @@ function handleMappedKey(k, arr, aMinMsg, aMaxMsg) {  //assumes key is mapped
   let fn = keyMapping[k].fn;
   if (arr) arr.push(msg); //Note: only stores message if an array is defined in mapping.  
   if (fn) fn();
+  if (keyMapping[k].noRepeat == true) {
+    delete keyDown[k];
+  }
 }  
 
 function checkHandleMappedKey(resultArray, aMinMsg, aMaxMsg) {  
