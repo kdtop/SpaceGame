@@ -12,7 +12,7 @@ function debugInfo(id, Msg) {
 function debugAnimate(deltaSec) {
 
   debugInfoCounter +=1;
-  if (debugInfoCounter > 60) {
+  if (debugInfoCounter > 2) {
     debugInfoCounter = 1;
     //let velocityInfo = 'camera.position = ' + vector3ToString(gameCamera.position);
     //debugInfo("info2", velocityInfo);

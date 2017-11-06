@@ -43,8 +43,10 @@ class TVehicle extends TModelObject {
     //  params.engineSoundFName            -- required if sound wanted
     //  params.engineSoundMaxVolume        -- default = 1 (0.8 means max volume 80% normal)
     //  params.explodeSoundFName           -- required if sound wanted 
-    //  params.explodeSoundMaxVolume       -- default = 1 (0.8 means max volume 80% normal)
+    //  params.explodeSoundVolume          -- default = 1 (0.8 means max volume 80% normal)
     //  params.excludeEnginePS             -- default is false
+    //  params.teleportSoundFName          -- default is none
+    //  params.teleportSoundVolume              -- default is 1
     //-----------------------
     super(params);
     //--- private stuff -----
@@ -58,7 +60,11 @@ class TVehicle extends TModelObject {
     this.engineSound = null;                             //will be THREE.Audio object
     this.engineSoundStartOffset = 0;
     this.engineSoundMaxVolume = params.engineSoundMaxVolume||1;
-    this.explodeSoundMaxVolume = params.explodeSoundMaxVolume||1;
+    this.explodeSoundVolume = params.explodeSoundVolume||1;
+    this.engineSoundFName = params.engineSoundFName || '';
+    this.explodeSoundFName = params.explodeSoundFName || '';
+    this.teleportSoundFName = params.teleportSoundFName || '';
+    this.teleportSoundVolume = params.teleportSoundVolume || 1
     this.maxThrust = params.maxThrust||100;              //deltaV/sec
     this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
@@ -87,23 +93,31 @@ class TVehicle extends TModelObject {
       scene.add(this.cockpitPositionMarker);
     }
     //setup vehicle engine sound
-    if (params.engineSoundFName != '') {
+    if (this.engineSoundFName != '') {
       this.engineSoundStartOffset = 0;      
       this.engineSound = gameSounds.setupSound({
-        filename: params.engineSoundFName,
+        filename: this.engineSoundFName,
         loop: true,
         volume: this.engineSoundMaxVolume,
       });                
     }
-    //setup  explode sound
-    if (params.explodeSoundFName != '') {
+    //setup explosion sound
+    if (this.explodeSoundFName != '') {
       this.explodeSound = gameSounds.setupSound({
-        filename: params.explodeSoundFName,
+        filename: this.explodeSoundFName,
         loop: false,
-        volume: this.explodeSoundMaxVolume,
+        volume: this.explodeSoundVolume,
       });    
     }    
     this.throttle = 0;
+    //setup teleport sound
+    if (this.teleportSoundFName != '') {
+      this.teleportSound = gameSounds.setupSound({
+        filename: this.teleportSoundFName,
+        loop: false,
+        volume: this.teleportSoundVolume || 1,
+      });    
+    }    
   }
   //=== properties ======
   set throttle(value) {
@@ -135,6 +149,7 @@ class TVehicle extends TModelObject {
     let result = super.allLoaded();
     result = result && this.engineSound.tmgLoaded;
     result = result && this.explodeSound.tmgLoaded;    
+    if (this.teleportSound) result = result && this.teleportSound.tmgLoaded;    
     if (this.enginePS) result = result && this.enginePS.allLoaded();
     //more here if needed
     return result;
@@ -192,6 +207,29 @@ class TVehicle extends TModelObject {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
   }
+  handleWrapped(deltaSec, oldPosition) {
+    if (this.teleportSound) this.teleportSound.play();
+  }  
+  animateArrows(deltaSec) {
+    //this is called from T3DPoint.animate()
+    //below is debug stuff
+    if (this.arrows.length == 0) return;
+    super.animateArrows(deltaSec);
+    let arrow = this.arrows[0];
+    let velDir = this.velocity.clone();
+    velDir.normalize()
+    arrow.setDirection(velDir);  //red arrow
+    
+    if (this.arrows.length < 2) return;
+    if (!this.laV) return;
+    arrow = this.arrows[1];
+    arrow.setDirection(this.laV);   //green arrow
+    
+    if (this.arrows.length < 3) return;
+    if (!this.targetV) return;
+    arrow = this.arrows[2];
+    arrow.setDirection(this.targetV);  //blue arrow
+  }    
   animateParticles(deltaSec) {  //animate particle system
     if (this.enginePS) this.enginePS.animate(deltaSec);        
   }    
@@ -267,6 +305,7 @@ class TVehicle extends TModelObject {
           break;
         case VEHICLE_ACTION.thrustMore:
           this.throttle += SHIP_THROTTLE_DELTA_RATE * deltaSec
+          autoPointTowardsMotionDelay = AUTO_POINT_DELAY;
           break
         case VEHICLE_ACTION.thrustLess:
           if (this.throttle > 0) this.throttle -= SHIP_THROTTLE_DELTA_RATE * deltaSec

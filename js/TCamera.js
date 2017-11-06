@@ -98,7 +98,7 @@ class TCamera extends T3DObject {
     this.setPosition(newPos);
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
-    globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
+    //globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
   }  
   animateOrbit(deltaSec) {
     this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;

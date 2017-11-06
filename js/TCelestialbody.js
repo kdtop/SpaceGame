@@ -29,8 +29,8 @@ class TCelestialBody extends T3DObject {
     if (params.atmosphereTextureFName == '') {
       atmosphereMaterial = new THREE.MeshBasicMaterial({ 
         color: 0xb3ecff,  //light blue 
-        transparent: true, 
-        opacity: 0.3,
+        transparent: false, 
+        //opacity: 0.9,
         blending: THREE.AdditiveBlending 
       });
     } else {
@@ -61,6 +61,6 @@ class TCelestialBody extends T3DObject {
   animate(deltaSec) {
     super.animate(deltaSec);
     this.object.rotation.y -= this.rotationVelocity.y * deltaSec;
-    this.atmosphereObject.rotation.y -= this.atmosphereRotationVelocity.y * deltaSec;
+    this.atmosphereObject.rotation.y += this.atmosphereRotationVelocity.y * deltaSec;
   }
 }

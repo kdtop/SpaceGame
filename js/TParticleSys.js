@@ -216,6 +216,7 @@ class TParticleSys {
     //        params.numTiles               -- Required with animations.  Number of frame images in the sequence (don't include trailing empty space needed for power of 2)
     //        params.cycleTime              -- Required with animations.  Number of seconds to show entire animation sequence
     //        params.loop                   -- optional. default is false
+    //        params.numPreloadedTextures   -- default is 5
     this.name = params.name||'undefined';
     this.parent = params.parent;
     this.fullEmitRate = params.emitRate;  //this is emit rate when at full throttle (default)
@@ -225,10 +226,14 @@ class TParticleSys {
     this.velocityOffset = params.velocityOffset.clone();
     this.decaySec = params.decaySec||1;
     this.initScale = params.initScale||1;
-    this.posVariance = params.posVariance||5;
-    this.decayVariance = params.decayVariance||5;
-    this.scaleVariance = params.scaleVariance||5;
-    this.velocityVariance = params.velocityVariance||5;
+    this.posVariance = (typeof params.posVariance !== 'undefined') ? params.posVariance : 5;
+    this.decayVariance = (typeof params.decayVariance !== 'undefined') ? params.decayVariance : 5;
+    this.scaleVariance = (typeof params.scaleVariance !== 'undefined') ? params.scaleVariance : 5;
+    this.velocityVariance = (typeof params.velocityVariance !== 'undefined') ? params.velocityVariance : 5;
+    // this.posVariance = params.posVariance||5;
+    // this.decayVariance = params.decayVariance||5;
+    // this.scaleVariance = params.scaleVariance||5;
+    // this.velocityVariance = params.velocityVariance||5;
     this.colors = params.colors;
     this.particlesArray = [];  //will hold particles (TParticles or TAnimatedParticles)
     this.numToEmit = 0;
@@ -244,7 +249,7 @@ class TParticleSys {
     this.cycleTime = params.cycleTime||1;  
     this.loop = (params.loop == true);
     this.preloadedTextures = [];
-    this.numPreloadedTextures = 5;   
+    this.numPreloadedTextures = params.numPreloadedTextures||5;   
     this.init();
   }
   // --- Properties -------

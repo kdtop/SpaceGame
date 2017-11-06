@@ -48,10 +48,14 @@ class T3DObject extends T3DPoint {
     //  params.mass
     //  params.name
     //  params.initPosition
-    //  params.modelScale          -- optional, default = 1
-    //  params.plane               -- optional.  default ORBIT_PLANE.xz
-    //  params.showPosMarker       -- default is false
+    //  params.modelScale             -- optional, default = 1
+    //  params.plane                  -- optional.  default ORBIT_PLANE.xz
+    //  params.showPosMarker          -- default is false
     //  params.excludeFromGameObjects -- default is false
+    //  params.showArrow1             -- default is false
+    //  params.showArrow2             -- default is false
+    //  params.showArrow3             -- default is false
+    //  params.arrowsOffset           -- default is null (only applies if showArrow# is true)
     //-----------------------
     super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
@@ -68,6 +72,7 @@ class T3DObject extends T3DPoint {
       scene.add(this.originIndicator);
     }
     if (!params.excludeFromGameObjects) gameObjects.push(this);
+    if (params.arrowsOffset) this.arrowsOffset = params.arrowsOffset;
   }
   //=== Class Properties =====
   get inV() {
@@ -171,15 +176,25 @@ class T3DObject extends T3DPoint {
     //       rotationRate -- radians/sec
     //       deltaSec: milliseconds for this frame
     //results: none
-    let laV = this.lookingAtPosAtOrigin(10);
-    projectVectorOntoPlane(laV, this.plane) 
-    let crossV = laV.cross(targetV);  //cross product is perpendicular to both other vectors
-    crossV.normalize();
-    let dotProd = laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
-    let rotRad = rotationRate * deltaSec;
-    if (Math.abs(rotRad) > (1/360) * 2*Pi) {  //ignore rotation when within 1 degrees
-      if (dotProd > 0) radRad *= -1;
-      this.object.rotateOnAxis(crossV, rotRad);
+    //debugging=true; //temp!!!
+    this.calculateInUpLeft ();
+    this.laV = this.inVector;
+    projectVectorOntoPlane(this.laV, this.plane) 
+    targetV.normalize();
+    this.targetV = targetV;
+    let crossV = this.laV.clone();
+    crossV.cross(targetV);  //cross product is perpendicular to both other vectors (up or down)
+    let dotProdToUp = this.upVector.dot(crossV);    
+    let yawLeft = (dotProdToUp > 0);
+    let dotProd = this.laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
+    let angle = Math.acos(dotProd);
+    //globalDebugMessage = 'dotProd = ' + dotProd.toFixed(4) +  
+    //   ', angle = ' + angle.toFixed(4) + ', yawLeft: ' + yawLeft + ', crossProd length: ' + crossV.length().toFixed(4);
+    if (angle > 0.1) {  //ignore rotation when within small angle
+      let rotRad = rotationRate * deltaSec;
+      //NOTE: positive rotation does yaw LEFT
+      if (!yawLeft) rotRad *= -1;  //NOTE: positive rotation does yaw LEFT
+      this.object.rotateOnAxis(this.upVector, rotRad);      
       if (this.originIndicator) this.originIndicator.rotateOnAxis(crossV, rotRad);
     }
   }
@@ -187,12 +202,24 @@ class T3DObject extends T3DPoint {
     //Input: rotationRate -- radians/sec
     //       deltaSec: milliseconds for this frame
     //results: none
-    let fpV = this.futurePos;
+    let fpV = this.velocity.clone();
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
   allLoaded() {
     return this.loaded;
   }  
+  animateArrows(deltaSec) {
+    //this is called from T3DPoint.animate()
+    if (this.arrows.length == 0) return;
+    if (!this.arrowsOffset) {
+      super.animateArrows(deltaSec);
+    } else { 
+      let position = this.arrowsOffset.combineWithObjectPosition(this);
+      for (var i = 0; i < this.arrows.length; i++) {
+        this.arrows[i].position.copy(position);      
+      }  
+    }  
+  }    
   animate(deltaSec)  {
     super.animate(deltaSec);
     this.setPosition(this.position); //ensure everything with changes made by T3DPoint

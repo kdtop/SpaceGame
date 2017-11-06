@@ -44,10 +44,15 @@ var sun = new TCelestialBody({
 });
     
 var aShip = new TShip({
-  mass:SHIP_MASS, 
+  mass: SHIP_MASS, 
   name: 'ship',
   modelFName: SHIP_MODEL_FNAME,
   initPosition: SHIP_INIT_POSITION,
+  //showArrow1: true,     //<--- debug, remove later
+  //showArrow2: true,     //<--- debug, remove later
+  //showArrow3: true,     //<--- debug, remove later
+  //arrowLength: 50,        //<--- debug, remove later
+  //arrowsOffset: new TOffset(0,15,0),  //<--- debug, remove later
   //excludeWingSmokePS: true,   //<--- debug, remove later
   //excludeEnginePS: true,      //<--- debug, remove later
 
@@ -75,9 +80,32 @@ var explosionManager = new TParticleSys({
   numTiles:              24,    
   cycleTime:             3,                                                      
   loop:                  false,
+  numPreloadedTextures:  5,
 });    
                                                                   
 //gameObjects.push(explosionManager);
+
+var animatedPortalManager = new TParticleSys({ 
+  name:                  'Animated_Portal_Manager',                                  
+  parent:                null,
+  emitRate:              0,
+  positionOffset:        new TOffset(0,0,0),
+  velocityOffset:        new TOffset(0,0,0),
+  decaySec:              99999,
+  initScale:             80,
+  posVariance:           0,
+  velocityVariance:      0,
+  decayVariance:         0,                                             
+  scaleVariance:         0,
+  animationTextureFName: TELEPORT_PORTAL_FNAME,
+  numTilesHoriz:         8,  
+  numTilesVert:          4,
+  numTiles:              24,    
+  cycleTime:             1,                                                      
+  loop:                  false,
+  numPreloadedTextures:  2,
+});    
+                                                                  
 
 
 var gameGrids = new TGrids({
@@ -131,7 +159,7 @@ var keyMapping = {
            'g' : { arr: bufferedUserEnvironmentActions,
                    msg: ENV_ACTION.toggleGravity,
                  },
-           'f' : { arr: bufferedUserGameActions,
+     'Control' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.launchRocket,
                    noRepeat: true,
                  },
@@ -140,6 +168,7 @@ var keyMapping = {
                  },
            'o' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.dropBomb,
+                   noRepeat: true,
                  },          
       'Escape' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.resetPosToInit,

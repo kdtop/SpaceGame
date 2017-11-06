@@ -28,6 +28,7 @@ function onWindowResize() {
 function wrapPosition(aObject, p) {   //p is Vector3
 //Input:  aObject -- a T3DObject
 //        p -- Vector3
+//Result: true if wrapped, false if not wrapped. 
   let wrapped = false;
   let max = GRID_SIZE/2;
   let originalP = p.clone();

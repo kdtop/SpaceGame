@@ -34,7 +34,9 @@ class TShip extends TVehicle {
     params.engineSoundFName = SHIP_SOUND_ENGINE;
     params.explodeSoundFName = SHIP_SOUND_EXPLODE;
     params.engineSoundMaxVolume = SHIP_SOUND_ENGINE_MAX_VOLUME,
-    params.explodeSoundMaxVolume = SHIP_SOUND_EXPLODE_MAX_VOLUME
+    params.explodeSoundVolume = SHIP_SOUND_EXPLODE_MAX_VOLUME
+    params.teleportSoundFName = TELEPORT_SOUND;
+    params.teleportSoundVolume = TELEPORT_SOUND_VOLUME;
     //------------------------
     super(params);
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
@@ -120,10 +122,23 @@ class TShip extends TVehicle {
     let aRocket = this.nextReadyRocket();
     if (aRocket) aRocket.launch();
   }  
+  handleWrapped(deltaSec, oldPosition) {
+    super.handleWrapped(deltaSec, oldPosition);
+    animatedPortalManager.emitByParams({
+      initPosition: oldPosition,
+      initVelocity: nullV.clone(),
+    });            
+    let aPosition = this.position.clone();            
+    animatedPortalManager.emitByParams({
+      initPosition: aPosition,
+      initVelocity: nullV.clone(),
+    });            
+  }  
+  
   dropBomb() {  //initially, this is just a debug function
     //let aPosition = new THREE.Vector3(150, 0, 0);  
     let aPosition = this.position.clone();            
-    explosionManager.emitByParams({
+    animatedPortalManager.emitByParams({
       initPosition: aPosition,
       initVelocity: nullV.clone(),
     });            
@@ -139,7 +154,7 @@ class TShip extends TVehicle {
       autoPointTowardsMotionDelay = 0;
       //Below makes ship jitter.  Fix later...
       //I think the RotateTowards function is wrong somehow...
-      //this.rotateTowardsVelocity (2*Pi, deltaSec);   //gradually orient towards direction of object's velocity
+      this.rotateTowardsVelocity (Pi, deltaSec);   //gradually orient towards direction of object's velocity
     }
   }  
   animateParticles(deltaSec) {  //animate particle system  
