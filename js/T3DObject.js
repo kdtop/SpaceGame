@@ -203,6 +203,7 @@ class T3DObject extends T3DPoint {
     //       deltaSec: milliseconds for this frame
     //results: none
     let fpV = this.velocity.clone();
+    if (fpV.length() < 0.1) return;
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
   allLoaded() {

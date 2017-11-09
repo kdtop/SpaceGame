@@ -144,8 +144,9 @@ class TShip extends TVehicle {
     });            
   }  
   stop() {  //a debug function
-    this.position.set(250,0,0);
+    //this.position.set(250,0,0);
     this.velocity.copy(nullV);
+    this.rotationVelocity.copy(nullV);
   }    
   animate(deltaSec) {
     super.animate(deltaSec);

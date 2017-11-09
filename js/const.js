@@ -1,13 +1,21 @@
 
 
-const Pi = 3.14159 ;
-//const CAMERA_SPRING_CONST = 40;  //units are N / voxel    <-- tweak number later
+const Pi = Math.PI ;
+
+const GRAV_CONST = 2e-2;  // N * meters^2 /mass^2  //<-- Real world is 6.67e-11
+const GRID_SIZE = 2000;  //- 2000 to + 2000 = 4000 true width
+const GRID_DIV_SIZE = 100;
+const GRID_DIVS = GRID_SIZE/GRID_DIV_SIZE;
+
+const CAMERA_DIST = GRID_SIZE*5;
+const CAMERA_FOV = 45;  //field of view, 45 degrees.  
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
 const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
 const CAMERA_INIT_POSITION = new THREE.Vector3(200,200,800);
 const CAMERA_RADIUS_MIN = 100;
 const CAMERA_RADIUS_MAX = 2500;
+const CAMERA_STEP_BACK_RADIUS_CHANGE_RATE = 500; //voxels/sec
                     
 const CAMERA_MODE_MIN = 10, CAMERA_MODE_MAX = 29;
 const CAMERA_MODE = {
@@ -57,10 +65,6 @@ const ENV_ACTION = {
   toggleGravity:      ENV_ACTION_MIN + 1,  
   togglePause:        ENV_ACTION_MIN + 2,
 }  
-
-const GRAV_CONST = 2e-2;  // N * meters^2 /mass^2  //<-- Real world is 6.67e-11
-const GRID_SIZE = 1600;  //- 2000 to + 2000 = 4000 true width
-const GRID_DIVS = 40;
 
 const GRID_COLOR = 0xffffff ;              //white          -- 16777215
 const GRID_COLOR_CENTRAL_LINE = 0xe6e6e6;  //gray           -- 15132390

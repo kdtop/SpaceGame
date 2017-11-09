@@ -1,6 +1,4 @@
 /*
-
-
 class TCamera extends T3DObject {
   constructor () {
   setMode(mode) {
@@ -22,21 +20,45 @@ class TCamera extends T3DObject {
     //  params.name
     //  params.initPosition
     //  params.trackedObject
+    //  params.initMode       --default is CAMERA_MODE.mouse
+    //  params.FOV            --default is CAMERA_FOV
+    //  params.showArrow1     -- default is false
+    //  params.showArrow2     -- default is false
+    //  params.arrowLength    -- default is 25
     //-----------------------
     super(params);
     this.trackedObject = params.trackedObject||null;  //will be a TVehicle
-    this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, GRID_SIZE*5 );
+    this.cameraDist = CAMERA_DIST;
+    this.viewportWidth = window.innerWidth;
+    this.viewportHeight = window.innerHeight;
+    this.aspectRatio = window.innerWidth / window.innerHeight;
+    this.vertFOV = params.FOV || CAMERA_FOV
+    this.horizFOV = this.calculateHorizFOV();
+    this.camera = new THREE.PerspectiveCamera(this.vertFOV, this.aspectRatio, 1, this.cameraDist);
     this.object = this.camera;
     this.setPosition(params.initPosition);
     this.targetLookAtPos = new THREE.Vector3();
     this.currentLookAtPos = new THREE.Vector3();
     this.orbit = {};
     this.orbit.xzAngle = Pi/4;
-    this.orbit.zyAngle = Pi/4;
+    this.orbit.zyAngle = Pi/16;
     this.orbit.xzAngleVelocity = 0.0; //0.1; //radians/sec
-    this.radius = 100;
-    this.setMode(CAMERA_MODE.orbit);
+    this.radius = GRID_SIZE/2 + 400;
+    this.stepBackRadius = 0;
+    this.setMode(params.initMode || CAMERA_MODE.mouse);
   }
+  calculateInUpLeft() {
+    super.calculateInUpLeft()
+    //For some reason, the inV for the camera seems to be in opposite direction.
+    //  Cameras set up differently??
+    this.inVector.multiplyScalar(-1); 
+  }  
+  calculateHorizFOV() {
+    let radVertFOV = this.vertFOV * Pi/180;
+    let horizFOV = 2 * Math.atan( Math.tan(radVertFOV/2) * this.aspectRatio);
+    horizFOV = horizFOV * 180/Pi;
+    return horizFOV;
+  }  
   setMode(mode) {
     this.mode = mode;
     if (mode == CAMERA_MODE.orbit) {
@@ -63,6 +85,103 @@ class TCamera extends T3DObject {
       this.setPosition(this.dirV);
     }
   }
+  checkAddStepBackRadius(deltaSec) {
+    //Note:(The following discussion doesn't apply to modes: Follow, Cockpit, highAbove)
+    //   The camera is positioned a distance away from the center, specified by 
+    //   this.radius.  Sometimes the tracked object (i.e. the ship) might pass
+    //   outside the field of view of the camera, causing the player to look sight
+    //   of the ship, and have to then scroll out temporarily.  This function will
+    //   cause this to happen automatically.  I will call this additional radius
+    //   needed to keep the ship in view the "stepBackRadius", and it will be 
+    //   added to the normal radius.
+    //   The rule to see if an object is visible to the camera is to determine
+    //   the angle between the "In" vector of the camera, and a vector towards
+    //   the tracked object.  If this is > 1/2 the camera's this.FOV, then the 
+    //   object is outside the field of view.
+    //Output: this function modifies this.stepBackRadius
+    if (!this.trackedObject) return;
+    /*
+    let anInV = this.vectorToLookAt();    
+    let toObjV = this.vectorToTrackedObj();
+    let angle = angleBetweenVectors(anInV, toObjV) ;
+    let degAngle = angle * 360 / (2 *Pi);
+        
+     globalDebugMessage = 'radian angle between: ' + angle.toFixed(3) + 
+        ', deg Angle = ' + degAngle.toFixed(1);
+    
+    let pctFOV = 2*degAngle/this.camera.fov;
+    if (pctFOV>0.99) {
+      if (pctFOV>1) pctFOV = 1;
+      //this.stepBackRadius += CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * pctFOV * deltaSec;
+    } else if ((pctFOV<0.85) && (this.stepBackRadius > 0)) {
+      this.stepBackRadius -= CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * deltaSec;
+      if (this.stepBackRadius < 0) this.stepBackRadius = 0;
+    }  
+    */
+    let trackedPos = this.trackedObject.position.clone();
+    let ndcPos = trackedPos.project(this.camera);  //maps world point to NCD coordinates
+    let x = Math.abs(ndcPos.x);
+    let y = Math.abs(ndcPos.y);
+    let max = Math.max(x,y);
+    if (max>0.95) {
+      this.stepBackRadius += CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * deltaSec;
+    } else if ((max<0.9) && (this.stepBackRadius > 0)) {
+      this.stepBackRadius -= CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * deltaSec;
+      if (this.stepBackRadius < 0) this.stepBackRadius = 0;
+    }  
+    
+  }  
+  vectorToLookAt() {
+    let anInV = this.currentLookAtPos.clone();
+    anInV.sub(this.position);
+    anInV.normalize();  //this is a vector pointing FROM cameraPos to currentLookAtPos
+    return anInV;    
+  }  
+  vectorToTrackedObj() {
+    let toObj = this.trackedObject.position.clone();
+    toObj.sub(this.position);
+    toObj.normalize();
+    return toObj;
+  }  
+  animateArrows(deltaSec) {
+    return;
+    
+    var arrow1,arrow2;
+
+    //NOTE: this.inV for the camera seems to be in Camera Space coordinates rather than world Coordinates, so won't use
+    //let anInV = this.currentLookAtPos.clone();
+    //anInV.sub(this.position);
+    //anInV.normalize();  //this is a vector pointing FROM cameraPos to currentLookAtPos
+    
+    let anInV = this.vectorToLookAt();    
+    let toObjV = this.vectorToTrackedObj();
+    let origin = this.position.clone();
+    
+    let originDelta = anInV.clone();
+    originDelta.multiplyScalar(1); //move out away from camera by # voxels
+    origin.add(originDelta);
+    
+    if (this.arrows.length > 0) {  //length here is array length, not actual arrow length
+      //I will use arrow1 to point in the IN directon
+      arrow1 = this.arrows[0];
+      arrow1.position.copy(origin);
+      arrow1.setDirection(anInV);
+    }  
+    if (this.arrows.length > 1) {  //length here is array length, not actual arrow length
+      //I will use arrow2 to point in direction of tracked object.  
+      if (this.trackedObject) {
+        arrow2 = this.arrows[1];
+        arrow2.position.copy(origin);
+        arrow2.setDirection(toObjV);
+      }         
+    }  
+    if (this.arrows.length > 1) {
+      let angle = angleBetweenVectors(anInV, toObjV) ;
+      let degAngle = angle * 360 / (2 *Pi);
+      globalDebugMessage = 'radian angle between: ' + angle.toFixed(3) + 
+        ', deg Angle = ' + degAngle.toFixed(1);
+    }
+  }  
   animateLookAtPos(deltaSec) {
     let deltaV = this.targetLookAtPos.clone();
     deltaV.sub(this.currentLookAtPos);
@@ -92,15 +211,18 @@ class TCamera extends T3DObject {
   }
   setToOrbitParameters(deltaSec) {
     let newPos = new THREE.Vector3();
-    newPos.x = Math.cos( this.orbit.xzAngle ) * this.radius;
-    newPos.z = Math.sin( this.orbit.xzAngle ) * this.radius;
-    newPos.y = Math.sin(this.orbit.zyAngle) * this.radius;
+    let netRadius = this.radius + this.stepBackRadius
+    newPos.x = Math.cos( this.orbit.xzAngle ) * netRadius;
+    newPos.z = Math.sin( this.orbit.xzAngle ) * netRadius;
+    newPos.y = Math.sin(this.orbit.zyAngle) * netRadius;
     this.setPosition(newPos);
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
     //globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
+    this.animateArrows(deltaSec);
   }  
   animateOrbit(deltaSec) {
+    this.checkAddStepBackRadius(deltaSec);
     this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
     this.orbit.zyAngle = Pi/16;
     this.setToOrbitParameters();
@@ -125,6 +247,7 @@ class TCamera extends T3DObject {
       this.orbit.zyAngle = wrapRadians(this.orbit.zyAngle);
       mouseDownPos.copy(mouse);
     }  
+    this.checkAddStepBackRadius(deltaSec) ;
     this.setToOrbitParameters();    
   }
   animateCockpit(deltaSec) {

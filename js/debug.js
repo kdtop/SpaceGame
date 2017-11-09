@@ -23,7 +23,15 @@ function debugAnimate(deltaSec) {
     //var distToCamera = 'Camera distance to attachemet = ' + distToAttach.toString();
     //debugInfo("info5", distToCamera);
     var mousePos = 'MousePos (' + mouse.x.toString() + ', ' + mouse.y.toString() + ')';
-    debugInfo("info1", mousePos);
+    debugInfo("info1", mousePos);        
     debugInfo("info2", globalDebugMessage);
+    
+    /*
+    let angle = angleBetweenVectors(debugArrow1.tmgDir, debugArrow2.tmgDir) ;    
+    let degAngle = angle * 360 / (2 *Pi);
+    let msg = 'radian angle between: ' + angle + ', deg Angle = ' + degAngle;
+    debugInfo("info3", msg);    
+    */
+
   }
 }

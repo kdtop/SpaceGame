@@ -5,18 +5,24 @@ var container, stats;
 var renderer;
 var pointLight;
 
+var gameObjects = []; //to be filled with T3DObjects or descendents during object constructors
+var scene = new THREE.Scene();
+var clock = new THREE.Clock(true);
+var skyBox = new TSkybox();
+
 var debugging = false;
 var debugCameraTargetGeometry = new THREE.SphereGeometry( 4, 5, 5 );
 var debugCameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
 var debugPositionMarker = new THREE.Mesh(debugCameraTargetGeometry, debugCameraTargetMaterial);
-
-var gameObjects = []; //to be filled with T3DObjects or descendents during object constructors
 
 var gameCamera = new TCamera({
   mass: CAMERA_MASS,
   name: 'camera',
   initPosition: CAMERA_INIT_POSITION,
   trackedObject: null,   //<--- will set below. 
+  //showArrow1: true,
+  //showArrow2: true,
+  //arrowLength: 100,
 });
 
 var gameSounds = new TSounds(); 
@@ -28,10 +34,6 @@ var loadedStatus = {
   skyBox :      false, 
   rocketSound : true   //<--- implement later.
 };
-
-var scene = new THREE.Scene();
-var clock = new THREE.Clock(true);
-var skyBox = new TSkybox();
 
 var sun = new TCelestialBody({                            
   mass: SUN_MASS, 

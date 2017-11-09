@@ -17,9 +17,21 @@ Contents:
 
 
 function onWindowResize() {
-  gameCamera.camera.aspect = window.innerWidth / window.innerHeight;
+  let oldHeight = gameCamera.viewportHeight;
+  let oldWidth = gameCamera.viewportWidth;
+  let newHeight = window.innerHeight;
+  let newWidth = window.innerWidth;
+  gameCamera.viewportHeight = newHeight;
+  gameCamera.viewportWidth = newWidth;
+  gameCamera.aspectRatio = newWidth / newHeight;
+  let oldRadFOV = gameCamera.vertFOV * Pi/180;
+  let newRadVertFOV = 2 * Math.atan( Math.tan(oldRadFOV/2) * newHeight/oldHeight);
+  gameCamera.vertFOV = newRadVertFOV * 180/Pi;
+  gameCamera.calculateHorizFOV();  
+  gameCamera.camera.aspect = gameCamera.aspectRatio;
   gameCamera.camera.updateProjectionMatrix();
   renderer.setSize( window.innerWidth, window.innerHeight );
+  
   windowHalfX = window.innerWidth / 2;
   windowHalfY = window.innerHeight / 2;
 } //onWindowResize()
@@ -136,4 +148,17 @@ function projectVectorOntoPlane(V, plane)  {
   } else if (plane == ORBIT_PLANE.yz) {
     V.x = 0;
   }    
+}  
+
+function angleBetweenVectors(v1, v2) {
+  //input: v1, v2 -- THREE.Vector3's
+  //v1 dot v2 = |v1| * |v2| * cos(angle)  
+  //  angle is angle between them (in radians)
+  let temp1=v1.clone();
+  let temp2=v2.clone();
+  temp1.normalize();
+  temp2.normalize();
+  let dotProd = temp1.dot(temp2);
+  let angle = Math.acos(dotProd);
+  return angle;  
 }  
