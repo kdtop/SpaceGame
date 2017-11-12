@@ -140,6 +140,7 @@ class TVehicle extends TModelObject {
       }  
     }
     if (this.enginePS) this.enginePS.throttle = value;
+    //globalDebugMessage = 'Throttle='+this.private_throttle.toString();
   }
   get throttle() {
     return this.private_throttle;
@@ -157,6 +158,7 @@ class TVehicle extends TModelObject {
   thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
   //Input: accel  -- SCALAR deltaV/sec
   //       deltaSec -- elapsed time for this frame
+    if (accel == 0) return;
     this.calculateInUpLeft ();
     let deltaV = this.inV.clone();
     deltaV.setLength(accel * deltaSec)
@@ -184,6 +186,16 @@ class TVehicle extends TModelObject {
     orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found via trial and error
     this.velocity.copy(orbitV);
   }
+  switchPlanes() {
+    let visibleGrids = gameGrids.getVisibleGrids();
+    for (var i=0; i < visibleGrids.length; i++) {
+      let aPlane = visibleGrids[i];
+      if (aPlane == this.plane) continue;
+      this.switchToPlane(aPlane);
+      gameCamera.handlePlaneChange(this);
+      break;
+    }  
+  }  
   getGravityAccelV(aBody, deltaSec) {
     //Input -- aBody -- TCelestialBody
     //         deltaSec -- elapsed time for this frame
@@ -206,6 +218,8 @@ class TVehicle extends TModelObject {
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
+    //globalDebugMessage = 'velocity = ' + vector3ToString(this.velocity) + ', ' +
+    //  'deltaV = ' + vector3ToString(deltaV);
   }
   handleWrapped(deltaSec, oldPosition) {
     if (this.teleportSound) this.teleportSound.play();
@@ -322,6 +336,18 @@ class TVehicle extends TModelObject {
         case VEHICLE_ACTION.resetPosToInit:
           this.resetPositionToInit();
           break
+        case VEHICLE_ACTION.switchPlane:
+          this.switchPlanes();
+          break
+        case VEHICLE_ACTION.rotateX:   //for debugging
+          this.rotateOnObjectAxis(plusXV, SHIP_ROTATION_RATE, deltaSec);
+          break
+        case VEHICLE_ACTION.rotateY:   //for debugging
+          this.rotateOnObjectAxis(plusYV, SHIP_ROTATION_RATE, deltaSec);
+          break
+        case VEHICLE_ACTION.rotateZ:   //for debugging
+          this.rotateOnObjectAxis(plusZV, SHIP_ROTATION_RATE, deltaSec);
+          break                    
       } //switch
     } //while  
   }    

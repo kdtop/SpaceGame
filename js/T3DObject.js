@@ -121,6 +121,7 @@ class T3DObject extends T3DPoint {
     this.upVector = new THREE.Vector3();  //up is Y axis, initially
     this.leftVector = new THREE.Vector3();//left is X axis for loaded object, initially
     this.object.matrix.extractBasis (this.leftVector, this.upVector, this.inVector)
+    //this.inVector.copy(
     //Ensure that the object is aligned with it's specified orbit plane
     if (this.plane == ORBIT_PLANE.xy) {
       this.inVector.z = 0;                           //In
@@ -136,26 +137,30 @@ class T3DObject extends T3DPoint {
       this.upVector.y = 0;  this.upVector.z = 0;     //Up            
     }
   }
-  yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
-    this.calculateInUpLeft ();
-    this.object.rotateOnAxis(this.upV, deltaAngle * deltaSec);
-    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.upV, deltaAngle * deltaSec);
+  rotateOnObjectAxisRadians(axis, radians) {
+    this.object.rotateOnAxis(axis, radians);
+    if (this.originIndicator) this.originIndicator.rotateOnAxis(axis, radians);
+  }  
+  rotateOnObjectAxis(axis, deltaAngle, deltaSec) {
+    this.rotateOnObjectAxisRadians(axis, deltaAngle * deltaSec);
   }
+  yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
+  //Input: deltaAngle -- radians/sec.  Amount to change/sec
+  //       deltaSec -- amount that has elapsed for this animation frame  
+    this.rotateOnObjectAxis(plusYV, deltaAngle, deltaSec);
+  }
+  yawRadians(radians) {
+    this.rotateOnObjectAxisRadians(plusYV, radians);
+  }  
   pitch(deltaAngle, deltaSec)  {  //pitch is like a ship nosing up or nosing down.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
-  //results: none
-    this.calculateInUpLeft ();
-    this.object.rotateOnAxis(this.leftV, deltaAngle * deltaSec);
-    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.leftV, deltaAngle * deltaSec);
+    this.rotateOnObjectAxis(plusXV, deltaAngle, deltaSec);
   }
   roll(deltaAngle, deltaSec)  {  //roll is like a barrel roll in an airplane.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
-  //results: none
-    this.calculateInUpLeft ();
-    this.object.rotateOnAxis(this.inV, deltaAngle * deltaSec);
-    if (this.originIndicator) this.originIndicator.rotateOnAxis(this.inV, deltaAngle * deltaSec);
+    this.rotateOnObjectAxis(plusZV, deltaAngle, deltaSec);
   }
   setPosition(P) {  //unify moving of this.position into one function
     this.position.copy(P)          
@@ -188,17 +193,13 @@ class T3DObject extends T3DPoint {
     let yawLeft = (dotProdToUp > 0);
     let dotProd = this.laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
     let angle = Math.acos(dotProd);
-    //globalDebugMessage = 'dotProd = ' + dotProd.toFixed(4) +  
-    //   ', angle = ' + angle.toFixed(4) + ', yawLeft: ' + yawLeft + ', crossProd length: ' + crossV.length().toFixed(4);
     if (angle > 0.1) {  //ignore rotation when within small angle
       let rotRad = rotationRate * deltaSec;
-      //NOTE: positive rotation does yaw LEFT
       if (!yawLeft) rotRad *= -1;  //NOTE: positive rotation does yaw LEFT
-      this.object.rotateOnAxis(this.upVector, rotRad);      
-      if (this.originIndicator) this.originIndicator.rotateOnAxis(crossV, rotRad);
+      this.yawRadians(rotRad);      
     }
   }
-  rotateTowardsVelocity (rotationRate, deltaSec)  {  //gradually orient towards direction of object's velocity
+  rotateTowardsVelocity(rotationRate, deltaSec)  {  //gradually orient towards direction of object's velocity
     //Input: rotationRate -- radians/sec
     //       deltaSec: milliseconds for this frame
     //results: none
@@ -206,6 +207,51 @@ class T3DObject extends T3DPoint {
     if (fpV.length() < 0.1) return;
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
+  switchToPlane(targetPlane) {
+    //Input: aPlane: type ORBIT_PLANE    
+    //This assumes that a check has been done and it is appropriate to change planes
+    //This rotates the object to parallel the new plane, and maps velocity into new plane.
+    let rot = this.object.rotation.clone();
+    let yaw=rot.y;
+    this.object.rotation.set(0,0,0); //this puts nose of ship in +Z direction, flat on xz plane
+    switch(targetPlane) {
+      case ORBIT_PLANE.xz:
+        if (this.plane == ORBIT_PLANE.xy) {        //change y --> z
+          this.velocity.z = this.velocity.y; this.velocity.y = 0;
+          this.position.z = this.position.y; this.position.y = 0;
+          //object already on xz plane, so no rotation needed. 
+        } else if (this.plane == ORBIT_PLANE.yz) { //change y --> x
+          this.velocity.x = this.velocity.y; this.velocity.y = 0;          
+          this.position.x = this.position.y; this.position.y = 0;          
+          //object already on xz plane, so no rotation needed. 
+        }  
+        break;
+      case ORBIT_PLANE.xy:
+        this.object.rotation.x = -Pi/2; //change nose to +z into nose to +y
+        this.object.rotation.z = Pi;    //roll onto belly
+        if (this.plane == ORBIT_PLANE.xz) {        //change z --> y
+          this.velocity.y = this.velocity.z; this.velocity.z = 0;
+          this.position.y = this.position.z; this.position.z = 0;
+        } else if (this.plane == ORBIT_PLANE.yz) { //change z --> x
+          this.velocity.x = this.velocity.z; this.velocity.z = 0;
+          this.position.x = this.position.z; this.position.z = 0;
+        }  
+        break;
+      case ORBIT_PLANE.yz:
+        this.object.rotation.z = -Pi/2; //keep nose to +z, but barrel-roll onto side
+        if (this.plane == ORBIT_PLANE.xz) {        //change x--> y
+          this.velocity.y = this.velocity.x; this.velocity.x = 0;
+          this.position.y = this.position.x; this.position.x = 0;
+        } else if (this.plane == ORBIT_PLANE.xy) { //change x --> z
+          this.velocity.z = this.velocity.x; this.velocity.x = 0;
+          this.position.z = this.position.x; this.position.x = 0;
+        }  
+        break;
+    } //switch
+    this.yawRadians(yaw);
+    this.plane = targetPlane;
+  }  
+  
   allLoaded() {
     return this.loaded;
   }  
@@ -293,6 +339,8 @@ class T3DObject extends T3DPoint {
   }      
   resetPositionToInit() {
     super.resetPositionToInit();
+    this.object.rotation.set(0,0,0);
+    this.plane = ORBIT_PLANE.xz;
     if (!this.visible) this.unhide();
   }
   

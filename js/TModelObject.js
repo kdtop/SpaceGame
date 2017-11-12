@@ -41,7 +41,6 @@ class TModelObject extends T3DObject {
     //set position of model relative to current object position
     this.object.position.copy(this.objectOffset.combineWithObjectPosition(this));
   }          
-  
   onOBJTransvserseCallback(child) {
     if (child instanceof THREE.Mesh) {
       child.material.map = this.texture;

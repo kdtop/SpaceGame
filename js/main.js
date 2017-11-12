@@ -31,7 +31,7 @@
       for (var i=0; i < shipsArray.length; i++) {
         shipsArray[i].handleAction(getKeyVehicleAction(i), deltaSec);
       }
-      gameCamera.handleAction(getKeyCameraAction());
+      gameCamera.handleAction(getKeyCameraAction(), deltaSec);
       animateObjects(deltaSec);
       gameGrids.animate(deltaSec, shipsArray);
       debugAnimate(deltaSec);

@@ -2,6 +2,7 @@
 class TCamera extends T3DObject {
   constructor () {
   setMode(mode) {
+  calculateHorizFOV() {
   animateFollow(deltaSec) {
   animateOrbit(deltaSec) {
   animateHighAbove(deltaSec) {
@@ -32,8 +33,8 @@ class TCamera extends T3DObject {
     this.viewportWidth = window.innerWidth;
     this.viewportHeight = window.innerHeight;
     this.aspectRatio = window.innerWidth / window.innerHeight;
-    this.vertFOV = params.FOV || CAMERA_FOV
-    this.horizFOV = this.calculateHorizFOV();
+    this.vertFOV = params.FOV || CAMERA_FOV;  //units are degrees
+    this.horizFOV = this.calculateHorizFOV(); //units are degrees
     this.camera = new THREE.PerspectiveCamera(this.vertFOV, this.aspectRatio, 1, this.cameraDist);
     this.object = this.camera;
     this.setPosition(params.initPosition);
@@ -94,20 +95,16 @@ class TCamera extends T3DObject {
     //   cause this to happen automatically.  I will call this additional radius
     //   needed to keep the ship in view the "stepBackRadius", and it will be 
     //   added to the normal radius.
-    //   The rule to see if an object is visible to the camera is to determine
-    //   the angle between the "In" vector of the camera, and a vector towards
-    //   the tracked object.  If this is > 1/2 the camera's this.FOV, then the 
-    //   object is outside the field of view.
     //Output: this function modifies this.stepBackRadius
     if (!this.trackedObject) return;
     /*
     let anInV = this.vectorToLookAt();    
     let toObjV = this.vectorToTrackedObj();
-    let angle = angleBetweenVectors(anInV, toObjV) ;
-    let degAngle = angle * 360 / (2 *Pi);
+    let radAngle = angleBetweenVectors(anInV, toObjV) ;
+    let degAngle = radAngle * 360 / (2 *Pi);
         
-     globalDebugMessage = 'radian angle between: ' + angle.toFixed(3) + 
-        ', deg Angle = ' + degAngle.toFixed(1);
+    globalDebugMessage = 'radian angle between: ' + radAngle.toFixed(3) + 
+      ', deg Angle = ' + degAngle.toFixed(1);
     
     let pctFOV = 2*degAngle/this.camera.fov;
     if (pctFOV>0.99) {
@@ -119,7 +116,9 @@ class TCamera extends T3DObject {
     }  
     */
     let trackedPos = this.trackedObject.position.clone();
-    let ndcPos = trackedPos.project(this.camera);  //maps world point to NCD coordinates
+    //maps world point to NCD viewport coordinates
+    //See here: https://stackoverflow.com/questions/47184264/threejs-calculating-fov-for-perspective-camera-after-browser-window-resize
+    let ndcPos = trackedPos.project(this.camera);  
     let x = Math.abs(ndcPos.x);
     let y = Math.abs(ndcPos.y);
     let max = Math.max(x,y);
@@ -145,7 +144,7 @@ class TCamera extends T3DObject {
   }  
   animateArrows(deltaSec) {
     return;
-    
+    /*
     var arrow1,arrow2;
 
     //NOTE: this.inV for the camera seems to be in Camera Space coordinates rather than world Coordinates, so won't use
@@ -181,6 +180,7 @@ class TCamera extends T3DObject {
       globalDebugMessage = 'radian angle between: ' + angle.toFixed(3) + 
         ', deg Angle = ' + degAngle.toFixed(1);
     }
+    */
   }  
   animateLookAtPos(deltaSec) {
     let deltaV = this.targetLookAtPos.clone();
@@ -218,7 +218,6 @@ class TCamera extends T3DObject {
     this.setPosition(newPos);
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
-    //globalDebugMessage = 'gameCamera.radius = ' + this.radius.toString();
     this.animateArrows(deltaSec);
   }  
   animateOrbit(deltaSec) {
@@ -293,7 +292,26 @@ class TCamera extends T3DObject {
         case CAMERA_ACTION.orbitAngleZero:
           this.orbit.xzAngleVelocity = 0;          
           break
+        case CAMERA_ACTION.rotateX:   //for debugging
+          this.rotateOnObjectAxis(plusXV, SHIP_ROTATION_RATE, deltaSec);
+          //this.object.rotation.x += Pi/16;
+          break
+        case CAMERA_ACTION.rotateY:   //for debugging
+          this.rotateOnObjectAxis(plusYV, SHIP_ROTATION_RATE, deltaSec);
+          //this.object.rotation.y += Pi/16;
+          break
+        case CAMERA_ACTION.rotateZ:   //for debugging
+          this.rotateOnObjectAxis(plusZV, SHIP_ROTATION_RATE, deltaSec);
+          //this.object.rotation.z += Pi/16;
+          break                    
       } //switch
     } //while  
-  }      
+  }
+  handlePlaneChange(aVehicle) {
+    if (aVehicle != this.trackedObject) return;
+    //more here...
+    if (this.mode == CAMERA_MODE.highAbove) {
+      this.setMode(CAMERA_MODE.highAbove); //sets to new plane
+    }  
+  }  
 }

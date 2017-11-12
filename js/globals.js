@@ -108,8 +108,6 @@ var animatedPortalManager = new TParticleSys({
   numPreloadedTextures:  2,
 });    
                                                                   
-
-
 var gameGrids = new TGrids({
   size:                GRID_SIZE, 
   divs:                GRID_DIVS,
@@ -165,6 +163,10 @@ var keyMapping = {
                    msg: VEHICLE_ACTION.launchRocket,
                    noRepeat: true,
                  },
+           'j' : { arr: bufferedUserGameActions,
+                   msg: VEHICLE_ACTION.switchPlane,
+                   noRepeat: true,
+                 },
            'k' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.stop,
                  },
@@ -193,6 +195,17 @@ var keyMapping = {
            ']' : { msg: VEHICLE_ACTION.rollRight        },
            '[' : { msg: VEHICLE_ACTION.rollLeft         },
        'Enter' : { msg: VEHICLE_ACTION.orientToVelocity },
+       //below is for debugging...
+       //    'x' : { msg: VEHICLE_ACTION.rotateX          },
+       //    'y' : { msg: VEHICLE_ACTION.rotateY          },
+       //    'z' : { msg: VEHICLE_ACTION.rotateZ          },              
+       //below is for debugging...
+           'x' : { arr: bufferedUserCameraActions, 
+                   msg: CAMERA_ACTION.rotateX          },
+           'y' : { arr: bufferedUserCameraActions,
+                   msg: CAMERA_ACTION.rotateY          },
+           'z' : { arr: bufferedUserCameraActions,
+                   msg: CAMERA_ACTION.rotateZ          },              
   //---------------------------------------------------------
 };  
 

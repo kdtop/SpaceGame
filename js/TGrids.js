@@ -45,8 +45,8 @@ class TGrid extends T3DPoint {
     this.plane = aPlane;
     this.gridVisibilityDist = params.gridVisibilityDist || 100;
     this.glowVisibilityDist = params.glowVisibilityDist || 200;
-    this.private_gridVisibility = 0;
-    this.private_solidVisibility = 0;
+    this.private_gridVisibility = 0;  //range is 0.0 - 1.0
+    this.private_solidVisibility = 0; //range is 0.0 - 1.0
     this.plGeometry = new THREE.PlaneGeometry(this.size, this.size, this.divs, this.divs);
     this.plMaterial = new THREE.MeshBasicMaterial({
       color:       this.mainColor, 
@@ -164,6 +164,10 @@ class TGrid extends T3DPoint {
     }
     return result;    
   }  
+  isVisible() {
+    let result = (this.gridVisibility > 0);
+    return result;
+  }  
   animate(deltaSec, trackedObjects) {
     //Input: deltaSec == number of seconds of this frame
     //       trackedObjects == array of T3DObjects
@@ -231,6 +235,14 @@ class TGrids {
     this.trackedObjects = [];
     if (params.trackedObjects) this.trackedObjects = params.trackedObjects.slice();
   }
+  getVisibleGrids() {
+    //Results: returns an array filled with ORBIT_PLANE values
+    let result = [];
+    if ((this.xz) && (this.xz.isVisible())) result.push(ORBIT_PLANE.xz);
+    if ((this.xy) && (this.xy.isVisible())) result.push(ORBIT_PLANE.xy);
+    if ((this.yz) && (this.yz.isVisible())) result.push(ORBIT_PLANE.yz);
+    return result;    
+  }  
   animate(deltaSec) {
     if (this.xz) this.xz.animate(deltaSec, this.trackedObjects);
     if (this.xy) this.xy.animate(deltaSec, this.trackedObjects);

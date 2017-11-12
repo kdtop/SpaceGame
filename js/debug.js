@@ -22,8 +22,8 @@ function debugAnimate(deltaSec) {
     //debugInfo("info4", cameraSpeed);
     //var distToCamera = 'Camera distance to attachemet = ' + distToAttach.toString();
     //debugInfo("info5", distToCamera);
-    var mousePos = 'MousePos (' + mouse.x.toString() + ', ' + mouse.y.toString() + ')';
-    debugInfo("info1", mousePos);        
+    //var mousePos = 'MousePos (' + mouse.x.toString() + ', ' + mouse.y.toString() + ')';
+    //debugInfo("info1", mousePos);        
     debugInfo("info2", globalDebugMessage);
     
     /*

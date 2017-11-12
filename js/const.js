@@ -17,7 +17,7 @@ const CAMERA_RADIUS_MIN = 100;
 const CAMERA_RADIUS_MAX = 2500;
 const CAMERA_STEP_BACK_RADIUS_CHANGE_RATE = 500; //voxels/sec
                     
-const CAMERA_MODE_MIN = 10, CAMERA_MODE_MAX = 29;
+const CAMERA_MODE_MIN = 10
 const CAMERA_MODE = {
   unknown:    CAMERA_MODE_MIN + 0,
   orbit:      CAMERA_MODE_MIN + 1,
@@ -26,8 +26,9 @@ const CAMERA_MODE = {
   mouse:      CAMERA_MODE_MIN + 4,  
   cockpit:    CAMERA_MODE_MIN + 5,
 }  
+const CAMERA_MODE_MAX = CAMERA_MODE_MIN + 19;
              
-const CAMERA_ACTION_MIN = 30, CAMERA_ACTION_MAX = 49;
+const CAMERA_ACTION_MIN = CAMERA_MODE_MAX + 1;
 const CAMERA_ACTION = {
   none:               CAMERA_ACTION_MIN + 0,
   setModeUnknown:     CAMERA_ACTION_MIN + 1,       
@@ -39,9 +40,14 @@ const CAMERA_ACTION = {
   orbitAngleAdd:      CAMERA_ACTION_MIN + 7,
   orbitAngleSub:      CAMERA_ACTION_MIN + 8,
   orbitAngleZero:     CAMERA_ACTION_MIN + 9, 
+  
+  rotateX:            CAMERA_ACTION_MIN + 10,   //temp, debugging
+  rotateY:            CAMERA_ACTION_MIN + 11,   //temp, debugging
+  rotateZ:            CAMERA_ACTION_MIN + 12,   //temp, debugging
 }  
+const CAMERA_ACTION_MAX = CAMERA_ACTION_MIN + 29;
 
-const VEHICLE_ACTION_MIN = 50, VEHICLE_ACTION_MAX = 69;
+const VEHICLE_ACTION_MIN = CAMERA_ACTION_MAX+1
 const VEHICLE_ACTION = {
   none:             VEHICLE_ACTION_MIN + 0,
   yawRight:         VEHICLE_ACTION_MIN + 1,
@@ -57,14 +63,23 @@ const VEHICLE_ACTION = {
   stop:             VEHICLE_ACTION_MIN + 11,
   resetPosToInit:   VEHICLE_ACTION_MIN + 12,
   dropBomb:         VEHICLE_ACTION_MIN + 13,
+  switchPlane:      VEHICLE_ACTION_MIN + 14,
+  
+  rotateX:          VEHICLE_ACTION_MIN + 15,   //temp, debugging
+  rotateY:          VEHICLE_ACTION_MIN + 16,   //temp, debugging
+  rotateZ:          VEHICLE_ACTION_MIN + 17,   //temp, debugging
 }  
+const VEHICLE_ACTION_MAX = VEHICLE_ACTION_MIN + 29;
 
-const ENV_ACTION_MIN = 70, ENV_ACTION_MAX = 79; 
+
+const ENV_ACTION_MIN = VEHICLE_ACTION_MAX+1
 const ENV_ACTION = {
   none:               ENV_ACTION_MIN + 0,
   toggleGravity:      ENV_ACTION_MIN + 1,  
   togglePause:        ENV_ACTION_MIN + 2,
 }  
+const ENV_ACTION_MAX = ENV_ACTION_MIN + 19; 
+
 
 const GRID_COLOR = 0xffffff ;              //white          -- 16777215
 const GRID_COLOR_CENTRAL_LINE = 0xe6e6e6;  //gray           -- 15132390
