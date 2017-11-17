@@ -1,7 +1,7 @@
 
 //var debugArrow1, debugArrow2;
 var debugPos = 0;
-
+var stats = {};
 
 function init() {
   container = document.createElement( 'div' );
@@ -47,6 +47,9 @@ function init() {
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   container.appendChild( renderer.domElement );
+  
+  stats = new Stats();
+	container.appendChild( stats.dom );
 
   window.addEventListener('resize',     onWindowResize, false );
   window.addEventListener('keydown',    onKeyDown);

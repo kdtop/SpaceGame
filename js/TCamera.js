@@ -37,17 +37,29 @@ class TCamera extends T3DObject {
     this.horizFOV = this.calculateHorizFOV(); //units are degrees
     this.camera = new THREE.PerspectiveCamera(this.vertFOV, this.aspectRatio, 1, this.cameraDist);
     this.object = this.camera;
-    this.setPosition(params.initPosition);
+    this.targetPos = this.position.clone();
     this.targetLookAtPos = new THREE.Vector3();
     this.currentLookAtPos = new THREE.Vector3();
-    this.orbit = {};
-    this.orbit.xzAngle = Pi/4;
-    this.orbit.zyAngle = Pi/16;
-    this.orbit.xzAngleVelocity = 0.0; //0.1; //radians/sec
-    this.radius = GRID_SIZE/2 + 400;
-    this.stepBackRadius = 0;
+    this.initPosition = params.initPosition.clone();
+    this.initPlane = params.initPlane || ORBIT_PLANE.xz;
+    this.resetPositionToInit();
     this.setMode(params.initMode || CAMERA_MODE.mouse);
   }
+  resetPositionToInit() {
+    this.setPosition(this.initPosition);
+    this.targetPos.copy(nullV);
+    this.targetLookAtPos.copy(nullV);
+    this.currentLookAtPos.copy(nullV);
+    this.plane = this.initPlane;
+    this.targetInRotation = 0;
+    this.currentInRotation = 0;
+    this.orbit = {};
+    this.orbit.onPlaneAngle = Pi/4;
+    this.orbit.perpendicularToPlaneAngle = Pi/16;
+    this.orbit.onPlaneAngleVelocity = 0.0; //0.1; //radians/sec
+    this.radius = GRID_SIZE/2 + 400;
+    this.stepBackRadius = 0;
+  }  
   calculateInUpLeft() {
     super.calculateInUpLeft()
     //For some reason, the inV for the camera seems to be in opposite direction.
@@ -70,20 +82,21 @@ class TCamera extends T3DObject {
       this.velocity.set(0,0,0);
     } else if (mode == CAMERA_MODE.mouse) {
       this.animate = this.animateMouseControl;
-      this.orbit.xzAngleVelocity = 0;
+      this.orbit.onPlaneAngleVelocity = 0;
     } else if (mode == CAMERA_MODE.cockpit) {
       this.animate = this.animateCockpit;
     } else if (mode == CAMERA_MODE.highAbove) {
       this.animate = this.animateHighAbove;
-      switch (this.trackedObject.plane) {
+      switch (this.plane) {
         case ORBIT_PLANE.xy:  this.dirV = plusZV.clone();  break;
         case ORBIT_PLANE.xz:  this.dirV = plusYV.clone();  break;
         case ORBIT_PLANE.yz:  this.dirV = plusXV.clone();  break;
         default:        this.dirV = plusYV.clone();  break;
       }
-      this.radius = GRID_SIZE*1/4;
+      this.radius = GRID_SIZE*1/2;
       this.dirV.multiplyScalar(this.radius);
-      this.setPosition(this.dirV);
+      this.targetPos.copy(this.dirV);
+      //this.setPosition(this.dirV);
     }
   }
   checkAddStepBackRadius(deltaSec) {
@@ -97,24 +110,6 @@ class TCamera extends T3DObject {
     //   added to the normal radius.
     //Output: this function modifies this.stepBackRadius
     if (!this.trackedObject) return;
-    /*
-    let anInV = this.vectorToLookAt();    
-    let toObjV = this.vectorToTrackedObj();
-    let radAngle = angleBetweenVectors(anInV, toObjV) ;
-    let degAngle = radAngle * 360 / (2 *Pi);
-        
-    globalDebugMessage = 'radian angle between: ' + radAngle.toFixed(3) + 
-      ', deg Angle = ' + degAngle.toFixed(1);
-    
-    let pctFOV = 2*degAngle/this.camera.fov;
-    if (pctFOV>0.99) {
-      if (pctFOV>1) pctFOV = 1;
-      //this.stepBackRadius += CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * pctFOV * deltaSec;
-    } else if ((pctFOV<0.85) && (this.stepBackRadius > 0)) {
-      this.stepBackRadius -= CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * deltaSec;
-      if (this.stepBackRadius < 0) this.stepBackRadius = 0;
-    }  
-    */
     let trackedPos = this.trackedObject.position.clone();
     //maps world point to NCD viewport coordinates
     //See here: https://stackoverflow.com/questions/47184264/threejs-calculating-fov-for-perspective-camera-after-browser-window-resize
@@ -127,8 +122,7 @@ class TCamera extends T3DObject {
     } else if ((max<0.9) && (this.stepBackRadius > 0)) {
       this.stepBackRadius -= CAMERA_STEP_BACK_RADIUS_CHANGE_RATE * deltaSec;
       if (this.stepBackRadius < 0) this.stepBackRadius = 0;
-    }  
-    
+    }      
   }  
   vectorToLookAt() {
     let anInV = this.currentLookAtPos.clone();
@@ -191,10 +185,19 @@ class TCamera extends T3DObject {
       deltaV.setLength(frameLength);
     }
     this.currentLookAtPos.add(deltaV);
-    this.camera.lookAt(this.currentLookAtPos);
+    this.camera.lookAt(this.currentLookAtPos); //NOTE: this sets camera's In rotation to 0
+    
+    let deltaRadians = this.targetInRotation - this.currentInRotation;
+    if (Math.abs(deltaRadians/CAMERA_ROLL_RATE) < deltaSec) {
+      this.currentInRotation = this.targetInRotation;
+    } else {
+      let mult = (deltaRadians < 0) ? -1 : 1;
+      this.currentInRotation += CAMERA_ROLL_RATE * deltaSec * mult;
+    }      
+    this.rollRadians(this.currentInRotation);
   }
-  animateFollow(deltaSec) {
-    let attachDirV = this.trackedObject.cameraAttachement.clone();
+  animateMoveToTargetPos(deltaSec) {
+    let attachDirV = this.targetPos.clone();
     attachDirV.sub(this.position);
     let distToAttach = attachDirV.length();
     let maxDist = CAMERA_MAX_FOLLOW_VELOCITY * deltaSec; 
@@ -203,33 +206,51 @@ class TCamera extends T3DObject {
       attachDirV.setLength(maxDist);
       newPos.add(attachDirV);
     } else {
-      newPos.copy(this.trackedObject.cameraAttachement);
+      newPos.copy(this.targetPos);
     }  
     this.setPosition(newPos);
+  }  
+  animateFollow(deltaSec) {
+    this.targetPos = this.trackedObject.cameraAttachement.clone();
+    this.animateMoveToTargetPos(deltaSec)
     this.targetLookAtPos.copy(this.trackedObject.cockpitLookAt);
     this.animateLookAtPos(deltaSec);
   }
   setToOrbitParameters(deltaSec) {
     let newPos = new THREE.Vector3();
     let netRadius = this.radius + this.stepBackRadius
-    newPos.x = Math.cos( this.orbit.xzAngle ) * netRadius;
-    newPos.z = Math.sin( this.orbit.xzAngle ) * netRadius;
-    newPos.y = Math.sin(this.orbit.zyAngle) * netRadius;
-    this.setPosition(newPos);
+    let aX = Math.cos( this.orbit.onPlaneAngle ) * netRadius;
+    let aZ = Math.sin( this.orbit.onPlaneAngle ) * netRadius;
+    let aY = Math.sin(this.orbit.perpendicularToPlaneAngle) * netRadius;
+    switch(this.plane) {
+      case ORBIT_PLANE.xy:
+        newPos.set(aX, aZ, aY);  //switch Y <--> Z
+        break;
+      case ORBIT_PLANE.xz:
+        newPos.set(aX, aY, aZ);
+        break;
+      case ORBIT_PLANE.yz:
+        newPos.set(aY, aX, aZ); //switch Y <--> X
+        break;
+    } //switch    
+    this.targetPos.copy(newPos);
+    this.animateMoveToTargetPos(deltaSec)
     this.targetLookAtPos.copy(scene.position);
     this.animateLookAtPos(deltaSec);
     this.animateArrows(deltaSec);
   }  
   animateOrbit(deltaSec) {
     this.checkAddStepBackRadius(deltaSec);
-    this.orbit.xzAngle += this.orbit.xzAngleVelocity * deltaSec;
-    this.orbit.zyAngle = Pi/16;
+    this.orbit.onPlaneAngle += this.orbit.onPlaneAngleVelocity * deltaSec;
+    this.orbit.perpendicularToPlaneAngle = Pi/16;
     this.setToOrbitParameters();
   }
   animateHighAbove(deltaSec) {
     let dirV2 = this.dirV.clone();
     dirV2.setLength(this.radius);
-    this.setPosition(dirV2);
+    //this.setPosition(dirV2);
+    this.targetPos.copy(dirV2);
+    this.animateMoveToTargetPos(deltaSec)
     this.targetLookAtPos.copy(this.trackedObject.position);
     this.animateLookAtPos(deltaSec);
   }
@@ -238,16 +259,14 @@ class TCamera extends T3DObject {
     if (mouseDown) {
       let deltaMouse = mouse.clone();
       deltaMouse.sub(mouseDownPos)
-      //this.orbit.xzAngle += Pi * (deltaMouse.x / windowHalfX);
-      this.orbit.xzAngle += deltaMouse.x / 100;
-      this.orbit.xzAngle = wrapRadians(this.orbit.xzAngle);
-      //this.orbit.zyAngle += Pi/2 * (deltaMouse.y / windowHalfY);
-      this.orbit.zyAngle += deltaMouse.y / 100;
-      this.orbit.zyAngle = wrapRadians(this.orbit.zyAngle);
+      this.orbit.onPlaneAngle += deltaMouse.x / 100;
+      this.orbit.onPlaneAngle = wrapRadians(this.orbit.onPlaneAngle);
+      this.orbit.perpendicularToPlaneAngle += deltaMouse.y / 100;
+      this.orbit.perpendicularToPlaneAngle = wrapRadians(this.orbit.perpendicularToPlaneAngle);
       mouseDownPos.copy(mouse);
     }  
     this.checkAddStepBackRadius(deltaSec) ;
-    this.setToOrbitParameters();    
+    this.setToOrbitParameters(deltaSec);    
   }
   animateCockpit(deltaSec) {
     this.setPosition(this.trackedObject.cockpitPos);
@@ -284,13 +303,13 @@ class TCamera extends T3DObject {
           this.setMode(CAMERA_MODE.cockpit);
           break;
         case CAMERA_ACTION.orbitAngleAdd:
-          this.orbit.xzAngleVelocity += 0.1 * deltaSec;          
+          this.orbit.onPlaneAngleVelocity += 0.1 * deltaSec;          
           break;
         case CAMERA_ACTION.orbitAngleSub:
-          this.orbit.xzAngleVelocity -= 0.1 * deltaSec;
+          this.orbit.onPlaneAngleVelocity -= 0.1 * deltaSec;
           break
         case CAMERA_ACTION.orbitAngleZero:
-          this.orbit.xzAngleVelocity = 0;          
+          this.orbit.onPlaneAngleVelocity = 0;          
           break
         case CAMERA_ACTION.rotateX:   //for debugging
           this.rotateOnObjectAxis(plusXV, SHIP_ROTATION_RATE, deltaSec);
@@ -303,15 +322,34 @@ class TCamera extends T3DObject {
         case CAMERA_ACTION.rotateZ:   //for debugging
           this.rotateOnObjectAxis(plusZV, SHIP_ROTATION_RATE, deltaSec);
           //this.object.rotation.z += Pi/16;
-          break                    
+          break     
+        case CAMERA_ACTION.rollRight:  //for debugging
+          this.targetInRotation += Pi/16;
+          globalDebugMessage = 'target In Rotation = ' + this.targetInRotation.toFixed(3);
+          break     
+        case CAMERA_ACTION.rollLeft:  //for debugging
+          this.targetInRotation -= Pi/16;
+          globalDebugMessage = 'target In Rotation = ' + this.targetInRotation.toFixed(3);
+          break               
       } //switch
     } //while  
   }
   handlePlaneChange(aVehicle) {
     if (aVehicle != this.trackedObject) return;
-    //more here...
+    let newPlane = aVehicle.plane;
+    let oldPlane = this.plane;
+    let p = this.position.clone();
     if (this.mode == CAMERA_MODE.highAbove) {
+      this.plane = aVehicle.plane;
       this.setMode(CAMERA_MODE.highAbove); //sets to new plane
-    }  
+    } else if (this.mode == CAMERA_MODE.mouse) {
+      if (newPlane != oldPlane) switch(newPlane) {
+        case ORBIT_PLANE.xz:  this.targetInRotation = 0;               break;
+        case ORBIT_PLANE.xy:  this.targetInRotation = Pi/2 + Pi/16;    break;
+        case ORBIT_PLANE.yz:  this.targetInRotation = -(Pi/2 + Pi/16); break;
+      } //switch
+    } 
+    //more here...
+    this.plane = aVehicle.plane;
   }  
 }

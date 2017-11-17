@@ -192,7 +192,6 @@ class TVehicle extends TModelObject {
       let aPlane = visibleGrids[i];
       if (aPlane == this.plane) continue;
       this.switchToPlane(aPlane);
-      gameCamera.handlePlaneChange(this);
       break;
     }  
   }  
@@ -270,7 +269,9 @@ class TVehicle extends TModelObject {
     
   }  
   resetPositionToInit() {
-    super.resetPositionToInit()
+    super.resetPositionToInit();
+    gameCamera.resetPositionToInit();
+    this.switchToPlane(ORBIT_PLANE.xz);
     this.orbit(sun);  //<-- to do, make more generic...
   }
   hide() {

@@ -2,6 +2,41 @@
 
 const Pi = Math.PI ;
 
+//NOTE: y axis is pointing from grid plane up to sky, x & z are on the horizontal plane.
+//          +y *
+//             |  / -z
+//             | /
+//    -x ______|/______*  +x
+//             /
+//            /
+//           * +z
+
+const ORBIT_PLANE = {
+  unknown:  0,
+  xy:       1,
+  yx:       1,
+  xz:       2,
+  zx:       2,
+  yz:       3,  
+  zy:       3,  
+}
+
+const ORBIT_PLANE_NAME = {
+  1: 'xy',   //Index should match value in ORBIT_PLANE
+  2: 'xz',   //Index should match value in ORBIT_PLANE
+  3: 'yz',   //Index should match value in ORBIT_PLANE
+}  
+
+const plusXV = new THREE.Vector3(1,0,0);
+const plusYV = new THREE.Vector3(0,1,0);
+const plusZV = new THREE.Vector3(0,0,1);
+
+const axisIn = plusZV.clone();
+const axisUp = plusYV.clone();
+const axisLeft = plusXV.clone();
+
+const nullV  = new THREE.Vector3(0,0,0);
+
 const GRAV_CONST = 2e-2;  // N * meters^2 /mass^2  //<-- Real world is 6.67e-11
 const GRID_SIZE = 2000;  //- 2000 to + 2000 = 4000 true width
 const GRID_DIV_SIZE = 100;
@@ -11,15 +46,17 @@ const CAMERA_DIST = GRID_SIZE*5;
 const CAMERA_FOV = 45;  //field of view, 45 degrees.  
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
-const CAMERA_MAX_FOLLOW_VELOCITY = 800; //voxels/sec
+const CAMERA_MAX_FOLLOW_VELOCITY = 1500; //voxels/sec
 const CAMERA_INIT_POSITION = new THREE.Vector3(200,200,800);
+const CAMERA_INIT_PLANE = ORBIT_PLANE.xz;
 const CAMERA_RADIUS_MIN = 100;
 const CAMERA_RADIUS_MAX = 2500;
 const CAMERA_STEP_BACK_RADIUS_CHANGE_RATE = 500; //voxels/sec
-                    
-const CAMERA_MODE_MIN = 10
-const CAMERA_MODE = {
-  unknown:    CAMERA_MODE_MIN + 0,
+const CAMERA_ROLL_RATE = 2*Pi;  //radians/sec
+const CAMERA_MODE_MIN = 10;
+
+const CAMERA_MODE = {  
+  unknown:    CAMERA_MODE_MIN + 0,    //starts at 10
   orbit:      CAMERA_MODE_MIN + 1,
   follow:     CAMERA_MODE_MIN + 2,
   highAbove:  CAMERA_MODE_MIN + 3,
@@ -30,7 +67,7 @@ const CAMERA_MODE_MAX = CAMERA_MODE_MIN + 19;
              
 const CAMERA_ACTION_MIN = CAMERA_MODE_MAX + 1;
 const CAMERA_ACTION = {
-  none:               CAMERA_ACTION_MIN + 0,
+  none:               CAMERA_ACTION_MIN + 0,  //starts at 20
   setModeUnknown:     CAMERA_ACTION_MIN + 1,       
   setModeOrbit:       CAMERA_ACTION_MIN + 2,
   setModeFollow:      CAMERA_ACTION_MIN + 3,
@@ -41,15 +78,18 @@ const CAMERA_ACTION = {
   orbitAngleSub:      CAMERA_ACTION_MIN + 8,
   orbitAngleZero:     CAMERA_ACTION_MIN + 9, 
   
-  rotateX:            CAMERA_ACTION_MIN + 10,   //temp, debugging
-  rotateY:            CAMERA_ACTION_MIN + 11,   //temp, debugging
-  rotateZ:            CAMERA_ACTION_MIN + 12,   //temp, debugging
+  //rotateX:            CAMERA_ACTION_MIN + 10,   //temp, debugging
+  //rotateY:            CAMERA_ACTION_MIN + 11,   //temp, debugging
+  //rotateZ:            CAMERA_ACTION_MIN + 12,   //temp, debugging
+  
+  rollRight:          CAMERA_ACTION_MIN + 13,   //temp, debugging
+  rollLeft:           CAMERA_ACTION_MIN + 14,   //temp, debugging
 }  
 const CAMERA_ACTION_MAX = CAMERA_ACTION_MIN + 29;
 
 const VEHICLE_ACTION_MIN = CAMERA_ACTION_MAX+1
 const VEHICLE_ACTION = {
-  none:             VEHICLE_ACTION_MIN + 0,
+  none:             VEHICLE_ACTION_MIN + 0,   //starts at 50
   yawRight:         VEHICLE_ACTION_MIN + 1,
   yawLeft:          VEHICLE_ACTION_MIN + 2,
   pitchUp:          VEHICLE_ACTION_MIN + 3,
@@ -65,16 +105,16 @@ const VEHICLE_ACTION = {
   dropBomb:         VEHICLE_ACTION_MIN + 13,
   switchPlane:      VEHICLE_ACTION_MIN + 14,
   
-  rotateX:          VEHICLE_ACTION_MIN + 15,   //temp, debugging
-  rotateY:          VEHICLE_ACTION_MIN + 16,   //temp, debugging
-  rotateZ:          VEHICLE_ACTION_MIN + 17,   //temp, debugging
+  //rotateX:          VEHICLE_ACTION_MIN + 15,   //temp, debugging
+  //rotateY:          VEHICLE_ACTION_MIN + 16,   //temp, debugging
+  //rotateZ:          VEHICLE_ACTION_MIN + 17,   //temp, debugging
 }  
 const VEHICLE_ACTION_MAX = VEHICLE_ACTION_MIN + 29;
 
 
 const ENV_ACTION_MIN = VEHICLE_ACTION_MAX+1
 const ENV_ACTION = {
-  none:               ENV_ACTION_MIN + 0,
+  none:               ENV_ACTION_MIN + 0,    //starts at 70
   toggleGravity:      ENV_ACTION_MIN + 1,  
   togglePause:        ENV_ACTION_MIN + 2,
 }  
@@ -85,13 +125,16 @@ const GRID_COLOR = 0xffffff ;              //white          -- 16777215
 const GRID_COLOR_CENTRAL_LINE = 0xe6e6e6;  //gray           -- 15132390
 
 const GRID1_COLOR = 0xffff99 ;              //light yellow  -- 16777113
-const GRID1_COLOR_CENTRAL_LINE = 0xffff11;  //darker yellow -- 16776977
+//const GRID1_COLOR_CENTRAL_LINE = 0xffff11;  //darker yellow -- 16776977
+const GRID1_COLOR_CENTRAL_LINE = 0xffffff;  //white         -- 16777215
 
 const GRID2_COLOR = 0x3399ff ;              //light blue    -- 3381759
-const GRID2_COLOR_CENTRAL_LINE = 0x0080ff;  //darker blue   -- 33023
+//const GRID2_COLOR_CENTRAL_LINE = 0x0080ff;  //darker blue   -- 33023
+const GRID2_COLOR_CENTRAL_LINE = 0xffffff;  //white         -- 16777215
 
 const GRID3_COLOR = 0xff80ff ;              //light purple  -- 16744703
-const GRID3_COLOR_CENTRAL_LINE = 0xff1aff;  //darker purple  --16718591
+//const GRID3_COLOR_CENTRAL_LINE = 0xff1aff;  //darker purple  --16718591
+const GRID3_COLOR_CENTRAL_LINE = 0xffffff;  //white         -- 16777215
 
 const SUN_MASS = 2e30;  //2e30 = 2x10^30 kg
 const SUN_REAL_WORLD_SIZE = 700000;  //kilometers
@@ -166,38 +209,6 @@ const PARTICLES_MODE = {normal : 1, animated : 2};
 
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
-
-
-//NOTE: y axis is pointing from grid plane up to sky, x & z are on the horizontal plane.
-//          +y *
-//             |  / -z
-//             | /
-//    -x ______|/______*  +x
-//             /
-//            /
-//           * +z
-
-const ORBIT_PLANE = {
-  unknown:  0,
-  xy:       1,
-  yx:       1,
-  xz:       2,
-  zx:       2,
-  yz:       3,  
-  zy:       3,  
-}
-
-const ORBIT_PLANE_NAME = {
-  1: 'xy',   //Index should match value in ORBIT_PLANE
-  2: 'xz',   //Index should match value in ORBIT_PLANE
-  3: 'yz',   //Index should match value in ORBIT_PLANE
-}  
-
-const plusXV = new THREE.Vector3(1,0,0);
-const plusYV = new THREE.Vector3(0,1,0);
-const plusZV = new THREE.Vector3(0,0,1);
-
-const nullV  = new THREE.Vector3(0,0,0);
 
 const AUTO_POINT_DELAY = 1;  //2000 milliseconds
 

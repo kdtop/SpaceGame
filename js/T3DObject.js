@@ -147,21 +147,27 @@ class T3DObject extends T3DPoint {
   yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame  
-    this.rotateOnObjectAxis(plusYV, deltaAngle, deltaSec);
+    this.rotateOnObjectAxis(axisUp, deltaAngle, deltaSec);
   }
   yawRadians(radians) {
-    this.rotateOnObjectAxisRadians(plusYV, radians);
+    this.rotateOnObjectAxisRadians(axisUp, radians);
   }  
   pitch(deltaAngle, deltaSec)  {  //pitch is like a ship nosing up or nosing down.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
-    this.rotateOnObjectAxis(plusXV, deltaAngle, deltaSec);
+    this.rotateOnObjectAxis(axisLeft, deltaAngle, deltaSec);
   }
+  pitchRadians(radians) {
+    this.rotateOnObjectAxisRadians(axisLeft, radians);
+  }  
   roll(deltaAngle, deltaSec)  {  //roll is like a barrel roll in an airplane.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
-    this.rotateOnObjectAxis(plusZV, deltaAngle, deltaSec);
+    this.rotateOnObjectAxis(axisIn, deltaAngle, deltaSec);
   }
+  rollRadians(radians) {
+    this.rotateOnObjectAxisRadians(axisIn, radians);
+  }  
   setPosition(P) {  //unify moving of this.position into one function
     this.position.copy(P)          
     this.object.position.copy(P);
@@ -230,7 +236,7 @@ class T3DObject extends T3DPoint {
         this.object.rotation.x = -Pi/2; //change nose to +z into nose to +y
         this.object.rotation.z = Pi;    //roll onto belly
         if (this.plane == ORBIT_PLANE.xz) {        //change z --> y
-          this.velocity.y = this.velocity.z; this.velocity.z = 0;
+          this.velocity.y = -this.velocity.z; this.velocity.z = 0;
           this.position.y = this.position.z; this.position.z = 0;
         } else if (this.plane == ORBIT_PLANE.yz) { //change z --> x
           this.velocity.x = this.velocity.z; this.velocity.z = 0;
@@ -250,6 +256,7 @@ class T3DObject extends T3DPoint {
     } //switch
     this.yawRadians(yaw);
     this.plane = targetPlane;
+    gameCamera.handlePlaneChange(this);
   }  
   
   allLoaded() {

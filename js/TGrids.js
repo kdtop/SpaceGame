@@ -196,19 +196,19 @@ class TGrid extends T3DPoint {
 class TGrids {
   constructor(params) {
     //Input:
-    //  params.size             -- default is GRID_SIZE
-    //  params.divs             -- default is GRID_DIVS    
-    //  params.centerLineColorXZ -- default is GRID1_COLOR_CENTRAL_LINE
-    //  params.mainColorXZ       -- default is GRID1_COLOR  
-    //  params.centerLineColorYZ -- default is GRID2_COLOR_CENTRAL_LINE
-    //  params.mainColorXZ       -- default is GRID2_COLOR 
-    //  params.centerLineColorXY -- default is GRID3_COLOR_CENTRAL_LINE 
-    //  params.mainColorXY       -- default is GRID3_COLOR                               
-    //  params.position         -- default is (0,0,0)
-    //  params.excludeXZ        -- default is false
-    //  params.excludeXY        -- default is false
-    //  params.excludeYZ        -- default is false
-    //  params.trackedObjects   -- array of tracked objects.  
+    //  params.size                 -- default is GRID_SIZE
+    //  params.divs                 -- default is GRID_DIVS    
+    //  params.centerLineColorXZ    -- default is GRID1_COLOR_CENTRAL_LINE
+    //  params.mainColorXZ          -- default is GRID1_COLOR  
+    //  params.centerLineColorYZ    -- default is GRID2_COLOR_CENTRAL_LINE
+    //  params.mainColorXZ          -- default is GRID2_COLOR 
+    //  params.centerLineColorXY    -- default is GRID3_COLOR_CENTRAL_LINE 
+    //  params.mainColorXY          -- default is GRID3_COLOR                               
+    //  params.position             -- default is (0,0,0)
+    //  params.excludeXZ            -- default is false
+    //  params.excludeXY            -- default is false
+    //  params.excludeYZ            -- default is false
+    //  params.trackedObjects       -- array of tracked objects.  
     //  params.gridVisibilityDist   -- default is 100;
     this.mainColorXZ = params.mainColorXZ || GRID1_COLOR;    
     this.centerLineColorXZ = params.centerLineColorXZ ||GRID1_COLOR_CENTRAL_LINE;

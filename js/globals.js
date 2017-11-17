@@ -18,7 +18,8 @@ var debugPositionMarker = new THREE.Mesh(debugCameraTargetGeometry, debugCameraT
 var gameCamera = new TCamera({
   mass: CAMERA_MASS,
   name: 'camera',
-  initPosition: CAMERA_INIT_POSITION,
+  initPosition: CAMERA_INIT_POSITION,          
+  initPlane: CAMERA_INIT_PLANE,
   trackedObject: null,   //<--- will set below. 
   //showArrow1: true,
   //showArrow2: true,
@@ -161,18 +162,18 @@ var keyMapping = {
                  },
      'Control' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.launchRocket,
-                   noRepeat: true,
+                   noRepeat: true, //<-- must have arr: specified when using noRepeat
                  },
            'j' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.switchPlane,
-                   noRepeat: true,
+                   noRepeat: true,  //<-- must have arr: specified when using noRepeat
                  },
            'k' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.stop,
                  },
            'o' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.dropBomb,
-                   noRepeat: true,
+                   noRepeat: true,  //<-- must have arr: specified when using noRepeat
                  },          
       'Escape' : { arr: bufferedUserGameActions,
                    msg: VEHICLE_ACTION.resetPosToInit,
@@ -185,7 +186,21 @@ var keyMapping = {
            '2' : { msg: CAMERA_ACTION.setModeFollow     },
            '3' : { msg: CAMERA_ACTION.setModeCockpit    },
            '4' : { msg: CAMERA_ACTION.setModeMouse      },
-           '5' : { msg: CAMERA_ACTION.setModeHighAbove  },            
+           '5' : { msg: CAMERA_ACTION.setModeHighAbove  },   
+           'q' : { arr: bufferedUserCameraActions,
+                   msg: CAMERA_ACTION.rollLeft,
+                   noRepeat: true, //<-- must have arr: specified when using noRepeat         
+                 },
+           'w' : { arr: bufferedUserCameraActions,
+                   msg: CAMERA_ACTION.rollRight,
+                   noRepeat: true, //<-- must have arr: specified when using noRepeat            
+                  },   
+           //'x' : { arr: bufferedUserCameraActions, 
+           //        msg: CAMERA_ACTION.rotateX          },
+           //'y' : { arr: bufferedUserCameraActions,
+           //        msg: CAMERA_ACTION.rotateY          },
+           //'z' : { arr: bufferedUserCameraActions,
+           //        msg: CAMERA_ACTION.rotateZ          },              
   //--------Keys for getKeyVehicleAction---------------------         
   'ArrowRight' : { msg: VEHICLE_ACTION.yawRight         },
    'ArrowLeft' : { msg: VEHICLE_ACTION.yawLeft          },
@@ -200,12 +215,6 @@ var keyMapping = {
        //    'y' : { msg: VEHICLE_ACTION.rotateY          },
        //    'z' : { msg: VEHICLE_ACTION.rotateZ          },              
        //below is for debugging...
-           'x' : { arr: bufferedUserCameraActions, 
-                   msg: CAMERA_ACTION.rotateX          },
-           'y' : { arr: bufferedUserCameraActions,
-                   msg: CAMERA_ACTION.rotateY          },
-           'z' : { arr: bufferedUserCameraActions,
-                   msg: CAMERA_ACTION.rotateZ          },              
   //---------------------------------------------------------
 };  
 

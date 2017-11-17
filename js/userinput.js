@@ -8,32 +8,24 @@ function eventToLocalXY(x, y) {
 
 
 function onDocumentMouseMove( event ) {
-  //mouse.x = event.clientX - windowHalfX;
-  //mouse.y = event.clientY - windowHalfY;  
   mouse.copy(eventToLocalXY(event.clientX, event.clientY));
 }
 
 function onDocumentTouchStart( event ) {
   if ( event.touches.length == 1 ) {
     event.preventDefault();
-    //mouse.x = event.touches[ 0 ].pageX - windowHalfX;
-    //mouse.y = event.touches[ 0 ].pageY - windowHalfY;
     mouse.copy(eventToLocalXY(event.touches[0].pageX, event.touches[0].pageY));
   }
 }
 function onDocumentTouchMove( event ) {
   if ( event.touches.length == 1 ) {
     event.preventDefault();
-    //mouse.x = event.touches[ 0 ].pageX - windowHalfX;
-    //mouse.y = event.touches[ 0 ].pageY - windowHalfY;
     mouse.copy(eventToLocalXY(event.touches[0].pageX, event.touches[0].pageY));
   }
 }
 
 function onMouseDown(event) {
   mouseDown = true;
-  //mouseDownPos.x = event.clientX - windowHalfX;
-  //mouseDownPos.y = event.clientY - windowHalfY;  
   mouseDownPos.copy(eventToLocalXY(event.clientX, event.clientY));
 }        
 
@@ -49,6 +41,7 @@ function onMouseWheel(event) {
 
 function onKeyDown(event) {
   keyDown[event.key] = true;
+  //globalDebugMessage = 'last Key Pressed was: ' + event.key;
   //keyDown[event.code] = true;
   //event.preventDefault();
 }
@@ -78,7 +71,6 @@ function getRemoteKeyShipAction(shipIndex) {
 
 function handleMappedKey(k, arr, aMinMsg, aMaxMsg) {  //assumes key is mapped
   if (keyMapping[k].arr) arr = keyMapping[k].arr;
-  //let arr = keyMapping[k].arr;
   let msg = keyMapping[k].msg;
   if ((aMinMsg)&&(msg < aMinMsg)) return;
   if ((aMaxMsg)&&(msg > aMaxMsg)) return;
@@ -87,12 +79,14 @@ function handleMappedKey(k, arr, aMinMsg, aMaxMsg) {  //assumes key is mapped
   if (fn) fn();
   if (keyMapping[k].noRepeat == true) {
     delete keyDown[k];
+    //globalDebugMessage = globalDebugMessage + '; removing: ' + k;
   }
 }  
 
 function checkHandleMappedKey(resultArray, aMinMsg, aMaxMsg) {  
-  for (var prop in keyMapping) {
-    if (!keyDown[prop]) continue;
+  //for (var prop in keyMapping) {
+  for (var prop in keyDown) {
+    //if (!keyDown[prop]) continue;
     if (!keyMapping[prop]) continue;
     handleMappedKey(prop, resultArray, aMinMsg, aMaxMsg);
   }    

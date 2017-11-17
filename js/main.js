@@ -37,7 +37,7 @@
       debugAnimate(deltaSec);
       explosionManager.animate(deltaSec);
       renderer.render( scene, gameCamera.camera );
-      //stats.update();
+      stats.update();
     }  
     if (!gamePaused) requestAnimationFrame(animate);
   }

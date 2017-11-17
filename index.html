@@ -12,7 +12,19 @@
          z-index: 100;
          display:block;
          color : white;
-         background-color: #000066;
+         background-color: rgba(0, 0, 102, 0.26);
+       }
+       #l-info {
+         position: absolute;
+         top: 50px;
+         left: 10px;
+         min-height: 100px;
+         min-width: 100px;
+         text-align: center;
+         z-index: 100;
+         display:block;
+         color : white;
+         background-color: rgba(0, 0, 102, 0.26);
        }
     </style>
   </head>
@@ -24,7 +36,11 @@
       <span id="info4"></span>
       <span id="info5"></span>
     </SPAN>
+    <div id="l-info">
+      something here
+    </div>
     <script src="js/three.js"></script>
+    <script src="js/stats.min.js"></script>    
     <script src="js/OBJLoader.js"></script>
     <script src="js/const.js"></script>
     <script src="js/util.js"></script>
