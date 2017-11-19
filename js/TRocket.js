@@ -20,7 +20,7 @@ class TRocket extends TVehicle {
     params.engineColors = RED_ORANGE_BROWN_SPRITE_COLORS;  
     params.maxVelocity = ROCKET_VELOCITY_MAX;    
     params.engineSoundFName = ROCKET_SOUND_ENGINE;
-    params.engineSoundMaxVolume = 0.30;
+    params.engineSoundMaxVolume = ROCKET_SOUND_MAX_VOLUME;
     params.explodeSoundFName = ROCKET_SOUND_EXPLODE;
     //------------------------
     super(params);
@@ -33,7 +33,7 @@ class TRocket extends TVehicle {
     this.launchSound = gameSounds.setupSound({
       filename: ROCKET_SOUND_LAUNCH,
       loop: false,
-      volume: 1,
+      volume: ROCKET_SOUND_LAUNCH_MAX_VOLUME,
     });     
     this.hide();
   }  

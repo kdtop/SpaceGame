@@ -89,6 +89,7 @@ class T3DObject extends T3DPoint {
   }
   get futurePos() {
   //Results:  return where vehicle position will be 1 second in future at current velocity
+    if (!this.object) return nullV;
     let p2 = this.object.position.clone();
     p2.add(this.velocity);  //will use velocity * 1 second
     return p2;
@@ -114,13 +115,13 @@ class T3DObject extends T3DPoint {
     //       leftV -- an OUT parameter. Returns Z axis vector (relative to Matrix)
     //NOTE: The in, up, and left are relative to loaded object. 
     //results: none
-      this.object.matrix.extractBasis (leftV, upV, inV);
+    if (this.object) this.object.matrix.extractBasis (leftV, upV, inV);
   }
   calculateInUpLeft () {
     this.inVector = new THREE.Vector3();  //in is Z axis for loaded object, initially
     this.upVector = new THREE.Vector3();  //up is Y axis, initially
     this.leftVector = new THREE.Vector3();//left is X axis for loaded object, initially
-    this.object.matrix.extractBasis (this.leftVector, this.upVector, this.inVector)
+    if (this.object) this.object.matrix.extractBasis (this.leftVector, this.upVector, this.inVector)
     //this.inVector.copy(
     //Ensure that the object is aligned with it's specified orbit plane
     if (this.plane == ORBIT_PLANE.xy) {
@@ -138,7 +139,7 @@ class T3DObject extends T3DPoint {
     }
   }
   rotateOnObjectAxisRadians(axis, radians) {
-    this.object.rotateOnAxis(axis, radians);
+    if (this.object) this.object.rotateOnAxis(axis, radians);
     if (this.originIndicator) this.originIndicator.rotateOnAxis(axis, radians);
   }  
   rotateOnObjectAxis(axis, deltaAngle, deltaSec) {
@@ -170,16 +171,16 @@ class T3DObject extends T3DPoint {
   }  
   setPosition(P) {  //unify moving of this.position into one function
     this.position.copy(P)          
-    this.object.position.copy(P);
+    if (this.object) this.object.position.copy(P);
     if (this.originIndicator) this.originIndicator.position.copy(P);  
     if ((this.object)&&(!this.object.tmgID)) this.object.tmgID = this.tmgID;
   }          
   lookAtVelocity () {  //orient in direction of velocity
-    this.object.lookAt(this.futurePos);
+    if (this.object) this.object.lookAt(this.futurePos);
     if (this.originIndicator) this.originIndicator.lookAt(this.futurePos);
   }
   lookAtTarget(P) {  //instantly look at target vector P
-    this.object.lookAt(P);
+    if (this.object) this.object.lookAt(P);
     if (this.originIndicator) this.originIndicator.lookAt(P);
   }        
   rotateTowardsV (targetV, rotationRate, deltaSec)  {  //orient towards direction of targetV
@@ -213,10 +214,11 @@ class T3DObject extends T3DPoint {
     if (fpV.length() < 0.1) return;
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
-  switchToPlane(targetPlane) {
+  switchToPlane(targetPlane, silent) {
     //Input: aPlane: type ORBIT_PLANE    
     //This assumes that a check has been done and it is appropriate to change planes
     //This rotates the object to parallel the new plane, and maps velocity into new plane.
+    if (!this.object) return;
     let rot = this.object.rotation.clone();
     let yaw=rot.y;
     this.object.rotation.set(0,0,0); //this puts nose of ship in +Z direction, flat on xz plane
@@ -256,7 +258,7 @@ class T3DObject extends T3DPoint {
     } //switch
     this.yawRadians(yaw);
     this.plane = targetPlane;
-    gameCamera.handlePlaneChange(this);
+    gameCamera.handlePlaneChange(this, silent);
   }  
   
   allLoaded() {
@@ -346,7 +348,7 @@ class T3DObject extends T3DPoint {
   }      
   resetPositionToInit() {
     super.resetPositionToInit();
-    this.object.rotation.set(0,0,0);
+    if (this.object) this.object.rotation.set(0,0,0);
     this.plane = ORBIT_PLANE.xz;
     if (!this.visible) this.unhide();
   }

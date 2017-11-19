@@ -44,6 +44,14 @@ class TCamera extends T3DObject {
     this.initPlane = params.initPlane || ORBIT_PLANE.xz;
     this.resetPositionToInit();
     this.setMode(params.initMode || CAMERA_MODE.mouse);
+  }  
+  setupSound() {
+    //This has to be done delayed, because camera is instantiated before gameSounds is.
+    this.planeChangeSound = gameSounds.setupSound({  //setup plane change sound
+      filename: CAMERA_PLANE_CHANGE_SOUND,
+      loop: false,
+      volume: CAMERA_PLANE_CHANGE_MAX_VOLUME,
+    });                
   }
   resetPositionToInit() {
     this.setPosition(this.initPosition);
@@ -185,7 +193,7 @@ class TCamera extends T3DObject {
       deltaV.setLength(frameLength);
     }
     this.currentLookAtPos.add(deltaV);
-    this.camera.lookAt(this.currentLookAtPos); //NOTE: this sets camera's In rotation to 0
+    this.camera.lookAtWithUp(this.currentLookAtPos, upVForPlane[this.plane]); //NOTE: this sets camera's In rotation to 0
     
     let deltaRadians = this.targetInRotation - this.currentInRotation;
     if (Math.abs(deltaRadians/CAMERA_ROLL_RATE) < deltaSec) {
@@ -223,16 +231,10 @@ class TCamera extends T3DObject {
     let aZ = Math.sin( this.orbit.onPlaneAngle ) * netRadius;
     let aY = Math.sin(this.orbit.perpendicularToPlaneAngle) * netRadius;
     switch(this.plane) {
-      case ORBIT_PLANE.xy:
-        newPos.set(aX, aZ, aY);  //switch Y <--> Z
-        break;
-      case ORBIT_PLANE.xz:
-        newPos.set(aX, aY, aZ);
-        break;
-      case ORBIT_PLANE.yz:
-        newPos.set(aY, aX, aZ); //switch Y <--> X
-        break;
-    } //switch    
+      case ORBIT_PLANE.xy: newPos.set(aX, aZ, aY); break;
+      case ORBIT_PLANE.xz: newPos.set(aX, aY, aZ); break;
+      case ORBIT_PLANE.yz: newPos.set(aY, aX, aZ); break;
+    } 
     this.targetPos.copy(newPos);
     this.animateMoveToTargetPos(deltaSec)
     this.targetLookAtPos.copy(scene.position);
@@ -334,7 +336,7 @@ class TCamera extends T3DObject {
       } //switch
     } //while  
   }
-  handlePlaneChange(aVehicle) {
+  handlePlaneChange(aVehicle, silent) {
     if (aVehicle != this.trackedObject) return;
     let newPlane = aVehicle.plane;
     let oldPlane = this.plane;
@@ -343,12 +345,41 @@ class TCamera extends T3DObject {
       this.plane = aVehicle.plane;
       this.setMode(CAMERA_MODE.highAbove); //sets to new plane
     } else if (this.mode == CAMERA_MODE.mouse) {
+      this.targetInRotation = 0;
       if (newPlane != oldPlane) switch(newPlane) {
-        case ORBIT_PLANE.xz:  this.targetInRotation = 0;               break;
-        case ORBIT_PLANE.xy:  this.targetInRotation = Pi/2 + Pi/16;    break;
-        case ORBIT_PLANE.yz:  this.targetInRotation = -(Pi/2 + Pi/16); break;
+        case ORBIT_PLANE.xz:  
+          switch(oldPlane) {
+            case ORBIT_PLANE.xy:     //plane xy --> xz
+              this.currentInRotation = Pi/2; 
+              break;
+            case ORBIT_PLANE.yz:     //plane yz --> xz
+              this.currentInRotation = -Pi/2; 
+              break;
+          } //switch 
+          break;
+        case ORBIT_PLANE.xy:  
+          switch(oldPlane) {
+            case ORBIT_PLANE.xz:     //plane xz --> xy
+              this.currentInRotation = -Pi/2; 
+              break;
+            case ORBIT_PLANE.yz:     //plane yz --> xy
+              this.currentInRotation = Pi/2; 
+              break;
+          } //switch 
+          break;
+        case ORBIT_PLANE.yz:  
+          switch(oldPlane) {
+            case ORBIT_PLANE.xy:     //plane xy --> yz
+              this.currentInRotation = -Pi/2; 
+              break;
+            case ORBIT_PLANE.xz:     //plane xz --> yz
+              this.currentInRotation = Pi/2; 
+              break;
+          } //switch 
+          break;
       } //switch
     } 
+    if (silent !== true) this.planeChangeSound.play();  // play the audio
     //more here...
     this.plane = aVehicle.plane;
   }  

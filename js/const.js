@@ -27,15 +27,22 @@ const ORBIT_PLANE_NAME = {
   3: 'yz',   //Index should match value in ORBIT_PLANE
 }  
 
+//const ROT_MATRIX_X = new Matrix4(); ROT_MATRIX_X.makeRotationX(Pi/2);
+//const ROT_MATRIX_Y = new Matrix4(); ROT_MATRIX_Y.makeRotationY(Pi/2);
+//const ROT_MATRIX_Z = new Matrix4(); ROT_MATRIX_Z.makeRotationZ(Pi/2);
+
+const nullV  = new THREE.Vector3(0,0,0);
 const plusXV = new THREE.Vector3(1,0,0);
 const plusYV = new THREE.Vector3(0,1,0);
 const plusZV = new THREE.Vector3(0,0,1);
 
+    //ORBIT_PLANE#     0      1       2       3
+ //ORBIT_PLANE_NAME   n/a     xy      xz      yz
+const upVForPlane = [nullV, plusZV, plusYV, plusXV];
+
 const axisIn = plusZV.clone();
 const axisUp = plusYV.clone();
 const axisLeft = plusXV.clone();
-
-const nullV  = new THREE.Vector3(0,0,0);
 
 const GRAV_CONST = 2e-2;  // N * meters^2 /mass^2  //<-- Real world is 6.67e-11
 const GRID_SIZE = 2000;  //- 2000 to + 2000 = 4000 true width
@@ -52,8 +59,10 @@ const CAMERA_INIT_PLANE = ORBIT_PLANE.xz;
 const CAMERA_RADIUS_MIN = 100;
 const CAMERA_RADIUS_MAX = 2500;
 const CAMERA_STEP_BACK_RADIUS_CHANGE_RATE = 500; //voxels/sec
-const CAMERA_ROLL_RATE = 2*Pi;  //radians/sec
+const CAMERA_ROLL_RATE = Pi/1.5;  //radians/sec
 const CAMERA_MODE_MIN = 10;
+const CAMERA_PLANE_CHANGE_SOUND = 'audio/effects/43047__noisecollector__teleport.mp3';
+const CAMERA_PLANE_CHANGE_MAX_VOLUME = 1.0;
 
 const CAMERA_MODE = {  
   unknown:    CAMERA_MODE_MIN + 0,    //starts at 10
@@ -177,10 +186,11 @@ const ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const ROCKET_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
 const ROCKET_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
 const ROCKET_SOUND_LAUNCH = 'audio/effects/250154__robinhood76__05433-stinger-rocket-deploy.mp3';
+const ROCKET_SOUND_LAUNCH_MAX_VOLUME = 0.3;
 const ROCKET_SOUND_ENGINE = 'audio/effects/158894__primeval-polypod__rocket-launch.mp3';
+const ROCKET_SOUND_MAX_VOLUME = 0.1;
 const ROCKET_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-1303947570.mp3';
 
-//const TELEPORT_SOUND = 'audio/effects/teleport.mp3';
 const TELEPORT_SOUND = 'audio/effects/150950__outroelison__teleport.mp3';
 const TELEPORT_SOUND_VOLUME = 0.3;
 const TELEPORT_PORTAL_FNAME = 'textures/portal_combined.png';

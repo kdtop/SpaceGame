@@ -271,7 +271,7 @@ class TVehicle extends TModelObject {
   resetPositionToInit() {
     super.resetPositionToInit();
     gameCamera.resetPositionToInit();
-    this.switchToPlane(ORBIT_PLANE.xz);
+    this.switchToPlane(ORBIT_PLANE.xz, true);
     this.orbit(sun);  //<-- to do, make more generic...
   }
   hide() {

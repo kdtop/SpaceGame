@@ -10442,6 +10442,30 @@
 
     }(),
 
+    lookAtWithUp: function () {  //kt added 11/18/17
+
+      // This method does not support objects with rotated and/or translated parent(s)
+
+      var m1 = new Matrix4();
+
+      return function lookAtWithUp( vector, upVector ) {
+
+        if ( this.isCamera ) {
+
+          m1.lookAt( this.position, vector, upVector );
+
+        } else {
+
+          m1.lookAt( vector, this.position, upVector );
+
+        }
+
+        this.quaternion.setFromRotationMatrix( m1 );
+
+      };
+
+    }(),
+
     lookAt: function () {
 
       // This method does not support objects with rotated and/or translated parent(s)
@@ -10449,6 +10473,10 @@
       var m1 = new Matrix4();
 
       return function lookAt( vector ) {
+        
+        this.lookAtWithUp( vector, this.up );  //kt mod 11/18/17
+        
+        /*  //kt mod
 
         if ( this.isCamera ) {
 
@@ -10461,11 +10489,12 @@
         }
 
         this.quaternion.setFromRotationMatrix( m1 );
+        */
 
       };
 
     }(),
-
+    
     add: function ( object ) {
 
       if ( arguments.length > 1 ) {

@@ -16,9 +16,10 @@ class T3DPoint {
     //  params.mass
     //  params.name
     //  params.initPosition
-    //  params.showArrow1             -- default is false
-    //  params.showArrow2             -- default is false
-    //  params.showArrow3             -- default is false
+    //  params.showArrows             -- default is false.  If true, this overrides the .showArrow# parameters
+    //  params.showArrow1             -- default is false, unless params.showArrows==true
+    //  params.showArrow2             -- default is false, unless params.showArrows==true
+    //  params.showArrow3             -- default is false, unless params.showArrows==true
     //  params.arrowLength            -- default is 25
     //-----------------------
     this.name = params.name||'default name';
@@ -32,6 +33,11 @@ class T3DPoint {
     this.velocity = new THREE.Vector3();         //vector of point's velocity
     this.tmgID = globalIDCounter++;
     this.arrows = [];
+    if (params.showArrows == true) {
+      params.showArrow1 = true;
+      params.showArrow2 = true;
+      params.showArrow3 = true;
+    }  
     this.showArrow1 = params.showArrow1;
     this.showArrow2 = params.showArrow2;
     this.showArrow3 = params.showArrow3;

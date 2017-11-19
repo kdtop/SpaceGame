@@ -101,7 +101,8 @@ function generateSpriteCanvas(colors) {
 }
 
 function vector3ToString(v) {  //v is Vector3
-  let s = '(' + v.x.toFixed(5) + ', ' + v.y.toFixed(5) + ', ' + v.z.toFixed(5) + ')';
+  let decPlaces = 2;
+  let s = '(' + v.x.toFixed(decPlaces) + ', ' + v.y.toFixed(decPlaces) + ', ' + v.z.toFixed(decPlaces) + ')';
   return s;
 }
 

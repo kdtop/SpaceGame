@@ -3,6 +3,13 @@
 function debugAnimate(deltaSec) {
 */
 
+//var debugPos1Marker = debugPositionMarker.clone();
+//scene.add(debugPos1Marker);
+//debugPos1Marker.position.set(200,200,200);
+
+//var debugPos2Marker = debugPositionMarker.clone();
+//scene.add(debugPos2Marker);
+//debugPos2Marker.position.set(100,100,100);
 
 function debugInfo(id, Msg) {
   let elem = document.getElementById(id);

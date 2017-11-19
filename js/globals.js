@@ -11,9 +11,9 @@ var clock = new THREE.Clock(true);
 var skyBox = new TSkybox();
 
 var debugging = false;
-var debugCameraTargetGeometry = new THREE.SphereGeometry( 4, 5, 5 );
-var debugCameraTargetMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-var debugPositionMarker = new THREE.Mesh(debugCameraTargetGeometry, debugCameraTargetMaterial);
+var debugSphereGeometry = new THREE.SphereGeometry( 4, 5, 5 );
+var debugMeshBasicMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+var debugPositionMarker = new THREE.Mesh(debugSphereGeometry, debugMeshBasicMaterial);
 
 var gameCamera = new TCamera({
   mass: CAMERA_MASS,
@@ -27,6 +27,7 @@ var gameCamera = new TCamera({
 });
 
 var gameSounds = new TSounds(); 
+gameCamera.setupSound();
 
 var loadedStatus = {
   allLoaded :   false,  //<-- will be set to true when all others loaded.   
