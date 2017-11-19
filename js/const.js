@@ -17,15 +17,15 @@ const ORBIT_PLANE = {
   yx:       1,
   xz:       2,
   zx:       2,
-  yz:       3,  
-  zy:       3,  
+  yz:       3,
+  zy:       3,
 }
 
 const ORBIT_PLANE_NAME = {
   1: 'xy',   //Index should match value in ORBIT_PLANE
   2: 'xz',   //Index should match value in ORBIT_PLANE
   3: 'yz',   //Index should match value in ORBIT_PLANE
-}  
+}
 
 //const ROT_MATRIX_X = new Matrix4(); ROT_MATRIX_X.makeRotationX(Pi/2);
 //const ROT_MATRIX_Y = new Matrix4(); ROT_MATRIX_Y.makeRotationY(Pi/2);
@@ -50,7 +50,7 @@ const GRID_DIV_SIZE = 100;
 const GRID_DIVS = GRID_SIZE/GRID_DIV_SIZE;
 
 const CAMERA_DIST = GRID_SIZE*5;
-const CAMERA_FOV = 45;  //field of view, 45 degrees.  
+const CAMERA_FOV = 45;  //field of view, 45 degrees.
 const CAMERA_MASS = 10;  //units are kg
 const CAMERA_MAX_PAN_VELOCITY = 2500; //voxels/sec
 const CAMERA_MAX_FOLLOW_VELOCITY = 1500; //voxels/sec
@@ -64,36 +64,36 @@ const CAMERA_MODE_MIN = 10;
 const CAMERA_PLANE_CHANGE_SOUND = 'audio/effects/43047__noisecollector__teleport.mp3';
 const CAMERA_PLANE_CHANGE_MAX_VOLUME = 1.0;
 
-const CAMERA_MODE = {  
+const CAMERA_MODE = {
   unknown:    CAMERA_MODE_MIN + 0,    //starts at 10
   orbit:      CAMERA_MODE_MIN + 1,
   follow:     CAMERA_MODE_MIN + 2,
   highAbove:  CAMERA_MODE_MIN + 3,
-  mouse:      CAMERA_MODE_MIN + 4,  
+  mouse:      CAMERA_MODE_MIN + 4,
   cockpit:    CAMERA_MODE_MIN + 5,
-}  
+}
 const CAMERA_MODE_MAX = CAMERA_MODE_MIN + 19;
-             
+
 const CAMERA_ACTION_MIN = CAMERA_MODE_MAX + 1;
 const CAMERA_ACTION = {
   none:               CAMERA_ACTION_MIN + 0,  //starts at 20
-  setModeUnknown:     CAMERA_ACTION_MIN + 1,       
+  setModeUnknown:     CAMERA_ACTION_MIN + 1,
   setModeOrbit:       CAMERA_ACTION_MIN + 2,
   setModeFollow:      CAMERA_ACTION_MIN + 3,
   setModeHighAbove:   CAMERA_ACTION_MIN + 4,
-  setModeMouse:       CAMERA_ACTION_MIN + 5,  
+  setModeMouse:       CAMERA_ACTION_MIN + 5,
   setModeCockpit:     CAMERA_ACTION_MIN + 6,
   orbitAngleAdd:      CAMERA_ACTION_MIN + 7,
   orbitAngleSub:      CAMERA_ACTION_MIN + 8,
-  orbitAngleZero:     CAMERA_ACTION_MIN + 9, 
-  
+  orbitAngleZero:     CAMERA_ACTION_MIN + 9,
+
   //rotateX:            CAMERA_ACTION_MIN + 10,   //temp, debugging
   //rotateY:            CAMERA_ACTION_MIN + 11,   //temp, debugging
   //rotateZ:            CAMERA_ACTION_MIN + 12,   //temp, debugging
-  
+
   rollRight:          CAMERA_ACTION_MIN + 13,   //temp, debugging
   rollLeft:           CAMERA_ACTION_MIN + 14,   //temp, debugging
-}  
+}
 const CAMERA_ACTION_MAX = CAMERA_ACTION_MIN + 29;
 
 const VEHICLE_ACTION_MIN = CAMERA_ACTION_MAX+1
@@ -115,21 +115,21 @@ const VEHICLE_ACTION = {
   switchPlane:      VEHICLE_ACTION_MIN + 14,
   fireGatlingGun:   VEHICLE_ACTION_MIN + 15,
   stopGatlingGun:   VEHICLE_ACTION_MIN + 16,
-  
+
   //rotateX:          VEHICLE_ACTION_MIN + 15,   //temp, debugging
   //rotateY:          VEHICLE_ACTION_MIN + 16,   //temp, debugging
   //rotateZ:          VEHICLE_ACTION_MIN + 17,   //temp, debugging
-}  
+}
 const VEHICLE_ACTION_MAX = VEHICLE_ACTION_MIN + 29;
 
 
 const ENV_ACTION_MIN = VEHICLE_ACTION_MAX+1
 const ENV_ACTION = {
   none:               ENV_ACTION_MIN + 0,    //starts at 70
-  toggleGravity:      ENV_ACTION_MIN + 1,  
+  toggleGravity:      ENV_ACTION_MIN + 1,
   togglePause:        ENV_ACTION_MIN + 2,
-}  
-const ENV_ACTION_MAX = ENV_ACTION_MIN + 19; 
+}
+const ENV_ACTION_MAX = ENV_ACTION_MIN + 19;
 
 
 const GRID_COLOR = 0xffffff ;              //white          -- 16777215
@@ -169,8 +169,9 @@ const SHIP_SHOW_POS_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
+const SHIP_COLLISION_BOX_SIZE = 10;  //(+/- 10 = 20 VOXELS/SIDE)
 const SHIP_NUM_ROCKETS = 4;
-const SHIP_WING_SPREAD = 50; //used to evenly space out rocket firing positions. 
+const SHIP_WING_SPREAD = 50; //used to evenly space out rocket firing positions.
 const SHIP_SOUND_ENGINE = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
 const SHIP_SOUND_ENGINE_MAX_VOLUME = 0.3;
 const SHIP_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-1303947570.mp3';
@@ -178,6 +179,8 @@ const SHIP_SOUND_EXPLODE_MAX_VOLUME = 0.5;
 const SHIP_SOUND_GATLING_LOOP = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-loop.mp3';
 const SHIP_SOUND_GATLING_END = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-ending.mp3';
 const SHIP_SOUND_GATLING_MAX_VOLUME = 1.0;
+//const BULLET_STRIKE_DIST = 20;
+//const BULLET_STRIKE_DIST_SQUARED = BULLET_STRIKE_DIST * BULLET_STRIKE_DIST;
 
 const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
@@ -186,6 +189,7 @@ const ROCKET_VELOCITY_MAX = 800;  //delta Voxels/sec
 const ROCKET_LIFESPAN = 5; // # seconds between launch and explosion
 const ROCKET_STRIKE_DIST = 20;
 const ROCKET_STRIKE_DIST_SQUARED = ROCKET_STRIKE_DIST * ROCKET_STRIKE_DIST;
+const ROCKET_STRIKE_DAMAGE = 50;
 const ROCKET_SHOW_POS_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const ROCKET_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const ROCKET_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
@@ -199,37 +203,36 @@ const ROCKET_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-13
 const TELEPORT_SOUND = 'audio/effects/150950__outroelison__teleport.mp3';
 const TELEPORT_SOUND_VOLUME = 0.3;
 const TELEPORT_PORTAL_FNAME = 'textures/portal_combined.png';
-                
+
 const RED_BLUE_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
   {pct : 0.2, color: 'rgba(255,   0,   0, 1)'},  //red at 20% radius
   {pct : 0.4, color: 'rgba(0  ,   0,  64, 1)'},  //dark blue 40% radius
-];  
+];
 
 const RED_ORANGE_BROWN_SPRITE_COLORS = [
   {pct : 0.0,  color: 'rgba(255, 255, 255, 1)'},   //white at center
   {pct : 0.05, color: 'rgba(255,   0,   0, 1)'},   //red at 5% radius
   {pct : 0.15, color: 'rgba(255, 153,   0, 1)'},   //orange at 15% radius
   {pct : 0.3,  color: 'rgba(153, 102,  51, 1)'},   //dark brown 30% radius
-  {pct : 0.4,  color: 'rgba(0  ,   0,  0, 1)'},    //black 40% radius];  
-];  
+  {pct : 0.4,  color: 'rgba(0  ,   0,  0, 1)'},    //black 40% radius];
+];
 
 const GRAY_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
   {pct : 0.2, color: 'rgba(128, 128, 128, 1)'},  //gray at 20% radius
-  {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black blue 40% radius
-];  
+  {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black 40% radius
+];
 
 const WHITE_RED_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
-  {pct : 0.2, color: 'rgba(255,   0, 128, 1)'},  //rose at 20% radius
-  {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black blue 40% radius
-];  
+  {pct : 0.3, color: 'rgba(255,   0,   0, 1)'},  //red at 30% radius
+  {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black  40% radius
+];
 
-const PARTICLES_MODE = {normal : 1, animated : 2};  
+const PARTICLES_MODE = {normal : 1, animated : 2};
 
 const worldConv = SUN_REAL_WORLD_SIZE / SUN_GAME_SIZE; //km/voxel
 const worldConvSquared = worldConv * worldConv;  //km^2 / voxel^2
 
 const AUTO_POINT_DELAY = 1;  //2000 milliseconds
-

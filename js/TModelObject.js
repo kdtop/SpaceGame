@@ -23,12 +23,14 @@ class TModelObject extends T3DObject {
     //  params.mass
     //  params.name
     //  params.initPosition
+    //  params.maxVelocity         -- Default = 500 deltaV/sec
     //  params.modelFName          -- required for model loading
     //  params.modelBaseRotationY  -- optional.  Default = 0  <-- removed
     //  params.autoAddToScene      -- optional.  Default = true;
     //  params.modelScale          -- optional,  Default = 1
     //  params.plane               -- optional.  Default ORBIT_PLANE.xz
     //  params.showPosMarker       -- optional.  Default is false
+    //  params.collisionBoxSize    -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
     super(params);
     this.normalScale = this.modelScaleV.clone();

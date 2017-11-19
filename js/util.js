@@ -142,12 +142,10 @@ function randomizeVector(V, variance) {
 function projectVectorOntoPlane(V, plane)  {
   //Input: V -- THREE.Vector3 -- modified by reference
   //       plane -- ORBIT_PLANE
-  if (plane == ORBIT_PLANE.xy) {
-    V.z = 0;
-  } else if (plane == ORBIT_PLANE.xz) {
-    V.y = 0;
-  } else if (plane == ORBIT_PLANE.yz) {
-    V.x = 0;
+  switch (plane) {
+    case ORBIT_PLANE.xy: V.z = 0; break;
+    case ORBIT_PLANE.xz: V.y = 0; break;
+    case ORBIT_PLANE.yz: V.x = 0; break;
   }    
 }  
 
@@ -162,4 +160,21 @@ function angleBetweenVectors(v1, v2) {
   let dotProd = temp1.dot(temp2);
   let angle = Math.acos(dotProd);
   return angle;  
+}  
+
+function clampNum(num, min, max) {  //clamp number to be between min and max
+  if (num < min) num = min
+  else if (num > max) num = max;
+  return num;
+}  
+
+function inVolume(p1, p2, maxDelta) {
+  //input: p1, p2: Vector3
+  //       maxDelta: number
+  let p = p1.clone();
+  p.sub(p2);
+  let result = ((p.x <= maxDelta) && 
+                (p.y <= maxDelta) &&
+                (p.z <= maxDelta));
+  return result;  
 }  

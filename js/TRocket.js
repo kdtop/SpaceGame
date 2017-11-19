@@ -65,13 +65,18 @@ class TRocket extends TVehicle {
     this.remainingLifeSpan -= deltaSec;
     let hitArray = [];  this.hitOtherObjects(hitArray);
     var shouldExplode = ((hitArray.length > 0)||(this.remainingLifeSpan < 0));
-    for (var i=0; i < hitArray.length; i++) hitArray[i].handleRocketStrike(this);
+    for (var i=0; i < hitArray.length; i++) {
+      hitArray[i].acceptDamage(ROCKET_STRIKE_DAMAGE, this);
+    }  
     if (shouldExplode) {
       this.explode();  
     }  
   } 
   hitOtherObjects(hitArray) {
-    this.otherObjetsInDistSq(hitArray, ROCKET_STRIKE_DIST_SQUARED);
+    //This is designed so that rocket can explode when in proxmity
+    //  to other object, rather than when it collides into the 
+    //  other objects collisionBox
+    this.otherObjectsInDistSq(hitArray, ROCKET_STRIKE_DIST_SQUARED);
   }
   resetPositionToInit() {
     super.resetPositionToInit(); //<-- this calls unnhide() 

@@ -8,7 +8,6 @@ class TVehicle extends TModelObject {
   thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
   explode() {  
   orbit(aBody) {
-  getGravityAccelV(aBody, deltaSec) {
   accelerate(deltaV) {
   animateParticles(deltaSec) {  //animate particle system
   animate(deltaSec) {
@@ -46,7 +45,8 @@ class TVehicle extends TModelObject {
     //  params.explodeSoundVolume          -- default = 1 (0.8 means max volume 80% normal)
     //  params.excludeEnginePS             -- default is false
     //  params.teleportSoundFName          -- default is none
-    //  params.teleportSoundVolume              -- default is 1
+    //  params.teleportSoundVolume         -- default is 1
+    //  params.collisionBoxSize            -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
     super(params);
     //--- private stuff -----
@@ -66,7 +66,6 @@ class TVehicle extends TModelObject {
     this.teleportSoundFName = params.teleportSoundFName || '';
     this.teleportSoundVolume = params.teleportSoundVolume || 1
     this.maxThrust = params.maxThrust||100;              //deltaV/sec
-    this.maxVelocity = params.maxVelocity||500;          //max delta voxels/sec
     let engineColors = params.engineColors||RED_BLUE_SPRITE_COLORS;    
     if (params.excludeEnginePS != true) {
     this.enginePS = new TParticleSys({ name: 'vehicle_engine_p_sys', parent: this, emitRate: 200,
@@ -195,31 +194,12 @@ class TVehicle extends TModelObject {
       break;
     }  
   }  
-  getGravityAccelV(aBody, deltaSec) {
-    //Input -- aBody -- TCelestialBody
-    //         deltaSec -- elapsed time for this frame
-    //result: an acceleration vector (a deltaVelocity vector) -- NOT deltaV/sec
-
-    // F = M*A
-    // M1 * A1 = F = GRAV_CONST * M1 * M2 / (dist^2)
-    // simplifies to:
-    //      A1 = GRAV_CONST * M2 / (dist^2)   <-- A1 is acceleration of Mass1
-    let distSquaredVoxel = this.position.distanceToSquared ( aBody.position );
-    let distSquared = distSquaredVoxel * worldConvSquared * 1000 * 1000;  //meters^2
-    let accel = (GRAV_CONST * sun.mass) / distSquared; //units is delta meters/sec^2
-    let deltaV = new THREE.Vector3(0,0,0);
-    let deltaVScale = accel *  deltaSec / 1000; //units are delta km/sec
-    deltaVScale = deltaVScale / worldConv; //units voxel/sec
-    deltaV.subVectors(aBody.position, this.position);  //get vector pointing at sun
-    deltaV.setLength(deltaVScale);  //units are delta voxels/sec
-    return deltaV;
-  }
+  /*
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
-    //globalDebugMessage = 'velocity = ' + vector3ToString(this.velocity) + ', ' +
-    //  'deltaV = ' + vector3ToString(deltaV);
   }
+  */
   handleWrapped(deltaSec, oldPosition) {
     if (this.teleportSound) this.teleportSound.play();
   }  
@@ -251,12 +231,14 @@ class TVehicle extends TModelObject {
     this.animateParticles(deltaSec);  //animate particle system
     //--NOTE: Below calculates velocity etc that will be used to set position during NEXT animation cycle
     this.thrust(this.maxThrust  * this.private_throttle/100, deltaSec);
+    /*
     if (!disableGravity) {
       //Later I can make a loop that cycles through all other objects
       //  and gets force from each -- i.e. could have 2 suns...
       let deltaV = this.getGravityAccelV(sun, deltaSec);
       this.accelerate(deltaV)
     }
+    */
     this.cameraAttachement = this.cameraAttachmentOffset.combineWithObjectPosition(this); //position for following camera attachement
     if (this.cameraAttachmentMarker) this.cameraAttachmentMarker.position.copy(this.cameraAttachement);
 

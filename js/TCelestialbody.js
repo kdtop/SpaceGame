@@ -14,6 +14,7 @@ class TCelestialBody extends T3DObject {
     super(params);
     this.realWorldSize = params.realSize||1;  // KM radius
     this.radius = params.gameSize||1;         //desired size in graphic world
+    this.radiusSquared = this.radius * this.radius;
     this.rotationVelocity.y = Pi/32;    //radians/sec
     let aTexture = new THREE.TextureLoader().load(params.textureFName);
     let aMaterial = new THREE.MeshBasicMaterial( { map: aTexture } );
@@ -52,7 +53,16 @@ class TCelestialBody extends T3DObject {
   explode() {  
     //override ancestor to keep planet from blowing up.          
     //this.hide();    
-  }     
+  } 
+  acceptDamage(damageValue, otherObj) {
+    //override ancestor to keep planet from blowing up.          
+    //ignore damage
+  }  
+  pointCollides(pt) {  //pt is Vector3
+    let p = this.position.clone(); p.sub(pt);
+    let result = (p.lengthSq() <= this.radiusSquared);
+    return result;
+  }  
   allLoaded() {
     let result = super.allLoaded();
     //more here if needed

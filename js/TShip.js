@@ -37,6 +37,7 @@ class TShip extends TVehicle {
     params.explodeSoundVolume = SHIP_SOUND_EXPLODE_MAX_VOLUME
     params.teleportSoundFName = TELEPORT_SOUND;
     params.teleportSoundVolume = TELEPORT_SOUND_VOLUME;
+    params.collisionBoxSize = SHIP_COLLISION_BOX_SIZE;    
     //------------------------
     super(params);
     this.cockpitOffset.set(25,10,0);           //location of cockpit relative to object
@@ -44,45 +45,51 @@ class TShip extends TVehicle {
     this.objectOffset.set(5, 0, 0);    //this is Offset displacing 3D model from game position.
     if (params.excludeWingSmokePS !== true) {
       this.wingSmokeLeftPS = new TParticleSys({ name: 'ship_L_smoke_p_sys',
+                                               particleNamePrefix: 'L-smoke',
+                                              parent: this,
+                                             emitRate: 10,
+                                            positionOffset: new TOffset(10,5,20),
+                                          velocityOffset: new TOffset(-40,0,0),
+                                         decaySec: 1,
+                                        initScale: 4,
+                                       posVariance: 0,
+                                      decayVariance: 10,
+                                     scaleVariance: 10,
+                                    velocityVariance: 10,
+                                  colors: GRAY_SPRITE_COLORS,
+                                 });
+      this.wingSmokeRightPS = new TParticleSys({ name: 'ship_R_smoke_p_sys',
+                                                particleNamePrefix: 'R-smoke',
                                                parent: this,
                                               emitRate: 10,
-                                             positionOffset: new TOffset(10,5,20),
-                                           velocityOffset: new TOffset(-40,0,0),
-                                          decaySec: 1,
-                                         initScale: 4,
-                                        posVariance: 0,
-                                       decayVariance: 10,
-                                      scaleVariance: 10,
-                                     velocityVariance: 10,
-                                   colors: GRAY_SPRITE_COLORS,
-                                  });
-      this.wingSmokeRightPS = new TParticleSys({ name: 'ship_R_smoke_p_sys',
-                                                parent: this,
-                                               emitRate: 10,
-                                              positionOffset: new TOffset(10,5,-20),
-                                             velocityOffset: new TOffset(-40,0,0),
-                                            decaySec: 1,
-                                           initScale: 4,
-                                          posVariance: 0,
-                                         decayVariance: 10,
-                                        scaleVariance: 10,
-                                       velocityVariance: 10,
-                                      colors: GRAY_SPRITE_COLORS,
-                                     });
+                                             positionOffset: new TOffset(10,5,-20),
+                                            velocityOffset: new TOffset(-40,0,0),
+                                           decaySec: 1,
+                                          initScale: 4,
+                                         posVariance: 0,
+                                        decayVariance: 10,
+                                       scaleVariance: 10,
+                                      velocityVariance: 10,
+                                     colors: GRAY_SPRITE_COLORS,
+                                    });
     }
     this.gatlingGunPS = new TParticleSys({ name: 'ship_gatling_gun_p_sys',
-                                          parent: this,
-                                         emitRate: 100,
-                                        positionOffset: new TOffset(50,0,0),
-                                       velocityOffset: new TOffset(1000,0,0),
-                                      decaySec: 1,
-                                     initScale: 4,
-                                    posVariance: 1,
-                                   decayVariance: 0,
-                                  scaleVariance: 0,
-                                 velocityVariance: 0,
-                                colors: WHITE_RED_SPRITE_COLORS,
-                               });
+                                          particleNamePrefix: 'bullet',
+                                         parent: this,
+                                        emitRate: 100,
+                                       positionOffset: new TOffset(50,0,0),
+                                      velocityOffset: new TOffset(1000,0,0),
+                                     decaySec: 1,
+                                    initScale: 4,
+                                   posVariance: 1,
+                                  decayVariance: 0,
+                                 scaleVariance: 0,
+                                velocityVariance: 0,
+                               colors: WHITE_RED_SPRITE_COLORS,
+                              isCollidedTestFn: (aParticleBullet) => { return this.bulletCollideTestFn(aParticleBullet)},
+                             onCollidedFn: (aParticleBullet, otherObj) => {this.handleBulletCollision(aParticleBullet, otherObj)},
+                            collisionTestFreq: 1, //100% of bullets will do collision detection
+                           });
     this.gatlingGunThrottle = 0;
     this.gatlingLoopSound = gameSounds.setupSound({  //setup gatling-loop sound
       filename: SHIP_SOUND_GATLING_LOOP,
@@ -120,13 +127,23 @@ class TShip extends TVehicle {
   }
   gatlingGunOn() {
     this.gatlingGunThrottle = 100;
-    this.gatlingLoopSound.play();
+    if (this.gatlingEndSound.isPlaying) this.gatlingEndSound.stop();
+    if (!this.gatlingLoopSound.isPlaying) this.gatlingLoopSound.play();
   }
   gatlingGunOff() {
     this.gatlingGunThrottle = 0;
-    this.gatlingLoopSound.stop();
-    this.gatlingEndSound.play();
+    if (this.gatlingLoopSound.isPlaying) this.gatlingLoopSound.stop();
+    if (!this.gatlingEndSound.isPlaying) this.gatlingEndSound.play();
   }
+  bulletCollideTestFn(aParticleBullet) {
+    let otherObj = aParticleBullet.otherObjectCollided();
+    if (otherObj == this) otherObj = null;
+    return otherObj;
+  }  
+  handleBulletCollision(aParticleBullet, otherObj) {
+    if (otherObj == this) return;
+    otherObj.acceptDamage(10, aParticleBullet);
+  }  
   rocketsLoaded() {
     let result = true;
     for (var i=0; i < SHIP_NUM_ROCKETS; i++) {

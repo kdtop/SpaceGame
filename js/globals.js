@@ -87,7 +87,7 @@ var explosionManager = new TParticleSys({
   numPreloadedTextures:  5,
 });    
                                                                   
-//gameObjects.push(explosionManager);
+//gameObjects.push(explosionManager);  //<-- this is a reminder not to do this
 
 var animatedPortalManager = new TParticleSys({ 
   name:                  'Animated_Portal_Manager',                                  

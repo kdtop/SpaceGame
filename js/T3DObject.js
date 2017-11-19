@@ -5,34 +5,34 @@
 class T3DObject {
   //---- member properties/attributes -------
   this.rotationVelocity  //units are delta radians/sec
-  this.loaded  
-  this.showPosMarker  
-  this.showCameraAttachmentMarker   
-  this.modelScaleV  
+  this.loaded
+  this.showPosMarker
+  this.showCameraAttachmentMarker
+  this.modelScaleV
   this.object   //this will be the THREE.Object3D for the vehicle
   this.objectOffset  //this is an Offset displacing 3D model from game position.
-  this.plane 
+  this.plane
   //--------- member functions --------------
   constructor() {
   get inV() {
   get upV() {
   get leftV() {
   get futurePos() {
-  lookingAtPosAtOrigin(distance) {  
+  lookingAtPosAtOrigin(distance) {
   lookingAtPos(distance)  {
   getInUpLeft(inV, upV, leftV) {
   calculateInUpLeft () {
   yaw(deltaAngle, deltaSec) {
   pitch(deltaAngle, deltaSec)  {
   roll(deltaAngle, deltaSec)  {
+  getGravityAccelV(aBody, deltaSec) {
   lookAtVelocity () {
   rotateTowardsV (targetV, rotationRate, deltaSec)  {
   rotateTowardsVelocity (rotationRate, deltaSec)  {
   animate(deltaSec)  {
   offsetPos(offset) {
   offsetVelocity(offset) {
-  handleRocketStrike(rocket) {
-  otherObjetsInDistSq(objArray, distSq) {
+  otherObjectsInDistSq(objArray, distSq) {
   hide() {
   unhide() {
   explode() {  //override in descendants for points etc...
@@ -44,10 +44,11 @@ class T3DObject {
 
 class T3DObject extends T3DPoint {
   constructor(params) {
-    //Input:           
+    //Input:
     //  params.mass
     //  params.name
     //  params.initPosition
+    //  params.maxVelocity            -- Default = 500 deltaV/sec
     //  params.modelScale             -- optional, default = 1
     //  params.plane                  -- optional.  default ORBIT_PLANE.xz
     //  params.showPosMarker          -- default is false
@@ -56,6 +57,8 @@ class T3DObject extends T3DPoint {
     //  params.showArrow2             -- default is false
     //  params.showArrow3             -- default is false
     //  params.arrowsOffset           -- default is null (only applies if showArrow# is true)
+    //  params.damageToExplode        -- default is 100
+    //  params.collisionBoxSize             -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
     super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
@@ -65,14 +68,17 @@ class T3DObject extends T3DPoint {
     this.object = null;                          //this will be the THREE.Object3D for descendents
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model/object from game position.
     this.plane = params.plane||ORBIT_PLANE.xz;
-    this.visible = true;
     this.showPosMarker = (params.showPosMarker == true);
     if (this.showPosMarker == true) {
       this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of object
       scene.add(this.originIndicator);
     }
-    if (!params.excludeFromGameObjects) gameObjects.push(this);
+    if (!params.excludeFromGameObjects) {
+      gameObjects.push(this);
+    }  
     if (params.arrowsOffset) this.arrowsOffset = params.arrowsOffset;
+    this.damageToExplode = params.damageToExplode || 100;
+    this.cumulativeDamageValue = 0; 
   }
   //=== Class Properties =====
   get inV() {
@@ -113,7 +119,7 @@ class T3DObject extends T3DPoint {
     //       inV -- an OUT parameter.   Returns X axis vector (relative to Matrix)
     //       upV -- an OUT parameter.   Returns Y axis vector (relative to Matrix)
     //       leftV -- an OUT parameter. Returns Z axis vector (relative to Matrix)
-    //NOTE: The in, up, and left are relative to loaded object. 
+    //NOTE: The in, up, and left are relative to loaded object.
     //results: none
     if (this.object) this.object.matrix.extractBasis (leftV, upV, inV);
   }
@@ -131,28 +137,28 @@ class T3DObject extends T3DPoint {
     } else if (this.plane == ORBIT_PLANE.xz) {
       this.inVector.y = 0;                           //In
       this.leftVector.y = 0;                         //Left
-      this.upVector.x = 0;  this.upVector.z = 0;     //Up      
+      this.upVector.x = 0;  this.upVector.z = 0;     //Up
     } else if (this.plane == ORBIT_PLANE.yz) {
       this.inVector.x = 0;                           //In
       this.leftVector.x = 0;                         //Left
-      this.upVector.y = 0;  this.upVector.z = 0;     //Up            
+      this.upVector.y = 0;  this.upVector.z = 0;     //Up
     }
   }
   rotateOnObjectAxisRadians(axis, radians) {
     if (this.object) this.object.rotateOnAxis(axis, radians);
     if (this.originIndicator) this.originIndicator.rotateOnAxis(axis, radians);
-  }  
+  }
   rotateOnObjectAxis(axis, deltaAngle, deltaSec) {
     this.rotateOnObjectAxisRadians(axis, deltaAngle * deltaSec);
   }
   yaw(deltaAngle, deltaSec) {  //yaw is like a car turning left or right
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
-  //       deltaSec -- amount that has elapsed for this animation frame  
+  //       deltaSec -- amount that has elapsed for this animation frame
     this.rotateOnObjectAxis(axisUp, deltaAngle, deltaSec);
   }
   yawRadians(radians) {
     this.rotateOnObjectAxisRadians(axisUp, radians);
-  }  
+  }
   pitch(deltaAngle, deltaSec)  {  //pitch is like a ship nosing up or nosing down.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
@@ -160,7 +166,7 @@ class T3DObject extends T3DPoint {
   }
   pitchRadians(radians) {
     this.rotateOnObjectAxisRadians(axisLeft, radians);
-  }  
+  }
   roll(deltaAngle, deltaSec)  {  //roll is like a barrel roll in an airplane.
   //Input: deltaAngle -- radians/sec.  Amount to change/sec
   //       deltaSec -- amount that has elapsed for this animation frame
@@ -168,13 +174,13 @@ class T3DObject extends T3DPoint {
   }
   rollRadians(radians) {
     this.rotateOnObjectAxisRadians(axisIn, radians);
-  }  
+  }
   setPosition(P) {  //unify moving of this.position into one function
-    this.position.copy(P)          
+    this.position.copy(P)
     if (this.object) this.object.position.copy(P);
-    if (this.originIndicator) this.originIndicator.position.copy(P);  
+    if (this.originIndicator) this.originIndicator.position.copy(P);
     if ((this.object)&&(!this.object.tmgID)) this.object.tmgID = this.tmgID;
-  }          
+  }
   lookAtVelocity () {  //orient in direction of velocity
     if (this.object) this.object.lookAt(this.futurePos);
     if (this.originIndicator) this.originIndicator.lookAt(this.futurePos);
@@ -182,7 +188,7 @@ class T3DObject extends T3DPoint {
   lookAtTarget(P) {  //instantly look at target vector P
     if (this.object) this.object.lookAt(P);
     if (this.originIndicator) this.originIndicator.lookAt(P);
-  }        
+  }
   rotateTowardsV (targetV, rotationRate, deltaSec)  {  //orient towards direction of targetV
     //Input: targetV -- vector to rotate orientation towards
     //       rotationRate -- radians/sec
@@ -191,19 +197,19 @@ class T3DObject extends T3DPoint {
     //debugging=true; //temp!!!
     this.calculateInUpLeft ();
     this.laV = this.inVector;
-    projectVectorOntoPlane(this.laV, this.plane) 
+    projectVectorOntoPlane(this.laV, this.plane)
     targetV.normalize();
     this.targetV = targetV;
     let crossV = this.laV.clone();
     crossV.cross(targetV);  //cross product is perpendicular to both other vectors (up or down)
-    let dotProdToUp = this.upVector.dot(crossV);    
+    let dotProdToUp = this.upVector.dot(crossV);
     let yawLeft = (dotProdToUp > 0);
     let dotProd = this.laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
     let angle = Math.acos(dotProd);
     if (angle > 0.1) {  //ignore rotation when within small angle
       let rotRad = rotationRate * deltaSec;
       if (!yawLeft) rotRad *= -1;  //NOTE: positive rotation does yaw LEFT
-      this.yawRadians(rotRad);      
+      this.yawRadians(rotRad);
     }
   }
   rotateTowardsVelocity(rotationRate, deltaSec)  {  //gradually orient towards direction of object's velocity
@@ -215,7 +221,7 @@ class T3DObject extends T3DPoint {
     this.rotateTowardsV(fpV, rotationRate, deltaSec);
   }
   switchToPlane(targetPlane, silent) {
-    //Input: aPlane: type ORBIT_PLANE    
+    //Input: aPlane: type ORBIT_PLANE
     //This assumes that a check has been done and it is appropriate to change planes
     //This rotates the object to parallel the new plane, and maps velocity into new plane.
     if (!this.object) return;
@@ -227,12 +233,12 @@ class T3DObject extends T3DPoint {
         if (this.plane == ORBIT_PLANE.xy) {        //change y --> z
           this.velocity.z = this.velocity.y; this.velocity.y = 0;
           this.position.z = this.position.y; this.position.y = 0;
-          //object already on xz plane, so no rotation needed. 
+          //object already on xz plane, so no rotation needed.
         } else if (this.plane == ORBIT_PLANE.yz) { //change y --> x
-          this.velocity.x = this.velocity.y; this.velocity.y = 0;          
-          this.position.x = this.position.y; this.position.y = 0;          
-          //object already on xz plane, so no rotation needed. 
-        }  
+          this.velocity.x = this.velocity.y; this.velocity.y = 0;
+          this.position.x = this.position.y; this.position.y = 0;
+          //object already on xz plane, so no rotation needed.
+        }
         break;
       case ORBIT_PLANE.xy:
         this.object.rotation.x = -Pi/2; //change nose to +z into nose to +y
@@ -243,7 +249,7 @@ class T3DObject extends T3DPoint {
         } else if (this.plane == ORBIT_PLANE.yz) { //change z --> x
           this.velocity.x = this.velocity.z; this.velocity.z = 0;
           this.position.x = this.position.z; this.position.z = 0;
-        }  
+        }
         break;
       case ORBIT_PLANE.yz:
         this.object.rotation.z = -Pi/2; //keep nose to +z, but barrel-roll onto side
@@ -253,32 +259,56 @@ class T3DObject extends T3DPoint {
         } else if (this.plane == ORBIT_PLANE.xy) { //change x --> z
           this.velocity.z = this.velocity.x; this.velocity.x = 0;
           this.position.z = this.position.x; this.position.x = 0;
-        }  
+        }
         break;
     } //switch
     this.yawRadians(yaw);
     this.plane = targetPlane;
     gameCamera.handlePlaneChange(this, silent);
-  }  
-  
+  }
   allLoaded() {
     return this.loaded;
-  }  
+  }
+  getGravityAccelV(aBody, deltaSec) {
+    //Input -- aBody -- TCelestialBody
+    //         deltaSec -- elapsed time for this frame
+    //result: an acceleration vector (a deltaVelocity vector) -- NOT deltaV/sec
+
+    // F = M*A
+    // M1 * A1 = F = GRAV_CONST * M1 * M2 / (dist^2)
+    // simplifies to:
+    //      A1 = GRAV_CONST * M2 / (dist^2)   <-- A1 is acceleration of Mass1
+    let distSquaredVoxel = this.position.distanceToSquared ( aBody.position );
+    let distSquared = distSquaredVoxel * worldConvSquared * 1000 * 1000;  //meters^2
+    let accel = (GRAV_CONST * aBody.mass) / distSquared; //units is delta meters/sec^2
+    let deltaV = new THREE.Vector3(0,0,0);
+    let deltaVScale = accel *  deltaSec / 1000; //units are delta km/sec
+    deltaVScale = deltaVScale / worldConv; //units voxel/sec
+    deltaV.subVectors(aBody.position, this.position);  //get vector pointing at sun
+    deltaV.setLength(deltaVScale);  //units are delta voxels/sec
+    return deltaV;
+  }
   animateArrows(deltaSec) {
     //this is called from T3DPoint.animate()
     if (this.arrows.length == 0) return;
     if (!this.arrowsOffset) {
       super.animateArrows(deltaSec);
-    } else { 
+    } else {
       let position = this.arrowsOffset.combineWithObjectPosition(this);
       for (var i = 0; i < this.arrows.length; i++) {
-        this.arrows[i].position.copy(position);      
-      }  
-    }  
-  }    
+        this.arrows[i].position.copy(position);
+      }
+    }
+  }
   animate(deltaSec)  {
     super.animate(deltaSec);
     this.setPosition(this.position); //ensure everything with changes made by T3DPoint
+    if (!disableGravity) {
+      //Later I can make a loop that cycles through all other objects
+      //  and gets force from each -- i.e. could have 2 suns...
+      let deltaV = this.getGravityAccelV(sun, deltaSec);
+      this.accelerate(deltaV)
+    }
   }
   offsetPos(offset) {
     //input: offset -- a TOffset
@@ -299,22 +329,11 @@ class T3DObject extends T3DPoint {
     //Result: returns this.positon + offset
     let result = offset.combineWithObjectAddVector(this, this.velocity);
     return result;
-  }  
-  handleRocketStrike(rocket) {
-    //this can be overridden in descendents to handle missle strikes. 
-    this.explode();
-  }    
-  otherObjetsInDistSq(objArray, distSq) {
-    //Cycle through other objects and check distance to them, addding to 
-    //  array all objects (T3DObjects) close enough
-    //Input: objArray -- an OUT parameter
-    //       distSq -- the square of the proximity distance
-    let p = new THREE.Vector3();
-    for (var i=0; i < gameObjects.length; i++) {
-      if (gameObjects[i] == this) continue;            
-      p.copy(gameObjects[i].position);
-      p.sub(this.position);
-      if (p.lengthSq() < distSq) objArray.push(gameObjects[i]);
+  }
+  acceptDamage(damageValue, otherObj) {
+    this.cumulativeDamageValue += damageValue;
+    if (this.cumulativeDamageValue > this.damageToExplode) {
+      this.explode();
     }  
   }  
   hide() {
@@ -322,37 +341,34 @@ class T3DObject extends T3DPoint {
     this.velocity.copy(nullV);
     this.visible = false;
     if (this.object) scene.remove(this.object);
-    if (this.originIndicator) scene.remove(this.originIndicator);        
-  }  
+    if (this.originIndicator) scene.remove(this.originIndicator);
+  }
   unhide() {
     this.addToScene();
-    //if (this.object) scene.add(this.object);
-    if (this.originIndicator) scene.add(this.originIndicator); 
+    if (this.originIndicator) scene.add(this.originIndicator);
     this.visible = true;
-  }  
+  }
   explode() {  //override in descendants for points etc...
-    //FINISH -- launch explosion animation
-    this.hide(); 
+    this.hide();
+    this.cumulativeDamageValue = 0;
     explosionManager.emitByParams({
        initPosition: this.position,
-       initVelocity: this.velocity,       
-    })    
-  }     
+       initVelocity: this.velocity,
+    })
+  }
   setScaleV(scaleV) {
     if (this.object) this.object.scale.copy(scaleV);
     this.modelScaleV.copy(scaleV);
-  }   
+  }
   setScale(scalar) {
-    let scaleV = new THREE.Vector3(scalar, scalar, scalar);        
+    let scaleV = new THREE.Vector3(scalar, scalar, scalar);
     this.setScaleV(scaleV);
-  }      
+  }
   resetPositionToInit() {
     super.resetPositionToInit();
     if (this.object) this.object.rotation.set(0,0,0);
     this.plane = ORBIT_PLANE.xz;
     if (!this.visible) this.unhide();
   }
-  
+
 }
-
-
