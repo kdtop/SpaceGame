@@ -100,7 +100,14 @@ function getKeyVehicleAction(shipIndex)  {
   bufferedUserGameActions.length = 0;  //reset buffer array  
   checkHandleMappedKey(resultArray, VEHICLE_ACTION_MIN, VEHICLE_ACTION_MAX);
   if (resultArray.indexOf(VEHICLE_ACTION.thrustMore) == -1) {
-    resultArray.push(VEHICLE_ACTION.thrustLess);
+    if (shipsArray[shipIndex].throttle > 0) {    
+      resultArray.push(VEHICLE_ACTION.thrustLess);
+    }  
+  }
+  if (resultArray.indexOf(VEHICLE_ACTION.fireGatlingGun) == -1) {
+    if (shipsArray[shipIndex].gatlingGunThrottle > 0) {
+      resultArray.push(VEHICLE_ACTION.stopGatlingGun);
+    }  
   }
   return resultArray;
 }

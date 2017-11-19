@@ -288,6 +288,7 @@ class TVehicle extends TModelObject {
   }
   handleAction(actionArray, deltaSec)  {
     //Input: Action should be an array of entries from VEHICLE_ACTION
+    let unhandled = [];
     while (actionArray.length > 0) {
       let action = actionArray.pop();      
       switch (action) {
@@ -348,9 +349,14 @@ class TVehicle extends TModelObject {
           break
         case VEHICLE_ACTION.rotateZ:   //for debugging
           this.rotateOnObjectAxis(plusZV, SHIP_ROTATION_RATE, deltaSec);
-          break                    
+          break  
+        default:  
+          unhandled.push(action);      
       } //switch
     } //while  
+    for (var i=0; i < unhandled.length; i++) {
+      actionArray.push(unhandled[i]); //these can be handled by descendant class          
+    }  
   }    
     
 }

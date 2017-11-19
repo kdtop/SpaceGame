@@ -39,7 +39,6 @@ class TParticleSys {
 */
 
 // ======= Types ================
-//class TParticle extends T3DPoint {
 class TParticle extends T3DObject {
   constructor(params) {
     //Input:
@@ -230,10 +229,6 @@ class TParticleSys {
     this.decayVariance = (typeof params.decayVariance !== 'undefined') ? params.decayVariance : 5;
     this.scaleVariance = (typeof params.scaleVariance !== 'undefined') ? params.scaleVariance : 5;
     this.velocityVariance = (typeof params.velocityVariance !== 'undefined') ? params.velocityVariance : 5;
-    // this.posVariance = params.posVariance||5;
-    // this.decayVariance = params.decayVariance||5;
-    // this.scaleVariance = params.scaleVariance||5;
-    // this.velocityVariance = params.velocityVariance||5;
     this.colors = params.colors;
     this.particlesArray = [];  //will hold particles (TParticles or TAnimatedParticles)
     this.numToEmit = 0;

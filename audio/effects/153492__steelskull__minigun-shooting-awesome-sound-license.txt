@@ -1,0 +1,11 @@
+11/19/17
+Downloaded from here:
+https://freesound.org/people/Steelskull/sounds/153492/
+
+File was modified as follows, using Audicity
+--Sound was sped up
+--Sound was divided into a looping portion and an ending sound
+
+Author: Steelskull
+License: This work is licensed under the Creative Commons 0 License.
+https://creativecommons.org/publicdomain/zero/1.0/

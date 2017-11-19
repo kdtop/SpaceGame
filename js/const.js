@@ -113,6 +113,8 @@ const VEHICLE_ACTION = {
   resetPosToInit:   VEHICLE_ACTION_MIN + 12,
   dropBomb:         VEHICLE_ACTION_MIN + 13,
   switchPlane:      VEHICLE_ACTION_MIN + 14,
+  fireGatlingGun:   VEHICLE_ACTION_MIN + 15,
+  stopGatlingGun:   VEHICLE_ACTION_MIN + 16,
   
   //rotateX:          VEHICLE_ACTION_MIN + 15,   //temp, debugging
   //rotateY:          VEHICLE_ACTION_MIN + 16,   //temp, debugging
@@ -173,6 +175,9 @@ const SHIP_SOUND_ENGINE = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
 const SHIP_SOUND_ENGINE_MAX_VOLUME = 0.3;
 const SHIP_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-1303947570.mp3';
 const SHIP_SOUND_EXPLODE_MAX_VOLUME = 0.5;
+const SHIP_SOUND_GATLING_LOOP = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-loop.mp3';
+const SHIP_SOUND_GATLING_END = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-ending.mp3';
+const SHIP_SOUND_GATLING_MAX_VOLUME = 1.0;
 
 const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
@@ -212,6 +217,12 @@ const RED_ORANGE_BROWN_SPRITE_COLORS = [
 const GRAY_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
   {pct : 0.2, color: 'rgba(128, 128, 128, 1)'},  //gray at 20% radius
+  {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black blue 40% radius
+];  
+
+const WHITE_RED_SPRITE_COLORS = [
+  {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
+  {pct : 0.2, color: 'rgba(255,   0, 128, 1)'},  //rose at 20% radius
   {pct : 0.4, color: 'rgba(0  ,   0,   0, 1)'},  //black blue 40% radius
 ];  
 

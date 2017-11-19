@@ -148,7 +148,6 @@ var bufferedUserGameActions = []; //This will hold actions from onKey events etc
 var bufferedUserCameraActions = []; //This will hold actions from onKey events etc, until next cycle. 
 var bufferedUserEnvironmentActions = []; //This will hold actions from onKey events etc, until next cycle. 
 
-
 var keyMapping = {
   //-----Keys for onKeyPress handler ---------------------------
            //Note: because arr is define for this group, they will be handled in onKeyPress()
@@ -188,11 +187,11 @@ var keyMapping = {
            '3' : { msg: CAMERA_ACTION.setModeCockpit    },
            '4' : { msg: CAMERA_ACTION.setModeMouse      },
            '5' : { msg: CAMERA_ACTION.setModeHighAbove  },   
-           'q' : { arr: bufferedUserCameraActions,
+           'q' : { arr: bufferedUserCameraActions,  //debug, remove later
                    msg: CAMERA_ACTION.rollLeft,
                    noRepeat: true, //<-- must have arr: specified when using noRepeat         
                  },
-           'w' : { arr: bufferedUserCameraActions,
+           'w' : { arr: bufferedUserCameraActions,   //debug, remove later
                    msg: CAMERA_ACTION.rollRight,
                    noRepeat: true, //<-- must have arr: specified when using noRepeat            
                   },   
@@ -211,6 +210,7 @@ var keyMapping = {
            ']' : { msg: VEHICLE_ACTION.rollRight        },
            '[' : { msg: VEHICLE_ACTION.rollLeft         },
        'Enter' : { msg: VEHICLE_ACTION.orientToVelocity },
+           ' ' : { msg: VEHICLE_ACTION.fireGatlingGun   },
        //below is for debugging...
        //    'x' : { msg: VEHICLE_ACTION.rotateX          },
        //    'y' : { msg: VEHICLE_ACTION.rotateY          },
