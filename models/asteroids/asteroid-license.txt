@@ -1,0 +1,10 @@
+11/19/2017
+Asteroids with OpenSCAD file asteroid.scad
+Downloaded from here:
+https://www.thingiverse.com/thing:2153438
+License:
+Asteroid/Rock Generator by grahampheath is licensed under the Creative Commons - Attribution license.
+https://creativecommons.org/licenses/by/3.0/
+
+I imported output files into Blender for scaling, decimation, and final
+editing.

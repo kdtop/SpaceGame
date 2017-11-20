@@ -49,7 +49,6 @@ class TModelObject extends T3DObject {
     }
   }
   onModelLoadedCallback(loadedObject) {
-    //console.log('In model callback.  Name='+this.Name);
     loadedObject.traverse((child)=> this.onOBJTransvserseCallback(child)); 
     this.object = loadedObject;
     this.object.name = this.name
@@ -59,7 +58,6 @@ class TModelObject extends T3DObject {
     //     I will have to use modeling software (e.g. Blender) to correct model orientation if needed.
     this.calculateInUpLeft ();
     this.resetPositionToInit();  
-    //if (this.autoAddToScene) scene.add(this.object);    
     if (this.autoAddToScene) this.addToScene();    
     this.loaded = true;
   }  

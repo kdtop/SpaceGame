@@ -42,17 +42,17 @@ class TParticleSys {
 class TParticle extends T3DObject {
   constructor(params) {
     //Input:
-    //  params.material       -- a THREE.js material
-    //  params.initScale      -- 1 for normal size, 2 for double etc (can be fractional). Default is 1
-    //  params.decaySec       -- gives planned time for particle to decrease from initScale to 0.  Default is 1
-    //  params.initPosition   -- a THREE.Vector3.  Default is (0,0)
-    //  params.velocityV      -- vector for motion of particle.
-    //  params.mass           -- default is 1
-    //  params.name           -- default is 'particle'
-    //  params.owner         -- owner particle system object
+    //  params.material               -- a THREE.js material
+    //  params.initScale              -- 1 for normal size, 2 for double etc (can be fractional). Default is 1
+    //  params.decaySec               -- gives planned time for particle to decrease from initScale to 0.  Default is 1
+    //  params.initPosition           -- a THREE.Vector3.  Default is (0,0)
+    //  params.velocityV              -- vector for motion of particle.
+    //  params.mass                   -- default is 1
+    //  params.name                   -- default is 'particle'
+    //  params.owner                  -- owner particle system object
     //  params.excludeFromGameObjects -- default is true
-    //  params.isCollidedTestFn     -- default is undefined.  If passed, should be test func that returns T3DObject if collided
-    //  params.onCollidedFn     -- default is undefined.  If isCollided() returns object, then this.onCollidedFn(this, otherObj) is called.  
+    //  params.isCollidedTestFn       -- default is undefined.  If passed, should be test func that returns T3DObject if collided
+    //  params.onCollidedFn           -- default is undefined.  If isCollided() returns object, then this.onCollidedFn(this, otherObj) is called.  
     params.name = params.name||'particle';
     params.excludeFromGameObjects = (params.excludeFromGameObjects != false);
     super(params);
@@ -132,7 +132,7 @@ class TAnimatedParticle extends TParticle {
     //  params.velocityV        -- vector for motion of particle.
     //  params.mass             -- default is 1
     //  params.name             -- default is 'particle'
-    //  params.owner         -- owner particle system object
+    //  params.owner            -- owner particle system object
     //  params.loop             -- default is true;  It true, then animation loops.  If false, particle goes inactive at end of animation
     //  params.decaySec         -- gives planned time for particle to decrease from initScale to 0.  Default is 1
     params.name = params.name||'animated-particle';
