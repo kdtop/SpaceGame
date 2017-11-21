@@ -25,16 +25,19 @@ class TModelObject extends T3DObject {
     //  params.initPosition
     //  params.maxVelocity         -- Default = 500 deltaV/sec
     //  params.modelFName          -- required for model loading
-    //  params.modelBaseRotationY  -- optional.  Default = 0  <-- removed
+    //  params.modelColor          -- TColor. Default is (0, 0.5, 1);
     //  params.autoAddToScene      -- optional.  Default = true;
     //  params.modelScale          -- optional,  Default = 1
     //  params.plane               -- optional.  Default ORBIT_PLANE.xz
     //  params.showPosMarker       -- optional.  Default is false
     //  params.collisionBoxSize    -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
-    super(params);
+    super(params);    
     this.normalScale = this.modelScaleV.clone();
     this.autoAddToScene = (params.autoAddToScene !== false);
+    //NOTE: the r,g,b values are passed to generateTexture.  This expects input
+    //   values of each 0-1, otherwise the texture is blown-out white. 
+    this.modelColor = params.modelColor || new TColor(0, 0.5, 1);
     let modelFName = params.modelFName||''; 
     if (modelFName !== '') this.loadModel(modelFName);
   }  
@@ -71,7 +74,8 @@ class TModelObject extends T3DObject {
     }
   }
   loadModel(modelFileName) {
-    this.texture = new THREE.CanvasTexture( generateTexture( 0, 0.5, 1 ), THREE.UVMapping );
+    let texture = generateTexture(this.modelColor.r, this.modelColor.g, this.modelColor.b);
+    this.texture = new THREE.CanvasTexture(texture, THREE.UVMapping);
     let loadManager = new THREE.LoadingManager();
     loadManager.onProgress = function (item, loaded, total) {
       console.log(item, loaded, total);

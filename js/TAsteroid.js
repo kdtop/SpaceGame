@@ -9,10 +9,27 @@ class TAsteroid extends TModelObject {
     //  ... all params from TModelObject and higher ancestors
     //  (add more here)
     //-----------------------
+    params.modelFName = ASTEROID_MODEL_FNAMES[randomInt(1,3)];
+    params.name = 'asteroid';
+    let greyN = random(0.1,1);
+    params.modelColor = new TColor(greyN, greyN, greyN);
     super(params);
+    this.rotationVelocity.set(random(0,Pi/2),random(0,Pi/2),random(0,Pi/2));
+    this.euler = new THREE.Euler(0,0,0,'XYZ');
   } 
-  //finish...
-  
+  resetPositionToInit() {
+    super.resetPositionToInit();
+    this.switchToPlane(ORBIT_PLANE.xz, true);
+    this.orbit(sun);  //<-- to do, make more generic...
+  }
+  animate(deltaSec)  {
+    super.animate(deltaSec);
+    let rv=this.rotationVelocity.clone();
+    rv.multiplyScalar(deltaSec);
+    let curEuler = this.object.rotation;
+    this.euler.set(curEuler.x + rv.x, curEuler.y + rv.y, curEuler.z + rv.z, 'XYZ');
+    this.object.setRotationFromEuler(this.euler);  //make asteroid tumble.  
+  }  
 } 
 
 /*

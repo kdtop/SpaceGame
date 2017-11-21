@@ -58,7 +58,7 @@ class T3DObject extends T3DPoint {
     //  params.showArrow3             -- default is false
     //  params.arrowsOffset           -- default is null (only applies if showArrow# is true)
     //  params.damageToExplode        -- default is 100
-    //  params.collisionBoxSize             -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.collisionBoxSize       -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
     super(params);
     this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
@@ -176,7 +176,7 @@ class T3DObject extends T3DPoint {
     this.rotateOnObjectAxisRadians(axisIn, radians);
   }
   setPosition(P) {  //unify moving of this.position into one function
-    this.position.copy(P)
+    super.setPosition(P);
     if (this.object) this.object.position.copy(P);
     if (this.originIndicator) this.originIndicator.position.copy(P);
     if ((this.object)&&(!this.object.tmgID)) this.object.tmgID = this.tmgID;

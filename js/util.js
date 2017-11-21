@@ -15,6 +15,13 @@ Contents:
   function projectVectorOntoPlane(V, plane)  {  
 */
 
+class TColor {
+  constructor (r, g, b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }  
+}  
 
 function onWindowResize() {
   let oldHeight = gameCamera.viewportHeight;
@@ -62,6 +69,8 @@ function wrapRadians (Rad) {
 }
 
 function generateTexture( r, g, b ) {
+  //NOTE: it appears that the values for r, g, b should be between 0-1
+  //This creates a fractal checkerboard type texture with varying shades of the input color
   let canvas = document.createElement( 'canvas' );
   canvas.width = 256;
   canvas.height = 256;
@@ -177,4 +186,13 @@ function inVolume(p1, p2, maxDelta) {
                 (p.y <= maxDelta) &&
                 (p.z <= maxDelta));
   return result;  
+}  
+
+function random(min, max) {
+ return Math.random() * (max-min) + min;
+}  
+
+function randomInt(min,max) {
+  return Math.round(random(min,max));
+  let result = Math.floor(Math.random() * (max-min + 1) + min);
 }  

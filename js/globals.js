@@ -52,6 +52,7 @@ var aShip = new TShip({
   name: 'ship',
   modelFName: SHIP_MODEL_FNAME,
   initPosition: SHIP_INIT_POSITION,
+  showCollisionBox: true,
   //showArrow1: true,     //<--- debug, remove later
   //showArrow2: true,     //<--- debug, remove later
   //showArrow3: true,     //<--- debug, remove later
@@ -61,6 +62,15 @@ var aShip = new TShip({
   //excludeEnginePS: true,      //<--- debug, remove later
 
 });
+
+var aAsteroid = new TAsteroid({
+  mass: ASTEROID_MASS, 
+  name: 'asteroid',
+  initPosition: new THREE.Vector3(200,0,200),
+  showCollisionBox: true,  
+  collisionBoxSize: ASTEROID_COLLISION_BOX_SIZE,
+  modelScale: 50,
+});    
 
 var shipsArray = [aShip]; //<-- will contain all ships (i.e. multiple if multiplayer)
 var localShipIndex = 0;

@@ -22,7 +22,8 @@ class T3DPoint {
     //  params.showArrow2             -- default is false, unless params.showArrows==true
     //  params.showArrow3             -- default is false, unless params.showArrows==true
     //  params.arrowLength            -- default is 25
-    //  params.collisionBoxSize             -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.collisionBoxSize       -- default is 50 (this.position +/- 5 voxels/side)
+    //  params.showCollisionBox       -- default is false
     //-----------------------
     this.name = params.name||'default name';
     this.mass = params.mass||1;                  //the mass of the point
@@ -49,8 +50,26 @@ class T3DPoint {
     if (this.showArrow1 == true) this.addArrow(plusXV, this.position, this.arrowLength, 0xff0000);
     if (this.showArrow2 == true) this.addArrow(plusYV, this.position, this.arrowLength, 0x00ff00);
     if (this.showArrow3 == true) this.addArrow(plusZV, this.position, this.arrowLength, 0x0000ff);
-    this.collisionBoxSize = params.collisionBoxSize || 5;
+    this.collisionBoxSize = params.collisionBoxSize || 50;
+    if (params.showCollisionBox == true) {
+      let sideLen = this.collisionBoxSize * 2;
+      let boxGeometry = this.getCollisionBoxGeometry();
+      let material = new THREE.MeshBasicMaterial({ 
+        color: 0xffaa00, 
+        wireframe: true,
+       });
+      this.collisionBoxIndicator = new THREE.Mesh(boxGeometry, material);
+      this.collisionBoxIndicator.name = this.name + '_collisionBoxIndicator';
+      this.collisionBoxIndicator.position.copy(this.position);
+      scene.add(this.collisionBoxIndicator);      
+    }  
   }
+  getCollisionBoxGeometry() {
+    //allow override for descendents (e.g. CelestialBody will need to be sphere, not box)
+    let sideLen = this.collisionBoxSize * 2;
+    let boxGeometry = new THREE.BoxGeometry(sideLen, sideLen, sideLen);
+    return boxGeometry;    
+  }  
   pointCollides(pt) {  //pt is Vector3
     return inVolume(this.position, pt, this.collisionBoxSize); 
   }  
@@ -120,6 +139,30 @@ class T3DPoint {
       arrow.position.copy(this.position);      
     }  
   }  
+  orbit(aBody) {
+  //Call this function once to get velocity needed to orbit aBody  
+  //Input: aBody - TCelestialBody
+  //NOTE: formula found here: http://www.physicsclassroom.com/class/circles/Lesson-4/Mathematics-of-Satellite-Motion
+  //      V^2 = G * aBody.mass / R
+    let aBodyDirV = aBody.position.clone();
+    aBodyDirV.sub(this.position);
+    let distToaBody = aBodyDirV.length();  //radius of orbit
+    let orbitVelocity = Math.sqrt(GRAV_CONST * aBody.mass / distToaBody);  //scalar speed
+    aBodyDirV.normalize();
+    let orbitV = aBodyDirV.clone();  //This is a unit length vector
+    //The cross product of two vectors gives a third vector at right angles to both.
+    //NOTE: Later, when on a different plane, will need to use a different "up" vector
+    //      instead of just plusY
+    orbitV.cross(plusYV);  //result should be unit length
+    orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found via trial and error
+    this.velocity.copy(orbitV);
+  }
+  setPosition(P) {  //unify moving of this.position into one function
+    this.position.copy(P)
+    if (this.collisionBoxIndicator) {
+      this.collisionBoxIndicator.position.copy(this.position);
+    }  
+  }
   accelerate(deltaV) {
     this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
     this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec

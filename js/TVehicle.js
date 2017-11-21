@@ -168,23 +168,6 @@ class TVehicle extends TModelObject {
     this.throttle = 0;
     if (this.explodeSound) this.explodeSound.play();
   }     
-  orbit(aBody) {
-  //Input: aBody - TCelestialBody
-  //NOTE: formula found here: http://www.physicsclassroom.com/class/circles/Lesson-4/Mathematics-of-Satellite-Motion
-  //      V^2 = G * aBody.mass / R
-    let aBodyDirV = aBody.position.clone();
-    aBodyDirV.sub(this.position);
-    let distToaBody = aBodyDirV.length();  //radius of orbit
-    let orbitVelocity = Math.sqrt(GRAV_CONST * aBody.mass / distToaBody);  //scalar speed
-    aBodyDirV.normalize();
-    let orbitV = aBodyDirV.clone();  //This is a unit length vector
-    //The cross product of two vectors gives a third vector at right angles to both.
-    //NOTE: Later, when on a different plane, will need to use a different "up" vector
-    //      instead of just plusY
-    orbitV.cross(plusYV);  //result should be unit length
-    orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found via trial and error
-    this.velocity.copy(orbitV);
-  }
   switchPlanes() {
     let visibleGrids = gameGrids.getVisibleGrids();
     for (var i=0; i < visibleGrids.length; i++) {
@@ -194,12 +177,6 @@ class TVehicle extends TModelObject {
       break;
     }  
   }  
-  /*
-  accelerate(deltaV) {
-    this.velocity.add (deltaV);            //units are delta voxels -- NOT deltaV/sec
-    this.velocity.clampLength(-this.maxVelocity,this.maxVelocity);  //keep velocity length within -500 to 500 voxels/sec
-  }
-  */
   handleWrapped(deltaSec, oldPosition) {
     if (this.teleportSound) this.teleportSound.play();
   }  

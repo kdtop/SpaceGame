@@ -169,7 +169,7 @@ const SHIP_SHOW_POS_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_CAMERA_ATTACHEMENT_MARKER = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_COCKPIT_LOOKAT = DEBUG_SHOW_POSITION_MARKERS;
 const SHIP_SHOW_COCKPIT_POS = DEBUG_SHOW_POSITION_MARKERS;
-const SHIP_COLLISION_BOX_SIZE = 10;  //(+/- 10 = 20 VOXELS/SIDE)
+const SHIP_COLLISION_BOX_SIZE = 20;  //(+/- 20 = 40 VOXELS/SIDE)
 const SHIP_NUM_ROCKETS = 4;
 const SHIP_WING_SPREAD = 50; //used to evenly space out rocket firing positions.
 const SHIP_SOUND_ENGINE = 'audio/effects/Rocket-SoundBible.com-941967813.mp3';
@@ -179,8 +179,6 @@ const SHIP_SOUND_EXPLODE_MAX_VOLUME = 0.5;
 const SHIP_SOUND_GATLING_LOOP = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-loop.mp3';
 const SHIP_SOUND_GATLING_END = 'audio/effects/153492__steelskull__minigun-shooting-awesome-sound-ending.mp3';
 const SHIP_SOUND_GATLING_MAX_VOLUME = 1.0;
-//const BULLET_STRIKE_DIST = 20;
-//const BULLET_STRIKE_DIST_SQUARED = BULLET_STRIKE_DIST * BULLET_STRIKE_DIST;
 
 const ROCKET_MODEL_FNAME = 'models/AVMT300/AVMT300.obj';
 const ROCKET_MASS = 9e3;  //9,000 kg
@@ -203,6 +201,13 @@ const ROCKET_SOUND_EXPLODE = 'audio/effects/Depth_Charge_Short-SoundBible.com-13
 const TELEPORT_SOUND = 'audio/effects/150950__outroelison__teleport.mp3';
 const TELEPORT_SOUND_VOLUME = 0.3;
 const TELEPORT_PORTAL_FNAME = 'textures/portal_combined.png';
+
+const ASTEROID_MODEL_FNAME_1 = 'models/asteroids/asteroid1.obj';
+const ASTEROID_MODEL_FNAME_2 = 'models/asteroids/asteroid2.obj';
+const ASTEROID_MODEL_FNAME_3 = 'models/asteroids/asteroid3.obj';
+const ASTEROID_MODEL_FNAMES = ['',ASTEROID_MODEL_FNAME_1,ASTEROID_MODEL_FNAME_2,ASTEROID_MODEL_FNAME_3];
+const ASTEROID_COLLISION_BOX_SIZE = 25;  //(+/- 25 = 50 VOXELS/SIDE)
+const ASTEROID_MASS = 1e6;  // units are kg <-- this is mass when unscaled.  Mass will increase if scaled larger
 
 const RED_BLUE_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center
