@@ -206,8 +206,9 @@ const ASTEROID_MODEL_FNAME_1 = 'models/asteroids/asteroid1.obj';
 const ASTEROID_MODEL_FNAME_2 = 'models/asteroids/asteroid2.obj';
 const ASTEROID_MODEL_FNAME_3 = 'models/asteroids/asteroid3.obj';
 const ASTEROID_MODEL_FNAMES = ['',ASTEROID_MODEL_FNAME_1,ASTEROID_MODEL_FNAME_2,ASTEROID_MODEL_FNAME_3];
-const ASTEROID_COLLISION_BOX_SIZE = 25;  //(+/- 25 = 50 VOXELS/SIDE)
+const ASTEROID_COLLISION_BOX_SIZE = 10;  //(+/- 25 = 50 VOXELS/SIDE)
 const ASTEROID_MASS = 1e6;  // units are kg <-- this is mass when unscaled.  Mass will increase if scaled larger
+const ASTEROID_SCALE_NORMALIZER = 10;  //scale needed to make tiny model to a normal size
 
 const RED_BLUE_SPRITE_COLORS = [
   {pct : 0.0, color: 'rgba(255, 255, 255, 1)'},  //white at center

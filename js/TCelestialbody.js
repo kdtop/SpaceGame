@@ -2,14 +2,30 @@
 class TCelestialBody extends T3DObject {
   constructor(params) {
     //Input:           
-    //  params.mass
-    //  params.name
-    //  params.initPosition
-    //  params.realSize
-    //  params.gameSize
-    //  params.textureFName
-    //  params.atmosphereTextureFName
-
+    //  -- T3DPoint --
+    //  params.mass                        -- default is 1
+    //  params.name                        -- default is 'default name' 
+    //  params.initPosition                -- default is (0,0,0)
+    //  params.maxVelocity                 -- Default = 500 deltaV/sec
+    //  params.plane                       -- optional.  default ORBIT_PLANE.xz
+    //  params.showArrows                  -- default is false.  If true, this overrides the .showArrow# parameters
+    //  params.showArrow1                  -- default is false
+    //  params.showArrow2                  -- default is false
+    //  params.showArrow3                  -- default is false
+    //  params.collisionBoxSize            -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.showCollisionBox            -- default is false
+    //  -- T3DObject --                    
+    //  params.modelScale                  -- optional, default = 1
+    //  params.showPosMarker               -- default is false
+    //  params.excludeFromGameObjects      -- default is false
+    //  params.arrowsOffset                -- default is null (only applies if showArrow# is true)
+    //  params.damageToExplode             -- default is 100
+    //  params.rotationVelocity            -- default is (0,0,0)    
+    //  -- TCelestialBody --    
+    //  params.realSize                    -- default is 1 km
+    //  params.gameSize                    -- default is 1
+    //  params.textureFName                -- required filename
+    //  params.atmosphereTextureFName      -- default is ''
     //-----------------------
     super(params);
     this.realWorldSize = params.realSize||1;  // KM radius
@@ -22,9 +38,7 @@ class TCelestialBody extends T3DObject {
     this.object = new THREE.Mesh( aGeometry, aMaterial );
     this.object.name = params.name;
     this.loaded = true;
-    this.addToScene();
-    //scene.add(this.object);
-    
+    this.addToScene();    
     var atmosphereMaterial;
     params.atmosphereTextureFName = params.atmosphereTextureFName || '';
     if (params.atmosphereTextureFName == '') {
@@ -47,8 +61,7 @@ class TCelestialBody extends T3DObject {
     this.atmosphereObject = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
     this.atmosphereRotationVelocity = new THREE.Vector3(); //units are delta radians/sec
     this.atmosphereRotationVelocity.y = this.rotationVelocity.y / 2    //radians/sec
-    scene.add(this.atmosphereObject);
-    
+    scene.add(this.atmosphereObject);    
   }
   explode() {  
     //override ancestor to keep planet from blowing up.          

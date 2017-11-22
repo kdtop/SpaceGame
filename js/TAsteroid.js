@@ -2,26 +2,79 @@
 
 
 class TAsteroid extends TModelObject {
-  //This class differs from T3DObject in that the .object here is a loaded model (e.g. .obj file),
-  //     wherease in T3DObject, they could be generic constructed sphere etc.  
   constructor(params) {
     //Input:           
-    //  ... all params from TModelObject and higher ancestors
-    //  (add more here)
+    //  -- T3DPoint --
+    //  params.mass                        -- default is 1
+    //  params.name                        -- default is 'default name' 
+    //  params.initPosition                -- default is (0,0,0)
+    //  params.maxVelocity                 -- Default = 500 deltaV/sec
+    //  params.plane                       -- optional.  default ORBIT_PLANE.xz
+    //  params.showArrows                  -- default is false.  If true, this overrides the .showArrow# parameters
+    //  params.showArrow1                  -- default is false
+    //  params.showArrow2                  -- default is false
+    //  params.showArrow3                  -- default is false
+    //  params.collisionBoxSize            -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.showCollisionBox            -- default is false
+    //  -- T3DObject --                    
+    //  params.modelScale                  -- optional, default = 1
+    //  params.showPosMarker               -- default is false
+    //  params.excludeFromGameObjects      -- default is false
+    //  params.arrowsOffset                -- default is null (only applies if showArrow# is true)
+    //  params.damageToExplode             -- default is 100
+    //  params.rotationVelocity            -- default is (0,0,0)    
+    //  -- TModelObject --                 
+    //  params.modelFName                  -- required for model loading
+    //  params.modelColor                  -- TColor. Default is (0, 0.5, 1);
+    //  params.autoAddToScene              -- optional.  Default = true;
+    //  params.showPosMarker               -- optional.  Default is false
+    //  params.modelObject                 -- default is null.  If provided, then used as model instead of loading from FName
+    //  -- TAsteroid --     
+    //  params.asteroidSize                -- default is 1 (e.g. 2 = 2x size)
+    //  params.rotationVelocity            -- default is random Vector 0-2Pi/sec in each direction
     //-----------------------
-    params.modelFName = ASTEROID_MODEL_FNAMES[randomInt(1,3)];
-    params.name = 'asteroid';
-    let greyN = random(0.1,1);
+    params.modelFName = params.modelFName || ASTEROID_MODEL_FNAMES[randomInt(1,3)];
+    params.name = params.name || 'asteroid';
+    let greyN = random(0.1,0.5);
     params.modelColor = new TColor(greyN, greyN, greyN);
+    params.asteroidSize = params.asteroidSize || 1;
+    params.modelScale = ASTEROID_SCALE_NORMALIZER * params.asteroidSize;  
+    params.mass = params.mass || ASTEROID_MASS;
+    params.collisionBoxSize = params.collisionBoxSize || ASTEROID_COLLISION_BOX_SIZE;
+    params.rotationVelocity = params.rotationVelocity || new THREE.Vector3(random(0,Pi/2),random(0,Pi/2),random(0,Pi/2));
     super(params);
-    this.rotationVelocity.set(random(0,Pi/2),random(0,Pi/2),random(0,Pi/2));
+    this.unscaledMass = this.mass;
+    this.unscaledCollisionBoxSize = params.collisionBoxSize;
+    this.setScale(params.modelScale); //<-- sets scalled mass, scalled collisionBox, in addition to just scale
     this.euler = new THREE.Euler(0,0,0,'XYZ');
+    this.hide();  //default will be to be invisible on creation.  Should activated with this.activate();
   } 
   resetPositionToInit() {
     super.resetPositionToInit();
-    this.switchToPlane(ORBIT_PLANE.xz, true);
-    this.orbit(sun);  //<-- to do, make more generic...
+    //more here if needed.  
   }
+  get isActive() {
+    return this.visible;
+  }
+  setAsteroidSize(asteroidSize) {
+    //NOTE: Asteroid size will be e.g. 0.5-3 for 1/2 to 3x normal size
+    //   But because the original models are so tiny, I have to make the 
+    //   actual scaling factor much larger.  
+    let scale = ASTEROID_SCALE_NORMALIZER * asteroidSize;
+    this.mass = this.unscaledMass * Math.pow(asteroidSize, 2);  // (asteroidSize^2)     
+    this.setCollisionBoxSize(this.unscaledCollisionBoxSize * asteroidSize);
+    this.setScale(scale);
+  }  
+  inactivate() {
+    this.hide();
+  }  
+  activate(asteroidSize, position, velocity, rotationVelocity) {
+    this.setAsteroidSize(asteroidSize);
+    this.setPosition(position);
+    this.velocity.copy(velocity);
+    this.rotationVelocity.copy(rotationVelocity);
+    this.unhide();
+  }  
   animate(deltaSec)  {
     super.animate(deltaSec);
     let rv=this.rotationVelocity.clone();
@@ -32,201 +85,111 @@ class TAsteroid extends TModelObject {
   }  
 } 
 
-/*
+class TAsteroidSys {
 //This will by system like AsteroidSystem in that is will recycle asteroids
 //  as they are destroyed, and dynamically add new asteroids to pool of available
 //  ones as needed. 
-
-
-class TAsteroidSys {
-    constructor(params) {
+  constructor(params) {
     //Input:  params.name                   -- an identifier name
-    //        params.asteroidNamePrefix     -- default = ''
-    //        params.parent                 -- should be a T3DObject
-    //        params.emitRate               -- the number of asteroids to emit per second
-    //        params.positionOffset         -- a TOffset, offsets position relative to parent.position
-    //        params.velocityOffset         -- a TOffset, offsets asteroid velocity relative to parent.velocity;
-    //        params.decaySec               -- amount of time (seconds) that it takes asteroid to decay. Default is 1
-    //        params.initScale              -- initial scale of sprite -- 1 is normal, 2 is double etc, can be fractional. Default is 1
-    //        params.posVariance            -- % +/- random variance to add to initPosV, so not all from exact same spot.  E.g. 5 --> +/- 5%. Default is 5
-    //        params.velocityVariance       -- % +/- random to add to x, y, z of direction.  E.g. 5 --> +/- 5% .  Default is 5
-    //        params.decayVariance          -- % +/- random amount of time to add to decaySec.  E.g. 5 --> +/- 5%.  Default is 5
-    //        params.scaleVariance          -- % +/- of size of initial scale.  E.g. 5 --> +/- 5%.  Default is 5
-    //        params.colors                 -- JSON object with colors {{pct:0.4, color:'rgba(128,2,15,1)'},...}    
-    //        params.isCollidedTestFn       -- default is undefined.  If passed, should be test func that returns T3DObject if collided
-    //        params.onCollidedFn           -- default is undefined.  If isCollided() returns object, then this.onCollidedFn(this, otherObj) is called.              
-    //        params.collisionTestFreq      -- default is 0.  Range is 0-1.0.  e.g. if 0.35 that 35% of asteroids will be tested for collision
-    this.name = params.name||'undefined';
-    this.asteroidNamePrefix = params.asteroidNamePrefix || '';
-    this.parent = params.parent;
-    this.fullEmitRate = params.emitRate;  //this is emit rate when at full throttle (default)
-    this.emitRate = params.emitRate;
-    this.private_throttle = 100;  //should be 0-100 for 0-100%
-    this.positionOffset = params.positionOffset.clone();
-    this.velocityOffset = params.velocityOffset.clone();
-    this.decaySec = params.decaySec||1;
-    this.initScale = params.initScale||1;
-    this.posVariance = (typeof params.posVariance !== 'undefined') ? params.posVariance : 5;
-    this.decayVariance = (typeof params.decayVariance !== 'undefined') ? params.decayVariance : 5;
-    this.scaleVariance = (typeof params.scaleVariance !== 'undefined') ? params.scaleVariance : 5;
-    this.velocityVariance = (typeof params.velocityVariance !== 'undefined') ? params.velocityVariance : 5;
-    this.colors = params.colors;
-    this.asteroidsArray = [];  //will hold asteroids (TAsteroids or TAnimatedAsteroids)
-    this.numToEmit = 0;
-    this.animationTextureFName = params.animationTextureFName||'';
-    this.numTilesHoriz = params.numTilesHoriz||1;
-    this.numTilesVert = params.numTilesVert||1;
-    this.numTiles = params.numTiles||1;
-    this.cycleTime = params.cycleTime||1;
-    this.loop = (params.loop == true);
-    this.preloadedTextures = [];
-    this.numPreloadedTextures = params.numPreloadedTextures||5;    
-    this.isCollidedTestFn = params.isCollidedTestFn;
-    this.onCollidedFn = params.onCollidedFn;
-    this.collisionTestFreq = clampNum((params.collisionTestFreq||0), 0, 1);
-    this.init();
+    if (!params) params = {};
+    this.name = params.name || 'AsteroidSys';
+    this.asteroidsArray = [];  //will hold pool asteroids (TAsteroid's ) -- some visibile, perhaps some not
+    this.preloadMasters();
+    this.beltEmitted = false; //<-- will make this more sophisticated later
   }
-  // --- Properties -------
-  get throttle() {
-    return private_throttle;
-  }
-  set throttle(value) {
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    this.private_throttle = value;
-    this.emitRate = this.fullEmitRate * value / 100;
-  }
-  // --- Methods -------
-  init()  {
-    var spriteCanvas = generateSpriteCanvas(this.colors);
-    var textureMap = new THREE.CanvasTexture(spriteCanvas);
-    var spriteParams = {
-      map: textureMap,
-      blending: THREE.AdditiveBlending
-    };
-    this.aMaterial = new THREE.SpriteMaterial(spriteParams);
-  }
-  onTextureLoadedCallback(aTexture, aCallBackFn) {  //aCallBackFn if optional
-    this.preloadedTextures.push(aTexture);
-    if (aCallBackFn) aCallBackFn(aTexture);
-  }
-  onTextureLoadProgressCallback(xhr) {
-    if (xhr.lengthComputable) {
-      let percentComplete = xhr.loaded / xhr.total * 100;
-      console.log(this.animationTextureFName + ' ' + Math.round(percentComplete, 2) + '% downloaded');
+  preloadMasters() {
+    let tempParams = {
+      modelFName: ASTEROID_MODEL_FNAMES[1],
+      name: 'asteroid1',
+      excludeFromGameObjects: true,  //<-- will need to add copies into gameObjects
+      initPosition: new THREE.Vector3(0,0,0),      
+    }  
+    this.asteroidMasterCopies = []; //will hold TAsteroids for master copies of 3 types of asteroids
+    this.asteroidMasterCopies.push(new TAsteroid(tempParams));
+    //---
+    tempParams.modelFName= ASTEROID_MODEL_FNAMES[2];
+    tempParams.name= 'asteroid2';
+    this.asteroidMasterCopies.push(new TAsteroid(tempParams));
+    //---
+    tempParams.modelFName= ASTEROID_MODEL_FNAMES[3];
+    tempParams.name= 'asteroid3';
+    this.asteroidMasterCopies.push(new TAsteroid(tempParams));
+  }  
+  allLoaded() {
+    let result = true;
+    for (var i=0; i < this.asteroidMasterCopies.length; i++) {
+      result = result && this.asteroidMasterCopies[i].loaded;
+      if (!result) break;
     }
-  }
-  onTextureLoadErrorCallback(xhr) {
-    //any load error handler can go here
-  }
-  addPreloadedTexture(aCallBackFn) {  //aCallBackFn if optional
-    this.textureLoader.load(
-      this.animationTextureFName,
-      (loadedTexture) => this.onTextureLoadedCallback(loadedTexture, aCallBackFn),
-      (xhr) => this.onTextureLoadProgressCallback(xhr),
-      (xhr) => this.onTextureLoadErrorCallback(xhr)
-    );
-  }
-  getUnusedTexture(aCallbackFn) {
-    if (this.preloadedTextures.length > 0) {
-      aCallbackFn(this.preloadedTextures.pop());
-    } else {
-      this.addPreloadedTexture(
-        (aTexture) => aCallbackFn(this.preloadedTextures.pop())
-      );
-    }
-    if (this.preloadedTextures.length < 1) this.addPreloadedTexture(); //get another ready for next time.
-  }
-  getUnusedAsteroid(aCallbackFn)  {
+    return result;
+  }  
+  getUnusedAsteroid()  {
     //look for inactive asteroid in array.  If none found, than add one to array
     let asteroid = null;
-    let tempAsteroid = null;
-    let arrayLength = this.asteroidsArray.length;
-    for (var i = 0; i < arrayLength; i++) {
-      tempAsteroid = this.asteroidsArray[i];
-      if (tempAsteroid.isActive == false) {
-        asteroid = tempAsteroid;
-        break;
-      }
+    for (var i = 0; i < this.asteroidsArray.length; i++) {
+      if (this.asteroidsArray[i].isActive) continue;
+      asteroid = this.asteroidsArray[i];
+      break;
     }
     if (asteroid == null) {
-      let collidedTestFn = null;
-      let onCollidedFn = null;
-      if (Math.random() < this.collisionTestFreq) {
-        collidedTestFn = this.isCollidedTestFn;
-        onCollidedFn = this.onCollidedFn;          
-      }    
-      let asteroidParams = {  //params common to both types here...
-        owner:               this,
-        name:                this.asteroidNamePrefix + '_asteroid',
-        initScale:           0,
-        decaySec:            0,
+      let asteroidMaster = this.asteroidMasterCopies[randomInt(0,2)];
+      asteroid = new TAsteroid({  
         initPosition:        nullV,
         velocityV:           nullV,
-        isCollidedTestFn:    collidedTestFn,  //will be null, or Fn, depending on desired test frequency
-        onCollidedFn:        onCollidedFn,    //will be null, or Fn, depending on desired test frequency    
-      }        
-      //-- asteroid parameters specific to type here ---
-      asteroidParams.material = this.aMaterial;
-      //-------------------------------------------------
-      asteroid = new TAsteroid(asteroidParams);
+        isCollidedTestFn:    this.isCollidedTestFn,
+        onCollidedFn:        this.onCollidedFn,   
+        modelObject:         asteroidMaster.object,
+        //showCollisionBox:    true,  //<--- debugging         
+      });
       this.asteroidsArray.push(asteroid);
-      aCallbackFn(asteroid);      
-    } else {
-      aCallbackFn(asteroid);
     }
-    //return asteroid;
+    asteroid.setScale(random(0.2,2));
+    return asteroid;
   }
   emitByParams(params) {
     //input:  params.initPosition
     //        params.initVelocity
-    let initPosition = params.initPosition;
-    let initVelocity = params.initVelocity;
-    initPosition = randomizeVector(initPosition, this.posVariance);
-    initVelocity = randomizeVector(initVelocity, this.velocityVariance);
-    let decaySec = randomizeNum(this.decaySec, this.decayVariance);
-    let initScale = randomizeNum(this.initScale, this.scaleVariance);
-    this.getUnusedAsteroid(
-      (aAsteroid) => aAsteroid.activate(initScale, decaySec, initPosition, initVelocity)
-    );
+    //        params.rotationVelocity
+    //        params.callbackFn
+    let asteroid = this.getUnusedAsteroid();
+    asteroid.activate(random(0.2,2),            //asteroidSize
+                      params.initPosition,      //position 
+                      params.initVelocity,      //velocity
+                      params.rotationVelocity   //rotationVelocity
+                      );
+    return asteroid;
   }
-  emit() {
-    this.emitByParams({
-      initPosition: this.parent.offsetPos(this.positionOffset),
-      initVelocity: this.parent.offsetVelocity(this.velocityOffset),
-    });
-  }
-  hasActiveAsteroids() {
-    let result = false;
-    let tempAsteroid = null;
-    let arrayLength = this.asteroidsArray.length;
-    for (var i = 0; i < arrayLength; i++) {
-      tempAsteroid = this.asteroidsArray[i];
-      result = result || tempAsteroid.isActive;
-      if (result) break;  //quit as soon as 1 active asteroid found
-    }
-    return result;
-  }
-  allLoaded() {
-    let result = true;  //<-- To do: implement this...
-    //more here if needed
-    return result;
-  }
+  createBelt(numAsteroids, orbitPlane, radius) {
+    for (var i=0; i < numAsteroids; i++) {
+      let radians = random(0, 2*Pi);
+      radius = randomizeNum(radius,5);
+      let aX = Math.cos(radians) * radius;
+      let aY = Math.sin(radians) * radius;
+      let p = new THREE.Vector3(0,0,0);
+      switch (orbitPlane) {
+        case ORBIT_PLANE.xy: p.set(aX, aY,  0); break;
+        case ORBIT_PLANE.xz: p.set(aX,  0, aY); break;
+        case ORBIT_PLANE.yz: p.set( 0, aY, aX); break;
+      }  
+      let asteroid = this.emitByParams({
+        initPosition: p,
+        asteroidSize: random(0.25, 0.75),
+        initVelocity: nullV,  //will change by call to orbit() later
+        rotationVelocity:  new THREE.Vector3(random(0,Pi/2),random(0,Pi/2),random(0,Pi/2)),
+      });
+      asteroid.plane = orbitPlane;
+      asteroid.orbit(sun);  //<-- to do, make more generic...
+    }  
+  }  
   animate(deltaSec) {
-    //call emit() based on this.emitRate;
-    this.numToEmit += this.emitRate * deltaSec;  //may only increase by 0.0234 asteroids/cycle
-    while (this.numToEmit > 1) {
-      this.emit();
-      this.numToEmit -= 1;
-    }
-    //cycle through existing asteroids, animating each one.
-    this.asteroidsArray.forEach(
-      function(asteroid) {
-        asteroid.animate(deltaSec);
-      }
-    );
-  }
+    //NOTE: each asteroid is animated from the main loop (via gameObjects),
+    //   so no need to animate them here.  
+    if (!this.beltEmitted) {
+      this.createBelt(50, ORBIT_PLANE.xz, 600);
+      this.beltEmitted = true;
+      //Later I will make more clever technique, with ongoing asteroid additions, etc.  
+    }  
+  }  
+  
 }
 
-
-*/

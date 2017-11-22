@@ -1,73 +1,34 @@
-//T3DPoint is defined in T3DPoint.js
-
-
-/*
-class T3DObject {
-  //---- member properties/attributes -------
-  this.rotationVelocity  //units are delta radians/sec
-  this.loaded
-  this.showPosMarker
-  this.showCameraAttachmentMarker
-  this.modelScaleV
-  this.object   //this will be the THREE.Object3D for the vehicle
-  this.objectOffset  //this is an Offset displacing 3D model from game position.
-  this.plane
-  //--------- member functions --------------
-  constructor() {
-  get inV() {
-  get upV() {
-  get leftV() {
-  get futurePos() {
-  lookingAtPosAtOrigin(distance) {
-  lookingAtPos(distance)  {
-  getInUpLeft(inV, upV, leftV) {
-  calculateInUpLeft () {
-  yaw(deltaAngle, deltaSec) {
-  pitch(deltaAngle, deltaSec)  {
-  roll(deltaAngle, deltaSec)  {
-  getGravityAccelV(aBody, deltaSec) {
-  lookAtVelocity () {
-  rotateTowardsV (targetV, rotationRate, deltaSec)  {
-  rotateTowardsVelocity (rotationRate, deltaSec)  {
-  animate(deltaSec)  {
-  offsetPos(offset) {
-  offsetVelocity(offset) {
-  otherObjectsInDistSq(objArray, distSq) {
-  hide() {
-  unhide() {
-  explode() {  //override in descendants for points etc...
-  setScaleV(scaleV) {
-  setScale(scalar) {
-}
-
-*/
 
 class T3DObject extends T3DPoint {
   constructor(params) {
     //Input:
-    //  params.mass
-    //  params.name
-    //  params.initPosition
+    //  -- T3DPoint --
+    //  params.mass                   -- default is 1
+    //  params.name                   -- default is 'default name' 
+    //  params.initPosition           -- default is (0,0,0)
     //  params.maxVelocity            -- Default = 500 deltaV/sec
-    //  params.modelScale             -- optional, default = 1
     //  params.plane                  -- optional.  default ORBIT_PLANE.xz
-    //  params.showPosMarker          -- default is false
-    //  params.excludeFromGameObjects -- default is false
+    //  params.showArrows             -- default is false.  If true, this overrides the .showArrow# parameters
     //  params.showArrow1             -- default is false
     //  params.showArrow2             -- default is false
     //  params.showArrow3             -- default is false
+    //  params.collisionBoxSize       -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.showCollisionBox       -- default is false
+    //  -- T3DObject --
+    //  params.modelScale             -- optional, default = 1
+    //  params.showPosMarker          -- default is false
+    //  params.excludeFromGameObjects -- default is false
     //  params.arrowsOffset           -- default is null (only applies if showArrow# is true)
     //  params.damageToExplode        -- default is 100
-    //  params.collisionBoxSize       -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.rotationVelocity       -- default is (0,0,0)    
     //-----------------------
     super(params);
-    this.rotationVelocity = new THREE.Vector3(); //units are delta radians/sec
-    this.loaded = false;
+    this.rotationVelocity = params.rotationVelocity || new THREE.Vector3(); //units are delta radians/sec
+    this.loaded = false;                         //default value, changed after loading
     let modelScale = params.modelScale||1
     this.modelScaleV = new THREE.Vector3(modelScale, modelScale, modelScale);
     this.object = null;                          //this will be the THREE.Object3D for descendents
     this.objectOffset = new TOffset(0,0,0);      //this is an Offset displacing 3D model/object from game position.
-    this.plane = params.plane||ORBIT_PLANE.xz;
     this.showPosMarker = (params.showPosMarker == true);
     if (this.showPosMarker == true) {
       this.originIndicator = new THREE.AxisHelper(20);  //An Axis bars to visualize where location and orientation of object
@@ -206,7 +167,7 @@ class T3DObject extends T3DPoint {
     let yawLeft = (dotProdToUp > 0);
     let dotProd = this.laV.dot(targetV);   // = |laV| * |targetV| * cos(angle)  And angle is angle between vectors
     let angle = Math.acos(dotProd);
-    if (angle > 0.1) {  //ignore rotation when within small angle
+    if (angle > 0.05) {  //ignore rotation when within small angle
       let rotRad = rotationRate * deltaSec;
       if (!yawLeft) rotRad *= -1;  //NOTE: positive rotation does yaw LEFT
       this.yawRadians(rotRad);

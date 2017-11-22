@@ -13,10 +13,11 @@ var globalIDCounter = 0;
 class T3DPoint {
   constructor(params) {
     //Input:           
-    //  params.mass
-    //  params.name
-    //  params.initPosition
-    //  params.maxVelocity                 -- Default = 500 deltaV/sec
+    //  params.mass                   -- default is 1
+    //  params.name                   -- default is 'default name' 
+    //  params.initPosition           -- default is (0,0,0)
+    //  params.maxVelocity            -- Default = 500 deltaV/sec
+    //  params.plane                  -- optional.  default ORBIT_PLANE.xz
     //  params.showArrows             -- default is false.  If true, this overrides the .showArrow# parameters
     //  params.showArrow1             -- default is false, unless params.showArrows==true
     //  params.showArrow2             -- default is false, unless params.showArrows==true
@@ -30,6 +31,7 @@ class T3DPoint {
     this.visible = true;                         //can be changed in descendent classes
     this.initPosition = new THREE.Vector3();     //Initial position
     this.position = new THREE.Vector3();         //the is the location to be used for game physics
+    this.plane = params.plane||ORBIT_PLANE.xz;
     if (params.initPosition) {
       this.initPosition.copy(params.initPosition);
       this.position.copy(params.initPosition); //set position to initial position, if provided.
@@ -50,24 +52,27 @@ class T3DPoint {
     if (this.showArrow1 == true) this.addArrow(plusXV, this.position, this.arrowLength, 0xff0000);
     if (this.showArrow2 == true) this.addArrow(plusYV, this.position, this.arrowLength, 0x00ff00);
     if (this.showArrow3 == true) this.addArrow(plusZV, this.position, this.arrowLength, 0x0000ff);
-    this.collisionBoxSize = params.collisionBoxSize || 50;
-    if (params.showCollisionBox == true) {
-      let sideLen = this.collisionBoxSize * 2;
-      let boxGeometry = this.getCollisionBoxGeometry();
+    this.showCollisionBox = (params.showCollisionBox == true);
+    this.setCollisionBoxSize(params.collisionBoxSize || 50);
+  }
+  setCollisionBoxSize(size, visible) {
+    this.collisionBoxSize = size;
+    if (this.collisionBoxIndicator) scene.remove(this.collisionBoxIndicator);  //remove old, if exists
+    if (this.showCollisionBox) {
+      let boxGeometry = this.getCollisionBoxGeometry(size);
       let material = new THREE.MeshBasicMaterial({ 
         color: 0xffaa00, 
         wireframe: true,
-       });
+      });
       this.collisionBoxIndicator = new THREE.Mesh(boxGeometry, material);
       this.collisionBoxIndicator.name = this.name + '_collisionBoxIndicator';
       this.collisionBoxIndicator.position.copy(this.position);
-      scene.add(this.collisionBoxIndicator);      
+      scene.add(this.collisionBoxIndicator);
     }  
-  }
-  getCollisionBoxGeometry() {
+  }  
+  getCollisionBoxGeometry(size) {
     //allow override for descendents (e.g. CelestialBody will need to be sphere, not box)
-    let sideLen = this.collisionBoxSize * 2;
-    let boxGeometry = new THREE.BoxGeometry(sideLen, sideLen, sideLen);
+    let boxGeometry = new THREE.BoxGeometry(size*2, size*2, size*2);
     return boxGeometry;    
   }  
   pointCollides(pt) {  //pt is Vector3
@@ -151,9 +156,9 @@ class T3DPoint {
     aBodyDirV.normalize();
     let orbitV = aBodyDirV.clone();  //This is a unit length vector
     //The cross product of two vectors gives a third vector at right angles to both.
-    //NOTE: Later, when on a different plane, will need to use a different "up" vector
-    //      instead of just plusY
-    orbitV.cross(plusYV);  //result should be unit length
+    let orbitAxis = upVForPlane[this.plane];
+    //orbitV.cross(plusYV);  //result should be unit length
+    orbitV.cross(orbitAxis);  //result should be unit length
     orbitV.multiplyScalar(orbitVelocity * 0.0000000000125) ; //Manual adjustment factor found via trial and error
     this.velocity.copy(orbitV);
   }

@@ -14,10 +14,12 @@
     loadedStatus.ships = shipsLoaded();
     loadedStatus.sun = sun.loaded;
     loadedStatus.skyBox = skyBox.loaded;
+    loadedStatus.asteroids = asteroidManager.allLoaded();
     loadedStatus.allLoaded = (
       loadedStatus.ships &&
       loadedStatus.sun &&
       loadedStatus.skyBox && 
+      loadedStatus.asteroids &&
       loadedStatus.rocketSound  //<-- implement later
     );
   }    
@@ -36,6 +38,7 @@
       gameGrids.animate(deltaSec, shipsArray);
       debugAnimate(deltaSec);
       explosionManager.animate(deltaSec);
+      asteroidManager.animate(deltaSec);
       renderer.render( scene, gameCamera.camera );
       stats.update();
     }  

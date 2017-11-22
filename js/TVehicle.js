@@ -1,41 +1,37 @@
 //TModelObject defined in TModelObject.js
 
-/*
-class TVehicle extends TModelObject {
-  constructor(params) {
-  set throttle(value) {
-  get throttle() {
-  thrust(accel, deltaSec)  {   //add velocity in direction of IN vector
-  explode() {  
-  orbit(aBody) {
-  accelerate(deltaV) {
-  animateParticles(deltaSec) {  //animate particle system
-  animate(deltaSec) {
-  resetPositionToInit() {
-  hide() {
-  unhide() {
-  handleAction(actionArray, deltaSec)  {
-}
-
-*/
-
-
 class TVehicle extends TModelObject {
   //NOTe: This class introduces an engine and responds to gravity
   constructor(params) {
     //Input:           
-    //  params.mass
-    //  params.name
-    //  params.initPosition
-    //  params.maxThrust                   -- Default = 100 deltaV/sec
+    //  -- T3DPoint --
+    //  params.mass                        -- default is 1
+    //  params.name                        -- default is 'default name' 
+    //  params.initPosition                -- default is (0,0,0)
     //  params.maxVelocity                 -- Default = 500 deltaV/sec
-    //  params.modelFName                  -- required for model loading
-    //  params.modelBaseRotationY          -- default = 0  <-- removed
-    //  params.autoAddToScene              -- Default = true;
-    //  params.modelScale                  -- default = 1
-    //  params.plane                       -- default ORBIT_PLANE.xz
-    //  params.showCameraAttachmentMarker  -- default is false 
+    //  params.plane                       -- optional.  default ORBIT_PLANE.xz
+    //  params.showArrows                  -- default is false.  If true, this overrides the .showArrow# parameters
+    //  params.showArrow1                  -- default is false
+    //  params.showArrow2                  -- default is false
+    //  params.showArrow3                  -- default is false
+    //  params.collisionBoxSize            -- default is 5 (this.position +/- 5 voxels/side)
+    //  params.showCollisionBox            -- default is false
+    //  -- T3DObject --                    
+    //  params.modelScale                  -- optional, default = 1
     //  params.showPosMarker               -- default is false
+    //  params.excludeFromGameObjects      -- default is false
+    //  params.arrowsOffset                -- default is null (only applies if showArrow# is true)
+    //  params.damageToExplode             -- default is 100
+    //  params.rotationVelocity       -- default is (0,0,0)    
+    //  -- TModelObject --                 
+    //  params.modelFName                  -- required for model loading
+    //  params.modelColor                  -- TColor. Default is (0, 0.5, 1);
+    //  params.autoAddToScene              -- optional.  Default = true;
+    //  params.showPosMarker               -- optional.  Default is false
+    //  params.modelObject                 -- default is null.  If provided, then used as model instead of loading from FName
+    //  -- TVehicle --      
+    //  params.maxThrust                   -- Default = 100 deltaV/sec
+    //  params.showCameraAttachmentMarker  -- default is false 
     //  params.showCockpitLookat           -- default is false
     //  params.showCockpitPosition         -- default is false   
     //  params.engineColors                -- default is RED_BLUE_SPRITE_COLORS
@@ -46,7 +42,6 @@ class TVehicle extends TModelObject {
     //  params.excludeEnginePS             -- default is false
     //  params.teleportSoundFName          -- default is none
     //  params.teleportSoundVolume         -- default is 1
-    //  params.collisionBoxSize            -- default is 5 (this.position +/- 5 voxels/side)
     //-----------------------
     super(params);
     //--- private stuff -----
